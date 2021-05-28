@@ -1,0 +1,121 @@
+version: '3.9'
+services:
+    mysql1:
+        container_name: db_mysql1
+        image: mysql
+        restart: always
+        environment: 
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_DATABASE: kurcic
+        networks: 
+            - net1
+        volumes: 
+            - type: volume
+              source: data1
+              target: /var/lib/mysql
+
+    mysql2:
+        container_name: db_mysql2
+        image: mysql
+        restart: always
+        environment: 
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_DATABASE: kurcic
+        networks: 
+            - net2
+        volumes: 
+            - type: volume
+              source: data2
+              target: /var/lib/mysql
+
+    cache1:
+        container_name: cache_redis1
+        image: redis
+        restart: always
+        networks: 
+            - net3
+        volumes: 
+            - ./conf/redis.conf:/usr/local/etc/redis/redis.conf
+        command: redis-server /usr/local/etc/redis/redis.conf
+
+    graphdb:
+        container_name: graphdb_neo4j
+        image: neo4j
+        restart: always
+        environment: 
+            - NEO4J_dbms_connector_bolt_advertised__address=0.0.0.0:7687
+            - NEO4J_dbms_connector_bolt_listen__address=0.0.0.0:7687
+            - NEO4J_AUTH=none
+        networks: 
+            - connectionsrv
+        ports: 
+            - 7474:7474
+            - 7687:7687 # mora jer je neki mozak pravio da se komunikacija sa bazom radi kompletno iz fronta web aplikacije
+        volumes: 
+            - type: volume
+              source: graphdbdata
+              target: /data
+
+    mongo1:
+        container_name: nosqldb_mongo1
+        image: mongo
+        restart: always
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: root
+            MONGO_INITDB_ROOT_PASSWORD: root
+        networks: 
+            - net4
+        volumes: 
+            - type: volume
+              source: data3
+              target: /data/db
+
+    mongo-express:
+        image: mongo-express
+        restart: always
+        ports:
+            - 8082:8081
+        environment:
+            ME_CONFIG_MONGODB_SERVER: mongo1
+            ME_CONFIG_MONGODB_ADMINUSERNAME: root
+            ME_CONFIG_MONGODB_ADMINPASSWORD: root
+        networks: 
+            - net4
+
+    adminer:
+        image: adminer
+        restart: always
+        networks: 
+            - net1
+            - net2
+        ports:
+            - 8080:8080
+
+    redis-commander:
+        container_name: redis-commander
+        image: rediscommander/redis-commander
+        restart: always
+        environment:
+            - REDIS_HOST=cache1
+            - REDIS_PORT=6379
+            - REDIS_PASSWORD=helloworld
+        ports:
+            - 8081:8081
+        networks: 
+            - net3
+        depends_on: 
+            - cache1
+
+
+networks: 
+    net1:
+    net2:
+    net3:
+    connectionsrv:
+    net4:
+
+volumes: 
+    data1:
+    data2:
+    graphdbdata:
+    data3:
