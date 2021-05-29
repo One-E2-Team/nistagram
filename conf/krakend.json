@@ -1,0 +1,30 @@
+{
+  "version": 2,
+  "extra_config": {},
+  "timeout": "3000ms",
+  "cache_ttl": "300s",
+  "output_encoding": "json",
+  "name": "test",
+  "port": 80,
+  "endpoints": [
+    {
+      "endpoint": "/nedeljko.volidasejebe.txt",
+      "method": "GET",
+      "output_encoding": "string",
+      "extra_config": {},
+      "backend": [
+        {
+          "url_pattern": "/nedeljko.volidasejebe.txt",
+          "encoding": "string",
+          "sd": "static",
+          "method": "GET",
+          "extra_config": {},
+          "host": [
+            "https://igorsikuljak.rs"
+          ],
+          "disable_host_sanitize": false
+        }
+      ]
+    }
+  ]
+}

@@ -1,5 +1,17 @@
 version: '3.9'
 services:
+
+    krakend:
+        container_name: apigateway_krakend
+        image: devopsfaith/krakend
+        restart: always
+        networks: 
+            - apigateway
+        volumes: 
+            - ./conf/krakend.json:/etc/krakend/krakend.json
+        ports: 
+            - 81:80
+
     mysql1:
         container_name: db_mysql1
         image: mysql
@@ -113,6 +125,7 @@ networks:
     net3:
     connectionsrv:
     net4:
+    apigateway:
 
 volumes: 
     data1:
