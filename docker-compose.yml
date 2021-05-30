@@ -21,6 +21,8 @@ services:
             MYSQL_DATABASE: kurcic
         networks: 
             - net1
+        ports:
+            - 3306:3306 #dev
         volumes: 
             - type: volume
               source: data1

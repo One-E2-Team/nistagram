@@ -1,0 +1,14 @@
+package model
+
+import "gorm.io/gorm"
+
+type PersonalData struct {
+	gorm.Model
+	Name string `json:"name"`
+	Surname string `json:"surname"`
+	Email string `json:"email"`
+	Telephone string `json:"telephone"`
+	Gender string `json:"gender"`
+	BirthDate string `json:"birthDate"`
+	InterestedIn []Interest `json:"interestedIn" gorm:"many2many:person_interests;"`
+}
