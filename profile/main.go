@@ -1,9 +1,10 @@
 package main
 
 import (
+	"./model"
 	"fmt"
-	"net/http"
 	"github.com/gorilla/mux"
+	"net/http"
 )
 
 func test(w http.ResponseWriter, r *http.Request) {
@@ -11,6 +12,10 @@ func test(w http.ResponseWriter, r *http.Request) {
 }
 
 func main(){
+	a := model.Profile{
+		Biography: "kurac",
+	}
+	fmt.Println(a)
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", test).Methods("GET")
 
