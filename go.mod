@@ -1,4 +1,4 @@
-module github.com/One-E2-Team/nistagram
+module nistagram
 
 go 1.16
 

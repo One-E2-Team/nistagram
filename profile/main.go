@@ -1,17 +1,17 @@
 package main
 
 import (
-	"./model"
 	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
+	"nistagram/profile/model"
 )
 
 func test(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Test")
 }
 
-func main(){
+func main() {
 	a := model.Profile{
 		Biography: "kurac",
 	}
