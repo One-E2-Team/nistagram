@@ -3,22 +3,21 @@ package main
 import (
 	"fmt"
 	"github.com/gorilla/mux"
-	"net/http"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"net/http"
+	"nistagram/profile/handler"
 	"nistagram/profile/model"
+	"nistagram/profile/repository"
+	"nistagram/profile/service"
 )
 
-func test(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Test")
-}
-
-func initDB(){
+func initDB() *gorm.DB{
 	db, err := gorm.Open(mysql.Open("root:root@tcp(127.0.0.1:3306)/kurcic?charset=utf8mb4&parseTime=True&loc=Local"))
 
 	if err != nil{
 		fmt.Printf("Cannot connect to database!")
-		return
+		return nil
 	}
 
 	db.AutoMigrate(&model.Category{})
@@ -28,16 +27,32 @@ func initDB(){
 	db.AutoMigrate(&model.VerificationRequest{})
 	db.AutoMigrate(&model.Profile{})
 
+	return db
+}
+
+func initProfileRepo(database *gorm.DB) *repository.ProfileRepository{
+	return &repository.ProfileRepository{Database: database}
+}
+
+func initService(profileRepo *repository.ProfileRepository) *service.ProfileService{
+	return &service.ProfileService{ProfileRepository: profileRepo}
+}
+
+func initHandler(service *service.ProfileService) *handler.Handler{
+	return &handler.Handler{ProfileService: service}
+}
+
+func handleFunc(handler *handler.Handler){
+	router := mux.NewRouter().StrictSlash(true)
+	router.HandleFunc("/", handler.Register).Methods("POST")
+	fmt.Printf("Starting server..")
+	http.ListenAndServe(":8083", router)
 }
 
 func main() {
-
-	initDB()
-
-	fmt.Printf("Starting server..")
-
-	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/", test).Methods("GET")
-
-	http.ListenAndServe(":8081", router)
+	db := initDB()
+	profileRepo := initProfileRepo(db)
+	profileService := initService(profileRepo)
+	handler := initHandler(profileService)
+	handleFunc(handler)
 }

@@ -12,3 +12,7 @@ type PersonalData struct {
 	BirthDate string `json:"birthDate"`
 	InterestedIn []Interest `json:"interestedIn" gorm:"many2many:person_interests;"`
 }
+
+func (personalData *PersonalData) AddItem(item Interest){
+	personalData.InterestedIn = append(personalData.InterestedIn, item)
+}
