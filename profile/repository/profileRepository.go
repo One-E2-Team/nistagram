@@ -12,8 +12,11 @@ type ProfileRepository struct {
 
 func (repo *ProfileRepository) CreateProfile(profile *model.Profile) error{
 	result := repo.Database.Create(profile)
-	print(result.Error.Error())
 	fmt.Println(result.RowsAffected)
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("Profile not created")
+	}
+	fmt.Println("Profile Created")
 	return nil
 }
 

@@ -2,6 +2,8 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
+	"gopkg.in/go-playground/validator.v9"
 	"net/http"
 	"nistagram/profile/dto"
 	"nistagram/profile/service"
@@ -16,6 +18,20 @@ func (handler *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&dto)
 
 	if err != nil{
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	fmt.Print(dto)
+
+	v := validator.New()
+	err = v.Struct(dto)
+
+	if err != nil {
+		for _, e := range err.(validator.ValidationErrors) {
+			w.Write([]byte(e.Field()))
+			w.Write([]byte(" "))
+		}
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
