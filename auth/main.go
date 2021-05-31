@@ -6,31 +6,52 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"net/http"
+	"nistagram/auth/handler"
 	"nistagram/auth/model"
+	"nistagram/auth/repository"
+	"nistagram/auth/service"
 )
 
 func test(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Test")
 }
 
-func initDB() bool {
+func initDB() *gorm.DB {
 	db, err := gorm.Open(mysql.Open("root:root@tcp(127.0.0.1:3307)/auth?charset=utf8mb4&parseTime=True&loc=Local"))
 	if err != nil {
 		fmt.Printf("Cannot connect to database!")
-		return false
+		return nil
 	}
 	db.AutoMigrate(&model.Privilege{})
 	db.AutoMigrate(&model.Credentials{})
 	db.AutoMigrate(&model.Role{})
 	db.AutoMigrate(&model.User{})
-	return true
+	return db
+}
+
+func initAuthRepo(db *gorm.DB) *repository.AuthRepository {
+	return &repository.AuthRepository{Database: db}
+}
+
+func initAuthService(repo *repository.AuthRepository) *service.AuthService {
+	return &service.AuthService{AuthRepository: repo}
+}
+
+func initAuthHandler(service *service.AuthService) *handler.AuthHandler {
+	return &handler.AuthHandler{AuthService: service}
+}
+
+func handlerFunc(handler *handler.AuthHandler){
+	fmt.Println("Auth server started...")
+	router := mux.NewRouter().StrictSlash(true)
+	router.HandleFunc("/login", handler.LogIn).Methods("POST")
+	http.ListenAndServe(":8000", router)
 }
 
 func main() {
-	if initDB() {
-		fmt.Println("Auth server started...")
-		router := mux.NewRouter().StrictSlash(true)
-		router.HandleFunc("/", test).Methods("GET")
-		http.ListenAndServe(":8082", router)
-	}
+	db := initDB()
+	authRepo := initAuthRepo(db)
+	authService := initAuthService(authRepo)
+	authHandler := initAuthHandler(authService)
+	handlerFunc(authHandler)
 }
