@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"github.com/gorilla/mux"
-	"net/http"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"net/http"
 	"nistagram/profile/model"
 )
 
@@ -14,7 +14,7 @@ func test(w http.ResponseWriter, r *http.Request) {
 }
 
 func initDB(){
-	db, err := gorm.Open(mysql.Open("root:root@tcp(127.0.0.1:3306)/kurcic?charset=utf8mb4&parseTime=True&loc=Local"))
+	db, err := gorm.Open(mysql.Open("root:root@tcp(127.0.0.1:3306)/profile?charset=utf8mb4&parseTime=True&loc=Local"))
 
 	if err != nil{
 		fmt.Printf("Cannot connect to database!")
