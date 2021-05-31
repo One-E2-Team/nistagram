@@ -12,13 +12,13 @@ services:
         ports: 
             - 81:80
 
-    mysql1:
-        container_name: db_mysql1
+    mysql_profile:
+        container_name: db_mysql_profile
         image: mysql
         restart: always
         environment: 
             MYSQL_ROOT_PASSWORD: root
-            MYSQL_DATABASE: kurcic
+            MYSQL_DATABASE: profile
         networks: 
             - net1
         ports:
@@ -28,15 +28,17 @@ services:
               source: data1
               target: /var/lib/mysql
 
-    mysql2:
-        container_name: db_mysql2
+    mysql_auth:
+        container_name: db_mysql_auth
         image: mysql
         restart: always
         environment: 
             MYSQL_ROOT_PASSWORD: root
-            MYSQL_DATABASE: kurcic
+            MYSQL_DATABASE: auth
         networks: 
             - net2
+        ports:
+            - 3307:3306 #dev
         volumes: 
             - type: volume
               source: data2

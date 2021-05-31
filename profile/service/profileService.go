@@ -11,7 +11,7 @@ type ProfileService struct {
 }
 
 func (service *ProfileService) Register(dto dto.RegistrationDto) error{
-	profileSettings := model.ProfileSettings{IsPrivate: dto.IsPrivate, CanRecieveMessageFromUnknown: true, CanBeTagged: true}
+	profileSettings := model.ProfileSettings{IsPrivate: dto.IsPrivate, CanReceiveMessageFromUnknown: true, CanBeTagged: true}
 	personalData := model.PersonalData{Name: dto.Name, Surname: dto.Surname,
 		Email: dto.Email, Telephone: dto.Telephone, Gender: dto.Gender, BirthDate: dto.BirthDate}
 	for _, item := range dto.InterestedIn{
