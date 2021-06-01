@@ -27,6 +27,10 @@ func (service *ProfileService) Register(dto dto.RegistrationDto) error{
 }
 
 func (service *ProfileService) Search(username string) []string{
-	return service.ProfileRepository.FindProfilesByUsername(username)
+	return service.ProfileRepository.FindUsernameContains(username)
+}
+
+func (service *ProfileService) GetProfileByUsername(username string) *model.Profile{
+	return service.ProfileRepository.FindProfileByUsername(username)
 }
 

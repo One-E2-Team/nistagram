@@ -45,7 +45,7 @@ func (handler *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	}else {
 		w.WriteHeader(http.StatusCreated)
 	}
-
+	w.Write([]byte("{\"success\":\"ok\"}"))
 	w.Header().Set("Content-Type", "application/json")
 }
 
@@ -54,5 +54,13 @@ func (handler *Handler) Search (w http.ResponseWriter, r *http.Request){
 	result := handler.ProfileService.Search(vars["username"])
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result)
+	w.WriteHeader(http.StatusOK)
+}
+
+func (handler *Handler) GetProfileByUsername (w http.ResponseWriter, r *http.Request){
+	vars := mux.Vars(r)
+	result := handler.ProfileService.GetProfileByUsername(vars["username"])
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(&result)
 	w.WriteHeader(http.StatusOK)
 }
