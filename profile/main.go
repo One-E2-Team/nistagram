@@ -19,7 +19,7 @@ func initDB() *gorm.DB {
 	var err error
 
 	for {
-		db, err = gorm.Open(mysql.Open("root:root@tcp(mysql_profile:3306)/profile?charset=utf8mb4&parseTime=True&loc=Local"))
+		db, err = gorm.Open(mysql.Open("root:root@tcp(127.0.0.1:3306)/profile?charset=utf8mb4&parseTime=True&loc=Local"))
 
 		if err != nil {
 			fmt.Printf("Cannot connect to database! Sleeping 10s and then retrying....")
@@ -55,7 +55,7 @@ func handleFunc(handler *handler.Handler) {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", handler.Register).Methods("POST")
 	fmt.Printf("Starting server..")
-	http.ListenAndServe(":8080", router)
+	http.ListenAndServe(":8083", router)
 }
 
 func main() {
