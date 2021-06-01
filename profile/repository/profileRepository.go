@@ -25,3 +25,14 @@ func (repo *ProfileRepository) FindInterestByName(name string) model.Interest{
 	repo.Database.Find(&interest, "name", name)
 	return *interest
 }
+
+func (repo *ProfileRepository) FindProfilesByUsername(username string) []string{
+	var result []string
+	err := repo.Database.Select("username").Where("username LIKE ?", "%" + username + "%").Find(&result)
+	if err != nil{
+		fmt.Println(err)
+		return nil
+	}
+	return result
+}
+

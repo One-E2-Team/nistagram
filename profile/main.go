@@ -63,6 +63,7 @@ func initHandler(service *service.ProfileService) *handler.Handler {
 func handleFunc(handler *handler.Handler) {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", handler.Register).Methods("POST")
+	router.HandleFunc("{username}", handler.Search).Methods("GET")
 	fmt.Printf("Starting server..")
 	var port string = "8083"
 	_, ok := os.LookupEnv("DOCKER_ENV_SET")

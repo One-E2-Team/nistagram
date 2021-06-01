@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/mux"
 	"gopkg.in/go-playground/validator.v9"
 	"net/http"
 	"nistagram/profile/dto"
@@ -46,4 +47,12 @@ func (handler *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
+}
+
+func (handler *Handler) Search (w http.ResponseWriter, r *http.Request){
+	vars := mux.Vars(r)
+	result := handler.ProfileService.Search(vars["username"])
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(result)
+	w.WriteHeader(http.StatusOK)
 }
