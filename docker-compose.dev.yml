@@ -5,19 +5,46 @@ services:
         container_name: apigateway_krakend
         image: devopsfaith/krakend
         restart: always
-        network_mode: host
+        networks: 
+            - net_apigateway
         volumes: 
-            - ./conf/krakend.dev.json:/etc/krakend/krakend.json
+            - ./conf/krakend.json:/etc/krakend/krakend.json
         ports: 
             - 81:80
 
-    db_profile:
-        container_name: db_mysql_profile
+    static:
+        container_name: static_srv_nginx
+        image: nginx
+        restart: always
+        networks: 
+            - net_apigateway
+        volumes: 
+            - "../nistagramstaticdata/dev:/usr/share/nginx/html:ro"
+
+    profile:
+        container_name: profile_ms
+        restart: always
+        environment: 
+            DB_USERNAME: root
+            DB_PASSWORD: root
+            DOCKER_ENV_SET_DEV: ""
+        build:
+            context: .
+            dockerfile: Build.dockerfile
+            args: 
+                TARGET_MS_GO: profile
+        networks: 
+            - net_apigateway
+            - net_profile
+        depends_on: 
+            - db_relational
+            
+    db_relational:
+        container_name: db_mysql
         image: mysql
         restart: always
         environment: 
             MYSQL_ROOT_PASSWORD: root
-            MYSQL_DATABASE: profile
         networks: 
             - net_profile
         ports:
@@ -26,22 +53,7 @@ services:
             - type: volume
               source: data_profile
               target: /var/lib/mysql
-
-    db_auth:
-        container_name: db_mysql_auth
-        image: mysql
-        restart: always
-        environment: 
-            MYSQL_ROOT_PASSWORD: root
-            MYSQL_DATABASE: auth
-        networks: 
-            - net_auth
-        ports:
-            - 3307:3306 #dev
-        volumes: 
-            - type: volume
-              source: data_auth
-              target: /var/lib/mysql
+            - "./conf/dev/mysql:/docker-entrypoint-initdb.d"
 
     cache_rbac_:
         container_name: cache_redis1
@@ -111,7 +123,7 @@ services:
         image: rediscommander/redis-commander
         restart: always
         environment:
-            - REDIS_HOST=cache1
+            - REDIS_HOST=cache_rbac_
             - REDIS_PORT=6379
             - REDIS_PASSWORD=helloworld
         ports:

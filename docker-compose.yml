@@ -12,13 +12,22 @@ services:
         ports: 
             - 81:80
 
+    static:
+        container_name: static_srv_nginx
+        image: nginx
+        restart: always
+        networks: 
+            - net_apigateway
+        volumes: 
+            - "../nistagramstaticdata/prod:/usr/share/nginx/html:ro"
+
     profile:
         container_name: profile_ms
         restart: always
         environment: 
             DB_USERNAME: ${DB_PROFILE_USERNAME}
             DB_PASSWORD: ${DB_PROFILE_PASSWORD}
-            DOCKER_ENV_SET: ""
+            DOCKER_ENV_SET_PROD: ""
         build:
             context: .
             dockerfile: Build.dockerfile
