@@ -1,6 +1,16 @@
 version: '3.9'
 services:
 
+    apigateway:
+        container_name: apigateway_krakend
+        image: devopsfaith/krakend
+        restart: always
+        network_mode: host
+        volumes: 
+            - ./conf/krakend.dev.json:/etc/krakend/krakend.json
+        ports: 
+            - 81:80
+
     db_profile:
         container_name: db_mysql_profile
         image: mysql
@@ -91,8 +101,8 @@ services:
         image: adminer
         restart: always
         networks: 
-            - net1
-            - net2
+            - net_profile
+            - net_auth
         ports:
             - 8080:8080
 
@@ -107,7 +117,7 @@ services:
         ports:
             - 8081:8081
         networks: 
-            - net3
+            - net_
         depends_on: 
             - cache_rbac_
 

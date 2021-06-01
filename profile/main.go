@@ -16,8 +16,7 @@ import (
 
 func initDB() *gorm.DB {
 
-	var db *gorm.DB
-	var err error
+	var (db *gorm.DB; err error)
 	time.Sleep(5 * time.Second)
 	var dbhost, dbport, dbusername, dbpassword string = "localhost", "3306", "root", "root"
 	_, ok := os.LookupEnv("DOCKER_ENV_SET")
