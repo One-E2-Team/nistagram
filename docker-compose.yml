@@ -41,6 +41,8 @@ services:
             - type: volume
               source: data1
               target: /var/lib/mysql
+        cap_add:
+            - SYS_NICE  # CAP_SYS_NICE
 
     mysql_auth:
         container_name: db_mysql_auth

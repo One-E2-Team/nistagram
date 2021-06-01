@@ -41,7 +41,7 @@ func initAuthHandler(service *service.AuthService) *handler.AuthHandler {
 	return &handler.AuthHandler{AuthService: service}
 }
 
-func handlerFunc(handler *handler.AuthHandler){
+func handlerFunc(handler *handler.AuthHandler) {
 	fmt.Println("Auth server started...")
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/login", handler.LogIn).Methods("POST")
