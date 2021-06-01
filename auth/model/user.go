@@ -7,8 +7,9 @@ import (
 
 type User struct {
 	gorm.Model
-	Credentials      Credentials `json:"credentials" gorm:"foreignKey:ID"`
-	APIToken         string      `json:"apiToken" gorm:"not null"`
+	Username string `json:"username" gorm:"unique;not null"`
+	Password string `json:"password" gorm:"not null"`
+	APIToken         string      `json:"apiToken"`
 	IsDeleted        bool        `json:"isDeleted" gorm:"not null"`
 	Roles            []Role      `json:"roles" gorm:"many2many:user_roles;"`
 	Email            string      `json:"email" gorm:"not null;unique"`

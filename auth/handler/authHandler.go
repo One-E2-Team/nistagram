@@ -27,3 +27,20 @@ func (handler *AuthHandler) LogIn(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 }
+
+func (handler *AuthHandler) Register(w http.ResponseWriter, r *http.Request){
+	var dto dto.RegisterDTO
+	err := json.NewDecoder(r.Body).Decode(&dto)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	err = handler.AuthService.Register(dto)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	} else {
+		w.WriteHeader(http.StatusCreated)
+	}
+	w.Header().Set("Content-Type", "application/json")
+}

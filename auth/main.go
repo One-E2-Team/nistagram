@@ -23,7 +23,6 @@ func initDB() *gorm.DB {
 		return nil
 	}
 	db.AutoMigrate(&model.Privilege{})
-	db.AutoMigrate(&model.Credentials{})
 	db.AutoMigrate(&model.Role{})
 	db.AutoMigrate(&model.User{})
 	return db
@@ -45,6 +44,7 @@ func handlerFunc(handler *handler.AuthHandler) {
 	fmt.Println("Auth server started...")
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/login", handler.LogIn).Methods("POST")
+	router.HandleFunc("/register", handler.Register).Methods("POST")
 	http.ListenAndServe(":8000", router)
 }
 
