@@ -16,3 +16,4 @@
 
 
 conf/redis.conf
+conf/.env

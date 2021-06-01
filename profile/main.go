@@ -22,7 +22,7 @@ func initDB() *gorm.DB {
 	var dbhost, dbport, dbusername, dbpassword string = "localhost", "3306", "root", "root"
 	_, ok := os.LookupEnv("DOCKER_ENV_SET")
 	if ok {
-		dbhost = "mysql_profile"
+		dbhost = "db_profile"
 		dbport = "3306"
 		dbusername = os.Getenv("DB_USERNAME")
 		dbpassword = os.Getenv("DB_PASSWORD")

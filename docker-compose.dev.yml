@@ -1,44 +1,17 @@
 version: '3.9'
 services:
 
-    apigateway:
-        container_name: apigateway_krakend
-        image: devopsfaith/krakend
-        restart: always
-        networks: 
-            - net_apigateway
-        volumes: 
-            - ./conf/krakend.json:/etc/krakend/krakend.json
-        ports: 
-            - 81:80
-
-    profile:
-        container_name: profile_ms
-        restart: always
-        environment: 
-            DB_USERNAME: ${DB_PROFILE_USERNAME}
-            DB_PASSWORD: ${DB_PROFILE_PASSWORD}
-            DOCKER_ENV_SET: ""
-        build:
-            context: .
-            dockerfile: Build.dockerfile
-            args: 
-                TARGET_MS_GO: profile
-        networks: 
-            - net_apigateway
-            - net_profile
-        depends_on: 
-            - db_profile
-
     db_profile:
         container_name: db_mysql_profile
         image: mysql
         restart: always
         environment: 
-            MYSQL_ROOT_PASSWORD: ${DB_PROFILE_USERNAME}
+            MYSQL_ROOT_PASSWORD: root
             MYSQL_DATABASE: profile
         networks: 
             - net_profile
+        ports:
+            - 3306:3306 #dev
         volumes: 
             - type: volume
               source: data_profile
@@ -53,6 +26,8 @@ services:
             MYSQL_DATABASE: auth
         networks: 
             - net_auth
+        ports:
+            - 3307:3306 #dev
         volumes: 
             - type: volume
               source: data_auth
@@ -78,6 +53,9 @@ services:
             - NEO4J_AUTH=none
         networks: 
             - net_connection
+        ports: 
+            - 7474:7474
+            - 7687:7687 # mora jer je neki mozak pravio da se komunikacija sa bazom radi kompletno iz fronta web aplikacije
         volumes: 
             - type: volume
               source: data_connection
@@ -97,14 +75,50 @@ services:
               source: data3
               target: /data/db
 
+    mongo-express:
+        image: mongo-express
+        restart: always
+        ports:
+            - 8082:8081
+        environment:
+            ME_CONFIG_MONGODB_SERVER: mongo1
+            ME_CONFIG_MONGODB_ADMINUSERNAME: root
+            ME_CONFIG_MONGODB_ADMINPASSWORD: root
+        networks: 
+            - net4
+
+    adminer:
+        image: adminer
+        restart: always
+        networks: 
+            - net1
+            - net2
+        ports:
+            - 8080:8080
+
+    redis-commander:
+        container_name: redis-commander
+        image: rediscommander/redis-commander
+        restart: always
+        environment:
+            - REDIS_HOST=cache1
+            - REDIS_PORT=6379
+            - REDIS_PASSWORD=helloworld
+        ports:
+            - 8081:8081
+        networks: 
+            - net3
+        depends_on: 
+            - cache_rbac_
+
 
 networks: 
     net_apigateway:
     net_profile:
     net_auth:
     net_connection:
-    net4:
     net_:
+    net4:
 
 volumes: 
     data_profile:
