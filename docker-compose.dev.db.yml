@@ -7,6 +7,7 @@ services:
         restart: always
         environment: 
             MYSQL_ROOT_PASSWORD: root
+            MYSQL_DATABASE: profile
         networks: 
             - net_profile
         ports:

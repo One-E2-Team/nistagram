@@ -1,7 +1,6 @@
 package service
 
 import (
-	//"errors"
 	"fmt"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -19,8 +18,6 @@ type AuthService struct {
 }
 
 func (service *AuthService) LogIn(dto dto.LogInDTO) (*model.User, error) {
-	//var user *model.User
-	//service.AuthRepository.Database.Find(&user, "username", dto.Username)
 	user, err := service.AuthRepository.GetUserByUsername(dto.Username)
 	if err != nil {
 		return nil, err
@@ -30,7 +27,6 @@ func (service *AuthService) LogIn(dto dto.LogInDTO) (*model.User, error) {
 	}
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(dto.Password))
 	if err != nil {
-		fmt.Println(err.Error())
 		return nil, err
 	}
 	return user, nil
@@ -46,7 +42,7 @@ func (service *AuthService) SendMail(sendTo string, subject string, mailMessage 
 	auth := smtp.PlainAuth("", from, password, smtpHost)
 	err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, msg)
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Println(err)
 		return
 	}
 	fmt.Println("Email Sent Successfully!")
@@ -57,9 +53,6 @@ func (service *AuthService) Register(dto dto.RegisterDTO) error {
 	user := model.User{Username: dto.Username, Password: pass,
 		Email: dto.Email, Roles: nil, IsDeleted: false, ValidationExpire: time.Now()}
 	err := service.AuthRepository.CreateUser(&user)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
 	return err
 }
 
@@ -79,7 +72,10 @@ func (service *AuthService) RequestPassRecovery(username string) error {
 	}
 	user.ValidationUid = uuid.NewString()
 	user.ValidationExpire = time.Now().Add(20 * time.Minute)
-	service.AuthRepository.UpdateUser(user)
+	err = service.AuthRepository.UpdateUser(*user)
+	if err != nil {
+		return err
+	}
 	//TODO: change host, port and html page
 	var message = "Visit this link in the next 20 minutes to change your password: http://localhost:8000/recovery.html?id=" +
 		strconv.FormatUint(uint64(user.ID), 10) + "&str=" + user.ValidationUid
@@ -90,16 +86,18 @@ func (service *AuthService) RequestPassRecovery(username string) error {
 func (service *AuthService) ChangePassword(dto dto.RecoveryDTO) error {
 	user, err := service.AuthRepository.GetUserByID(dto.Id)
 	if err != nil {
-		fmt.Println(err.Error())
 		return err
 	}
 	if user.IsDeleted || user.ValidationUid != dto.Uuid || time.Now().Unix() > user.ValidationExpire.Unix() {
-		return fmt.Errorf("ERROR")
+		return fmt.Errorf("BAD_RECOVERY_DATA")
 	}
 	user.ValidationExpire = time.Now()
 	user.ValidationUid = ""
 	user.Password = hashAndSalt(dto.Password)
-	service.AuthRepository.UpdateUser(user)
+	err = service.AuthRepository.UpdateUser(*user)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
