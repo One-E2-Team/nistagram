@@ -13,6 +13,31 @@ import (
 	"os"
 )
 
+func initDB() *mongo.Client {
+	var dbhost, dbport, dbusername, dbpassword string = "localhost", "8084", "root", "root" // dev.db environment
+	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD") // production environment
+	if ok {
+		dbhost = "mongo1"
+		dbport = "27017"
+		dbusername = os.Getenv("MONGO_INITDB_ROOT_USERNAME")
+		dbpassword = os.Getenv("MONGO_INITDB_ROOT_PASSWORD")
+	} else {
+		_, ok := os.LookupEnv("DOCKER_ENV_SET_DEV") // dev front environment
+		if ok {
+			dbhost = "mongo1"
+			dbport = "27017"
+			dbusername = os.Getenv("MONGO_INITDB_ROOT_USERNAME")
+			dbpassword = os.Getenv("MONGO_INITDB_ROOT_PASSWORD")
+		}
+	}
+
+	clientOptions := options.Client().ApplyURI("mongodb://"+dbusername+":"+dbpassword+"@" +dbhost+":"+dbport )
+	client, err := mongo.Connect(context.TODO(), clientOptions)
+	printErrorTrack(err)
+	fmt.Println("Connected to mongodb")
+	return client
+}
+
 func initPostRepo(client *mongo.Client) *repository.PostRepository {
 	return &repository.PostRepository{Client: client}
 }
@@ -48,13 +73,8 @@ func closeConnection(client *mongo.Client){
 
 
 func main() {
-	clientOptions := options.Client().ApplyURI("mongodb://root:root@localhost:8084")
-	client, err := mongo.Connect(context.TODO(), clientOptions)
-	printErrorTrack(err)
-	fmt.Println("Connected to mongodb")
+	client := initDB()
 	defer closeConnection(client)
-
-
 	postRepo := initPostRepo(client)
 	postService := initService(postRepo)
 	postHandler := initHandler(postService)
