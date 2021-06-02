@@ -29,12 +29,14 @@ func (handler *AuthHandler) LogIn(w http.ResponseWriter, r *http.Request) {
 	var dto dto.LogInDTO
 	err := json.NewDecoder(r.Body).Decode(&dto)
 	if err != nil {
+		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	var user *model.User
 	user, err = handler.AuthService.LogIn(dto)
 	if err != nil {
+		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -46,6 +48,7 @@ func (handler *AuthHandler) LogIn(w http.ResponseWriter, r *http.Request) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signedToken, err := token.SignedString([]byte(TokenSecret))
 	if err != nil {
+		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -58,16 +61,18 @@ func (handler *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var dto dto.RegisterDTO
 	err := json.NewDecoder(r.Body).Decode(&dto)
 	if err != nil {
+		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	err = handler.AuthService.Register(dto)
 	if err != nil {
+		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
-	} else {
-		w.WriteHeader(http.StatusCreated)
 	}
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte("{\"success\":\"ok\"}"))
 	w.Header().Set("Content-Type", "application/json")
 }
 
@@ -75,12 +80,13 @@ func (handler *AuthHandler) RequestPassRecovery(w http.ResponseWriter, r *http.R
 	var username string
 	err := json.NewDecoder(r.Body).Decode(&username)
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	err = handler.AuthService.RequestPassRecovery(username)
 	if err != nil {
+		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -93,16 +99,17 @@ func (handler *AuthHandler) ChangePassword(w http.ResponseWriter, r *http.Reques
 	var dto dto.RecoveryDTO
 	err := json.NewDecoder(r.Body).Decode(&dto)
 	if err != nil {
+		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	err = handler.AuthService.ChangePassword(dto)
 	if err != nil {
+		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
-	} else {
-		w.WriteHeader(http.StatusOK)
 	}
+	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Password successfully changed!"))
 	w.Header().Set("Content-Type", "application/json")
 }
@@ -128,7 +135,7 @@ func (handler *AuthHandler) GetLoggedUserID(r *http.Request) (uint, error) {
 	if claims, ok := token.Claims.(*TokenClaims); ok && token.Valid {
 		return claims.LoggedUserId, nil
 	} else {
-		fmt.Println(err.Error())
+		fmt.Println(err)
 		return 0, fmt.Errorf("NO_TOKEN")
 	}
 }
