@@ -6,9 +6,9 @@ type PersonalData struct {
 	gorm.Model
 	Name         string     `json:"name"`
 	Surname      string     `json:"surname"`
-	Email        string     `json:"email"`
+	Email        string     `json:"email" gorm:"unique"`
 	Telephone    string     `json:"telephone"`
-	Gender       string     `json:"gender" gorm:"unique"`
+	Gender       string     `json:"gender"`
 	BirthDate    string     `json:"birthDate"`
 	InterestedIn []Interest `json:"interestedIn" gorm:"many2many:person_interests;"`
 	ProfileID    uint
