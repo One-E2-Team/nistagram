@@ -17,7 +17,7 @@ func test(w http.ResponseWriter, r *http.Request) {
 }
 
 func initDB() *gorm.DB {
-	db, err := gorm.Open(mysql.Open("root:root@tcp(127.0.0.1:3307)/auth?charset=utf8mb4&parseTime=True&loc=Local"))
+	db, err := gorm.Open(mysql.Open("root:root@tcp(127.0.0.1:3306)/auth?charset=utf8mb4&parseTime=True&loc=Local"))
 	if err != nil {
 		fmt.Printf("Cannot connect to database!")
 		return nil
