@@ -1,36 +1,97 @@
 package service
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"net/http"
 	"nistagram/profile/dto"
 	"nistagram/profile/model"
 	"nistagram/profile/repository"
+	"strconv"
 )
 
 type ProfileService struct {
 	ProfileRepository *repository.ProfileRepository
 }
 
-func (service *ProfileService) Register(dto dto.RegistrationDto) error{
+func (service *ProfileService) Register(dto dto.RegistrationDto) error {
 	profileSettings := model.ProfileSettings{IsPrivate: dto.IsPrivate, CanReceiveMessageFromUnknown: true, CanBeTagged: true}
 	personalData := model.PersonalData{Name: dto.Name, Surname: dto.Surname,
 		Email: dto.Email, Telephone: dto.Telephone, Gender: dto.Gender, BirthDate: dto.BirthDate}
-	for _, item := range dto.InterestedIn{
+	for _, item := range dto.InterestedIn {
 		interest := service.ProfileRepository.FindInterestByName(item)
 		personalData.AddItem(interest)
 	}
-	profile := model.Profile{Username: dto.Username,ProfileSettings: profileSettings,PersonalData: personalData, Biography: dto.Biography, Website: dto.WebSite, Type: model.REGULAR}
+	profile := model.Profile{Username: dto.Username, ProfileSettings: profileSettings, PersonalData: personalData, Biography: dto.Biography, Website: dto.WebSite, Type: model.REGULAR}
 	err := service.ProfileRepository.CreateProfile(&profile)
-	if err != nil{
+	if err != nil {
+		return err
+	}
+	postBody, _ := json.Marshal(map[string]string{
+		"profileId": strconv.FormatUint(uint64(profile.ID), 10),
+		"username":  profile.Username,
+		"email":     profile.PersonalData.Email,
+		"password":  dto.Password,
+	})
+	responseBody := bytes.NewBuffer(postBody)
+	//TODO: parametrize port and host
+	_, err = http.Post("http://localhost:8000/register", "application/json", responseBody)
+	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 	return nil
 }
 
-func (service *ProfileService) Search(username string) []string{
+func (service *ProfileService) Search(username string) []string {
 	return service.ProfileRepository.FindUsernameContains(username)
 }
 
-func (service *ProfileService) GetProfileByUsername(username string) *model.Profile{
+func (service *ProfileService) GetProfileByUsername(username string) *model.Profile {
 	return service.ProfileRepository.FindProfileByUsername(username)
 }
 
+func (service *ProfileService) ChangeProfileSettings(dto dto.ProfileSettingsDTO, loggedUserId uint) error {
+	profile, err := service.ProfileRepository.GetProfileByID(loggedUserId)
+	if err != nil {
+		return err
+	}
+	profileSettings := profile.ProfileSettings
+	if profileSettings.IsPrivate != dto.IsPrivate {
+		//TODO: change data in post ms
+	}
+	profileSettings.IsPrivate = dto.IsPrivate
+	profileSettings.CanBeTagged = dto.CanBeTagged
+	profileSettings.CanReceiveMessageFromUnknown = dto.CanReceiveMessageFromUnknown
+	service.ProfileRepository.UpdateProfileSettings(profileSettings)
+	return nil
+}
+
+func (service *ProfileService) ChangePersonalData(dto dto.PersonalDataDTO, loggedUserId uint) error {
+	profile, err := service.ProfileRepository.GetProfileByID(loggedUserId)
+	if err != nil {
+		return err
+	}
+	if profile.PersonalData.Email != dto.Email {
+		//TODO: change data in auth ms
+	}
+	if profile.Username != dto.Username {
+		//TODO: change data in auth ms
+	}
+	profile.Username = dto.Username
+	profile.Website = dto.Website
+	profile.Biography = dto.Biography
+	profile.PersonalData.Name = dto.Name
+	profile.PersonalData.Email = dto.Email
+	profile.PersonalData.BirthDate = dto.BirthDate
+	profile.PersonalData.Gender = dto.Gender
+	profile.PersonalData.Surname = dto.Surname
+	profile.PersonalData.Telephone = dto.Telephone
+	err = service.ProfileRepository.UpdatePersonalData(profile.PersonalData)
+	if err != nil {
+		return err
+	}
+	err = service.ProfileRepository.UpdateProfile(profile)
+	return err
+}

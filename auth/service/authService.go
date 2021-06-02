@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
-	"net/smtp"
 	"nistagram/auth/dto"
 	"nistagram/auth/model"
 	"nistagram/auth/repository"
-	"os"
+	"nistagram/util"
 	"strconv"
 	"time"
 )
@@ -32,27 +31,16 @@ func (service *AuthService) LogIn(dto dto.LogInDTO) (*model.User, error) {
 	return user, nil
 }
 
-func (service *AuthService) SendMail(sendTo string, subject string, mailMessage string) {
-	from := os.Getenv("ISA_MAIL_USERNAME")
-	password := os.Getenv("ISA_MAIL_PASSWORD")
-	to := []string{sendTo}
-	smtpHost := "smtp.gmail.com"
-	smtpPort := "587"
-	msg := []byte("To: " + sendTo + "\r\n" + "Subject: " + subject + "\r\n" + "\r\n" + mailMessage + "\r\n")
-	auth := smtp.PlainAuth("", from, password, smtpHost)
-	err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, msg)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Println("Email Sent Successfully!")
-}
-
 func (service *AuthService) Register(dto dto.RegisterDTO) error {
 	pass := hashAndSalt(dto.Password)
-	user := model.User{Username: dto.Username, Password: pass,
+	u64, err := strconv.ParseUint(dto.ProfileIdString, 10, 32)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	user := model.User{ProfileId: uint(u64), Username: dto.Username, Password: pass,
 		Email: dto.Email, Roles: nil, IsDeleted: false, ValidationExpire: time.Now()}
-	err := service.AuthRepository.CreateUser(&user)
+	err = service.AuthRepository.CreateUser(&user)
 	return err
 }
 
@@ -79,7 +67,7 @@ func (service *AuthService) RequestPassRecovery(username string) error {
 	//TODO: change host, port and html page
 	var message = "Visit this link in the next 20 minutes to change your password: http://localhost:8000/recovery.html?id=" +
 		strconv.FormatUint(uint64(user.ID), 10) + "&str=" + user.ValidationUid
-	go service.SendMail(user.Email, "Recovery password", message)
+	go util.SendMail(user.Email, "Recovery password", message)
 	return nil
 }
 

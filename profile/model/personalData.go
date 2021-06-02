@@ -4,16 +4,16 @@ import "gorm.io/gorm"
 
 type PersonalData struct {
 	gorm.Model
-	Name string `json:"name"`
-	Surname string `json:"surname"`
-	Email string `json:"email"`
-	Telephone string `json:"telephone"`
-	Gender string `json:"gender"`
-	BirthDate string `json:"birthDate"`
+	Name         string     `json:"name"`
+	Surname      string     `json:"surname"`
+	Email        string     `json:"email"`
+	Telephone    string     `json:"telephone"`
+	Gender       string     `json:"gender" gorm:"unique"`
+	BirthDate    string     `json:"birthDate"`
 	InterestedIn []Interest `json:"interestedIn" gorm:"many2many:person_interests;"`
-	ProfileID uint
+	ProfileID    uint
 }
 
-func (personalData *PersonalData) AddItem(item Interest){
+func (personalData *PersonalData) AddItem(item Interest) {
 	personalData.InterestedIn = append(personalData.InterestedIn, item)
 }

@@ -10,7 +10,7 @@ type ProfileRepository struct {
 	Database *gorm.DB
 }
 
-func (repo *ProfileRepository) CreateProfile(profile *model.Profile) error{
+func (repo *ProfileRepository) CreateProfile(profile *model.Profile) error {
 	result := repo.Database.Create(profile)
 	fmt.Println(result.RowsAffected)
 	if result.RowsAffected == 0 {
@@ -20,20 +20,49 @@ func (repo *ProfileRepository) CreateProfile(profile *model.Profile) error{
 	return nil
 }
 
-func (repo *ProfileRepository) FindInterestByName(name string) model.Interest{
+func (repo *ProfileRepository) FindInterestByName(name string) model.Interest {
 	interest := &model.Interest{}
 	repo.Database.Find(&interest, "name", name)
 	return *interest
 }
 
-func (repo *ProfileRepository) FindUsernameContains(username string) []string{
+func (repo *ProfileRepository) FindUsernameContains(username string) []string {
 	var result []string
-	repo.Database.Table("profiles").Select("username").Find(&result, "username LIKE ?", "%" + username + "%")
+	repo.Database.Table("profiles").Select("username").Find(&result, "username LIKE ?", "%"+username+"%")
 	return result
 }
 
-func (repo *ProfileRepository) FindProfileByUsername(username string) *model.Profile{
+func (repo *ProfileRepository) FindProfileByUsername(username string) *model.Profile {
 	profile := &model.Profile{}
 	repo.Database.Preload("PersonalData").First(&profile, "username = ?", username)
 	return profile
+}
+
+func (repo *ProfileRepository) GetProfileByID(id uint) (*model.Profile, error) {
+	profile := &model.Profile{}
+	if err := repo.Database.Preload("ProfileSettings").Preload("PersonalData").First(&profile, "ID = ?", id).Error; err != nil {
+		return nil, err
+	}
+	return profile, nil
+}
+
+func (repo *ProfileRepository) UpdateProfile(user *model.Profile) error {
+	if err := repo.Database.Save(user).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (repo *ProfileRepository) UpdateProfileSettings(user model.ProfileSettings) error {
+	if err := repo.Database.Save(user).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (repo *ProfileRepository) UpdatePersonalData(user model.PersonalData) error {
+	if err := repo.Database.Save(user).Error; err != nil {
+		return err
+	}
+	return nil
 }

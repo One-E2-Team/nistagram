@@ -1,11 +1,7 @@
-package model
+package dto
 
-import "gorm.io/gorm"
-
-type ProfileSettings struct {
-	gorm.Model
+type ProfileSettingsDTO struct {
 	IsPrivate                    bool `json:"isPrivate"`
 	CanReceiveMessageFromUnknown bool `json:"canReceiveMessageFromUnknown"`
 	CanBeTagged                  bool `json:"canBeTagged"`
-	ProfileID                    uint
 }

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"nistagram/profile/dto"
 	"nistagram/profile/service"
+	"nistagram/util"
 )
 
 type Handler struct {
@@ -17,13 +18,10 @@ type Handler struct {
 func (handler *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	var dto dto.RegistrationDto
 	err := json.NewDecoder(r.Body).Decode(&dto)
-
-	if err != nil{
+	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-
-	fmt.Print(dto)
 
 	v := validator.New()
 	err = v.Struct(dto)
@@ -39,17 +37,16 @@ func (handler *Handler) Register(w http.ResponseWriter, r *http.Request) {
 
 	err = handler.ProfileService.Register(dto)
 
-	if err != nil{
+	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
-	}else {
-		w.WriteHeader(http.StatusCreated)
 	}
+	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte("{\"success\":\"ok\"}"))
 	w.Header().Set("Content-Type", "application/json")
 }
 
-func (handler *Handler) Search (w http.ResponseWriter, r *http.Request){
+func (handler *Handler) Search(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	result := handler.ProfileService.Search(vars["username"])
 	w.Header().Set("Content-Type", "application/json")
@@ -57,10 +54,50 @@ func (handler *Handler) Search (w http.ResponseWriter, r *http.Request){
 	w.WriteHeader(http.StatusOK)
 }
 
-func (handler *Handler) GetProfileByUsername (w http.ResponseWriter, r *http.Request){
+func (handler *Handler) GetProfileByUsername(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	result := handler.ProfileService.GetProfileByUsername(vars["username"])
+	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(&result)
-	w.WriteHeader(http.StatusOK)
+}
+
+func (handler *Handler) ChangeProfileSettings(w http.ResponseWriter, r *http.Request) {
+	var dto dto.ProfileSettingsDTO
+	err := json.NewDecoder(r.Body).Decode(&dto)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	userId := util.GetLoggedUserIDFromToken(r)
+	err = handler.ProfileService.ChangeProfileSettings(dto, userId)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte("{\"success\":\"ok\"}"))
+	w.Header().Set("Content-Type", "application/json")
+}
+
+func (handler *Handler) ChangePersonalData(w http.ResponseWriter, r *http.Request) {
+	var dto dto.PersonalDataDTO
+	err := json.NewDecoder(r.Body).Decode(&dto)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	userId := util.GetLoggedUserIDFromToken(r)
+	err = handler.ProfileService.ChangePersonalData(dto, userId)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte("{\"success\":\"ok\"}"))
+	w.Header().Set("Content-Type", "application/json")
 }
