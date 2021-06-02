@@ -38,10 +38,10 @@ func initDB() *gorm.DB {
 		db, err = gorm.Open(mysql.Open(dbusername + ":" + dbpassword + "@tcp(" + dbhost + ":" + dbport + ")/profile?charset=utf8mb4&parseTime=True&loc=Local"))
 
 		if err != nil {
-			fmt.Printf("Cannot connect to database! Sleeping 10s and then retrying....")
+			fmt.Println("Cannot connect to database! Sleeping 10s and then retrying....")
 			time.Sleep(10 * time.Second)
 		} else {
-			fmt.Printf("Connected to the database.")
+			fmt.Println("Connected to the database.")
 			break
 		}
 	}
