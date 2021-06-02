@@ -7,6 +7,7 @@ services:
         restart: always
         environment: 
             MYSQL_ROOT_PASSWORD: root
+            MYSQL_DATABASE: profile
         networks: 
             - net_profile
         ports:
@@ -52,6 +53,8 @@ services:
         environment:
             MONGO_INITDB_ROOT_USERNAME: root
             MONGO_INITDB_ROOT_PASSWORD: root
+        ports:
+            - 8084:27017
         networks: 
             - net4
         volumes: 

@@ -11,6 +11,7 @@ type PersonalData struct {
 	Gender string `json:"gender"`
 	BirthDate string `json:"birthDate"`
 	InterestedIn []Interest `json:"interestedIn" gorm:"many2many:person_interests;"`
+	ProfileID uint
 }
 
 func (personalData *PersonalData) AddItem(item Interest){
