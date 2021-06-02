@@ -45,6 +45,8 @@ func handlerFunc(handler *handler.AuthHandler) {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/login", handler.LogIn).Methods("POST")
 	router.HandleFunc("/register", handler.Register).Methods("POST")
+	router.HandleFunc("/request-recovery", handler.RequestPassRecovery).Methods("POST")
+	router.HandleFunc("/recover", handler.ChangePassword).Methods("POST")
 	http.ListenAndServe(":8000", router)
 }
 
