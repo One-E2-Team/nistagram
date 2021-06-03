@@ -19,17 +19,17 @@ func (repo *AuthRepository) CreateUser(user *model.User) error {
 	return nil
 }
 
-func (repo *AuthRepository) GetUserByUsername(username string) (*model.User, error) {
+func (repo *AuthRepository) GetUserByEmail(email string) (*model.User, error) {
 	user := &model.User{}
-	if err := repo.Database.Table("users").First(&user, "username = ?", username).Error; err != nil {
+	if err := repo.Database.Table("users").First(&user, "email = ?", email).Error; err != nil {
 		return nil, err
 	}
 	return user, nil
 }
 
-func (repo *AuthRepository) GetUserByID(id uint) (*model.User, error) {
+func (repo *AuthRepository) GetUserByProfileID(id uint) (*model.User, error) {
 	user := &model.User{}
-	if err := repo.Database.Table("users").First(&user, "ID = ?", id).Error; err != nil {
+	if err := repo.Database.Table("users").First(&user, "profile_id = ?", id).Error; err != nil {
 		return nil, err
 	}
 	return user, nil

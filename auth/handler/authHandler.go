@@ -61,14 +61,14 @@ func (handler *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 }
 
 func (handler *AuthHandler) RequestPassRecovery(w http.ResponseWriter, r *http.Request) {
-	var username string
-	err := json.NewDecoder(r.Body).Decode(&username)
+	var email string
+	err := json.NewDecoder(r.Body).Decode(&email)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	err = handler.AuthService.RequestPassRecovery(username)
+	err = handler.AuthService.RequestPassRecovery(email)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -95,5 +95,24 @@ func (handler *AuthHandler) ChangePassword(w http.ResponseWriter, r *http.Reques
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Password successfully changed!"))
+	w.Header().Set("Content-Type", "application/json")
+}
+
+func (handler *AuthHandler) UpdateUser(w http.ResponseWriter, r *http.Request){
+	var dto dto.UpdateUserDTO
+	err := json.NewDecoder(r.Body).Decode(&dto)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	err = handler.AuthService.UpdateUser(dto)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("{\"success\":\"ok\"}"))
 	w.Header().Set("Content-Type", "application/json")
 }

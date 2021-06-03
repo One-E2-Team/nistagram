@@ -7,8 +7,7 @@ import (
 
 type User struct {
 	gorm.Model
-	ProfileId        uint      `json:"profileId" gorm:"unique;not null""`
-	Username         string    `json:"username" gorm:"unique;not null"`
+	ProfileId        uint      `json:"profileId" gorm:"unique;not null"`
 	Password         string    `json:"password" gorm:"not null"`
 	APIToken         string    `json:"apiToken"`
 	IsDeleted        bool      `json:"isDeleted" gorm:"not null"`

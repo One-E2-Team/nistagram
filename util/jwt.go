@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"net/http"
-	"net/smtp"
-	"os"
 	"strings"
 	"time"
 )
@@ -52,20 +50,4 @@ func GetLoggedUserIDFromToken(r *http.Request) uint {
 		fmt.Println(err)
 		return 0
 	}
-}
-
-func SendMail(sendTo string, subject string, mailMessage string) {
-	from := os.Getenv("ISA_MAIL_USERNAME")
-	password := os.Getenv("ISA_MAIL_PASSWORD")
-	to := []string{sendTo}
-	smtpHost := "smtp.gmail.com"
-	smtpPort := "587"
-	msg := []byte("To: " + sendTo + "\r\n" + "Subject: " + subject + "\r\n" + "\r\n" + mailMessage + "\r\n")
-	auth := smtp.PlainAuth("", from, password, smtpHost)
-	err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, msg)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Println("Email Sent Successfully!")
 }

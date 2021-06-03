@@ -47,6 +47,7 @@ func handlerFunc(handler *handler.AuthHandler) {
 	router.HandleFunc("/register", handler.Register).Methods("POST")
 	router.HandleFunc("/request-recovery", handler.RequestPassRecovery).Methods("POST")
 	router.HandleFunc("/recover", handler.ChangePassword).Methods("POST")
+	router.HandleFunc("/update-user", handler.UpdateUser).Methods("POST")
 	http.ListenAndServe(":8000", router)
 }
 
