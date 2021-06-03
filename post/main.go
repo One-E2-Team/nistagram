@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/handlers"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"net/http"
@@ -62,7 +63,10 @@ func handleFunc(handler *handler.Handler) {
 	if ok || ok1 {
 		port = "8080"
 	}
-	http.ListenAndServe(":"+port, router)
+	http.ListenAndServe(":" + port, handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type",
+		"Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}),
+		handlers.AllowedOrigins([]string{"*"}))(router))
+
 }
 
 func closeConnection(client *mongo.Client){

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -16,10 +17,13 @@ type Handler struct {
 }
 
 func (handler *Handler) Create(w http.ResponseWriter, r *http.Request){
+	(w).Header().Set("Access-Control-Allow-Origin", "*")
 	params := mux.Vars(r)
 	postType := model.GetPostType(params["postType"])
 	var postDto dto.PostDto
 	err := json.NewDecoder(r.Body).Decode(&postDto)
+
+	fmt.Println(postDto)
 
 	if err != nil || postType == model.NONE{
 		w.WriteHeader(http.StatusBadRequest)

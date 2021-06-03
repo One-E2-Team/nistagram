@@ -81,7 +81,7 @@ services:
             - net_profile
             - net_auth
         ports:
-            - 8080:8080
+            - 8090:8080
 
     redis-commander:
         container_name: redis-commander
