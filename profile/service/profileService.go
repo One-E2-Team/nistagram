@@ -8,7 +8,7 @@ import (
 	"nistagram/profile/dto"
 	"nistagram/profile/model"
 	"nistagram/profile/repository"
-	"strconv"
+	"nistagram/util"
 )
 
 type ProfileService struct {
@@ -17,22 +17,21 @@ type ProfileService struct {
 
 func (service *ProfileService) Register(dto dto.RegistrationDto) error {
 	profileSettings := model.ProfileSettings{IsPrivate: dto.IsPrivate, CanReceiveMessageFromUnknown: true, CanBeTagged: true}
-	personalData := model.PersonalData{Name: dto.Name, Surname: dto.Surname,
-		Email: dto.Email, Telephone: dto.Telephone, Gender: dto.Gender, BirthDate: dto.BirthDate}
+	personalData := model.PersonalData{Name: dto.Name, Surname: dto.Surname, Telephone: dto.Telephone,
+		Gender: dto.Gender, BirthDate: dto.BirthDate}
 	for _, item := range dto.InterestedIn {
 		interest := service.ProfileRepository.FindInterestByName(item)
 		personalData.AddItem(interest)
 	}
-	profile := model.Profile{Username: dto.Username, ProfileSettings: profileSettings, PersonalData: personalData, Biography: dto.Biography, Website: dto.WebSite, Type: model.REGULAR}
+	profile := model.Profile{Username: dto.Username, Email: dto.Email, ProfileSettings: profileSettings, PersonalData: personalData, Biography: dto.Biography, Website: dto.WebSite, Type: model.REGULAR}
 	err := service.ProfileRepository.CreateProfile(&profile)
 	if err != nil {
 		return err
 	}
 	postBody, _ := json.Marshal(map[string]string{
-		"profileId": strconv.FormatUint(uint64(profile.ID), 10),
-		"username":  profile.Username,
-		"email":     profile.PersonalData.Email,
+		"profileId": util.Uint2String(profile.ID),
 		"password":  dto.Password,
+		"email":     profile.Email,
 	})
 	responseBody := bytes.NewBuffer(postBody)
 	//TODO: parametrize port and host
@@ -73,25 +72,39 @@ func (service *ProfileService) ChangePersonalData(dto dto.PersonalDataDTO, logge
 	if err != nil {
 		return err
 	}
-	if profile.PersonalData.Email != dto.Email {
-		//TODO: change data in auth ms
+	callAuth := bool(false)
+	if profile.Email != dto.Email {
+		callAuth = true
 	}
 	if profile.Username != dto.Username {
-		//TODO: change data in auth ms
+		//TODO: change data in other ms
 	}
 	profile.Username = dto.Username
 	profile.Website = dto.Website
 	profile.Biography = dto.Biography
+	profile.Email = dto.Email
 	profile.PersonalData.Name = dto.Name
-	profile.PersonalData.Email = dto.Email
 	profile.PersonalData.BirthDate = dto.BirthDate
 	profile.PersonalData.Gender = dto.Gender
 	profile.PersonalData.Surname = dto.Surname
 	profile.PersonalData.Telephone = dto.Telephone
-	err = service.ProfileRepository.UpdatePersonalData(profile.PersonalData)
+	err = service.ProfileRepository.UpdateProfile(profile)
 	if err != nil {
 		return err
 	}
-	err = service.ProfileRepository.UpdateProfile(profile)
+	if callAuth {
+		postBody, _ := json.Marshal(map[string]string{
+			"profileId": util.Uint2String(profile.ID),
+			"email":     profile.Email,
+		})
+		responseBody := bytes.NewBuffer(postBody)
+		//TODO: parametrize port and host
+		_, err = http.Post("http://localhost:8000/update-user", "application/json", responseBody)
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+	}
+	err = service.ProfileRepository.UpdatePersonalData(profile.PersonalData)
 	return err
 }

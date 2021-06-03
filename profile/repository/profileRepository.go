@@ -46,22 +46,22 @@ func (repo *ProfileRepository) GetProfileByID(id uint) (*model.Profile, error) {
 	return profile, nil
 }
 
-func (repo *ProfileRepository) UpdateProfile(user *model.Profile) error {
-	if err := repo.Database.Save(user).Error; err != nil {
+func (repo *ProfileRepository) UpdateProfile(profile *model.Profile) error {
+	if err := repo.Database.Save(profile).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (repo *ProfileRepository) UpdateProfileSettings(user model.ProfileSettings) error {
-	if err := repo.Database.Save(user).Error; err != nil {
+func (repo *ProfileRepository) UpdateProfileSettings(settings model.ProfileSettings) error {
+	if err := repo.Database.Save(settings).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (repo *ProfileRepository) UpdatePersonalData(user model.PersonalData) error {
-	if err := repo.Database.Save(user).Error; err != nil {
+func (repo *ProfileRepository) UpdatePersonalData(personalData model.PersonalData) error {
+	if err := repo.Database.Save(personalData).Error; err != nil {
 		return err
 	}
 	return nil

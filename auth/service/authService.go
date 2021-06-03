@@ -8,7 +8,6 @@ import (
 	"nistagram/auth/model"
 	"nistagram/auth/repository"
 	"nistagram/util"
-	"strconv"
 	"time"
 )
 
@@ -17,7 +16,7 @@ type AuthService struct {
 }
 
 func (service *AuthService) LogIn(dto dto.LogInDTO) (*model.User, error) {
-	user, err := service.AuthRepository.GetUserByUsername(dto.Username)
+	user, err := service.AuthRepository.GetUserByEmail(dto.Email)
 	if err != nil {
 		return nil, err
 	}
@@ -33,28 +32,23 @@ func (service *AuthService) LogIn(dto dto.LogInDTO) (*model.User, error) {
 
 func (service *AuthService) Register(dto dto.RegisterDTO) error {
 	pass := hashAndSalt(dto.Password)
-	u64, err := strconv.ParseUint(dto.ProfileIdString, 10, 32)
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-	user := model.User{ProfileId: uint(u64), Username: dto.Username, Password: pass,
+	user := model.User{ProfileId: util.String2Uint(dto.ProfileIdString), Password: pass,
 		Email: dto.Email, Roles: nil, IsDeleted: false, ValidationExpire: time.Now()}
-	err = service.AuthRepository.CreateUser(&user)
+	err := service.AuthRepository.CreateUser(&user)
 	return err
 }
 
-func (service *AuthService) GetUserByUsername(username string) *model.User {
-	user, err := service.AuthRepository.GetUserByUsername(username)
+func (service *AuthService) GetUserByEmail(email string) *model.User {
+	user, err := service.AuthRepository.GetUserByEmail(email)
 	if err != nil {
 		return nil
 	}
 	return user
 }
 
-func (service *AuthService) RequestPassRecovery(username string) error {
+func (service *AuthService) RequestPassRecovery(email string) error {
 	var user *model.User
-	user, err := service.AuthRepository.GetUserByUsername(username)
+	user, err := service.AuthRepository.GetUserByEmail(email)
 	if err != nil {
 		return err
 	}
@@ -66,13 +60,13 @@ func (service *AuthService) RequestPassRecovery(username string) error {
 	}
 	//TODO: change host, port and html page
 	var message = "Visit this link in the next 20 minutes to change your password: http://localhost:8000/recovery.html?id=" +
-		strconv.FormatUint(uint64(user.ID), 10) + "&str=" + user.ValidationUid
+		util.Uint2String(user.ProfileId) + "&str=" + user.ValidationUid
 	go util.SendMail(user.Email, "Recovery password", message)
 	return nil
 }
 
 func (service *AuthService) ChangePassword(dto dto.RecoveryDTO) error {
-	user, err := service.AuthRepository.GetUserByID(dto.Id)
+	user, err := service.AuthRepository.GetUserByProfileID(dto.Id)
 	if err != nil {
 		return err
 	}
@@ -83,10 +77,17 @@ func (service *AuthService) ChangePassword(dto dto.RecoveryDTO) error {
 	user.ValidationUid = ""
 	user.Password = hashAndSalt(dto.Password)
 	err = service.AuthRepository.UpdateUser(*user)
+	return err
+}
+
+func (service *AuthService) UpdateUser(dto dto.UpdateUserDTO) error {
+	user, err := service.AuthRepository.GetUserByProfileID(util.String2Uint(dto.ProfileId))
 	if err != nil {
 		return err
 	}
-	return nil
+	user.Email = dto.Email
+	err = service.AuthRepository.UpdateUser(*user)
+	return err
 }
 
 func hashAndSalt(pass string) string {

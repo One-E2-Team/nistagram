@@ -6,7 +6,6 @@ type PersonalData struct {
 	gorm.Model
 	Name         string     `json:"name"`
 	Surname      string     `json:"surname"`
-	Email        string     `json:"email" gorm:"unique"`
 	Telephone    string     `json:"telephone"`
 	Gender       string     `json:"gender"`
 	BirthDate    string     `json:"birthDate"`
