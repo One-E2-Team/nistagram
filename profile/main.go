@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/mux"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -14,8 +16,7 @@ import (
 	"time"
 )
 
-func initDB() *gorm.DB {
-
+func initDBs() (*gorm.DB, *redis.Client) {
 	var (
 		db  *gorm.DB
 		err error
@@ -56,11 +57,22 @@ func initDB() *gorm.DB {
 	db.AutoMigrate(&model.VerificationRequest{})
 	db.AutoMigrate(&model.Profile{})
 
-	return db
+	//TODO: parametrize
+	client := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "",
+		DB:       0,
+	})
+	Ctx := context.TODO()
+	if err := client.Ping(Ctx).Err(); err != nil {
+		fmt.Println(err)
+		return db, nil
+	}
+	return db, client
 }
 
-func initProfileRepo(database *gorm.DB) *repository.ProfileRepository {
-	return &repository.ProfileRepository{Database: database}
+func initProfileRepo(database *gorm.DB, client *redis.Client) *repository.ProfileRepository {
+	return &repository.ProfileRepository{RelationalDatabase: database, Client: client, Context: context.TODO()}
 }
 
 func initService(profileRepo *repository.ProfileRepository) *service.ProfileService {
@@ -78,6 +90,7 @@ func handleFunc(handler *handler.Handler) {
 	router.HandleFunc("/get/{username}", handler.GetProfileByUsername).Methods("GET")
 	router.HandleFunc("/change-profile-settings", handler.ChangeProfileSettings).Methods("PUT")
 	router.HandleFunc("/change-personal-data", handler.ChangePersonalData).Methods("PUT")
+	router.HandleFunc("/test", handler.Test).Methods("GET")
 	fmt.Println("Starting server..")
 	var port string = "8083"                     // dev.db environ
 	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD") // dev production environment
@@ -89,8 +102,8 @@ func handleFunc(handler *handler.Handler) {
 }
 
 func main() {
-	db := initDB()
-	profileRepo := initProfileRepo(db)
+	db, client := initDBs()
+	profileRepo := initProfileRepo(db, client)
 	profileService := initService(profileRepo)
 	handler := initHandler(profileService)
 	handleFunc(handler)

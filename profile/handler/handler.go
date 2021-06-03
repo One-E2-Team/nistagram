@@ -101,3 +101,20 @@ func (handler *Handler) ChangePersonalData(w http.ResponseWriter, r *http.Reques
 	w.Write([]byte("{\"success\":\"ok\"}"))
 	w.Header().Set("Content-Type", "application/json")
 }
+
+func (handler *Handler) Test(w http.ResponseWriter, r *http.Request){
+	var key string
+	err := json.NewDecoder(r.Body).Decode(&key)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	err = handler.ProfileService.Test(key)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
