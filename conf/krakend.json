@@ -1,6 +1,23 @@
 {
   "version": 2,
-  "extra_config": {},
+  "extra_config": {
+    "github_com/devopsfaith/krakend-cors": {
+      "allow_origins": [
+        "*"
+      ],
+      "expose_headers": [
+        "Content-Length"
+      ],
+      "max_age": "12h",
+      "allow_methods": [
+        "GET",
+        "HEAD",
+        "POST",
+        "PUT",
+        "DELETE"
+      ]
+    }
+  },
   "timeout": "3000ms",
   "cache_ttl": "300s",
   "output_encoding": "json",
@@ -52,7 +69,7 @@
       "extra_config": {},
       "backend": [
         {
-          "url_pattern": "/",
+          "url_pattern": "",
           "encoding": "json",
           "sd": "static",
           "method": "POST",
@@ -61,6 +78,25 @@
           "host": [
             "post:8080"
           ]
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/post/",
+      "method": "GET",
+      "output_encoding": "json",
+      "extra_config": {},
+      "backend": [
+        {
+          "url_pattern": "/",
+          "encoding": "json",
+          "sd": "static",
+          "method": "GET",
+          "extra_config": {},
+          "host": [
+            "post:8080"
+          ],
+          "disable_host_sanitize": false
         }
       ]
     }

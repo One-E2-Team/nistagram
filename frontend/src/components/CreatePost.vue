@@ -50,8 +50,8 @@
 
           <v-file-input
             v-model="files"
-            chips
             multiple
+            chips
             label="Input pictures.."
           ></v-file-input>
       </v-card-text>
@@ -118,7 +118,7 @@
       isHighlighted: false,
       isCampaign: false,
       isCloseFriendsOnly: false,
-      files : []
+      files : null,
     }),
 
     methods: {
@@ -128,22 +128,30 @@
         })
       },
       submit () {
+        /*axios.get("http://localhost:81/api/post/").then(function (response){
+          console.log(response.data)
+        })*/
         let dto = {"description" : this.description, "isHighlighted" : this.isHighlighted, "isCampaign" : this.isCampaign,
         "isCloseFriendsOnly": this.isCloseFriendsOnly, "location" : this.selectedLocation, 
-        "hashTags" : [], "taggedUsers" : [], "postType" : this.postType}
+        "hashTags" : [], "taggedUsers" : [], "postType" : this.selectedPostType}
         let json = JSON.stringify(dto);
         console.log(json);
-        const blob = new Blob([json], {
-        type: 'application/json'
-        });
-        let data = new FormData();
-        data.append("files", this.files);
-        data.append("document", blob);
-        axios.post("localhost:81/api/post", dto).then(function (response){
-          console.log(response.data)
+        const data = new FormData();
+         data.append("files", this.files);
+         data.append("data", json);
+        axios({
+          method: "post",
+          url: "http://localhost:8085/",
+          data: data,
+          config: { headers: {'Content-Type': 'multipart/form-data' }}
+        }).then(function (response) {
+          console.log(response);
         })
+        .catch(function (response) {
+          console.log(response);
+        });
       }
-    },
+    }
   }
 </script>
 
