@@ -47,6 +47,13 @@
             v-model="isCloseFriendsOnly"
             label="Is close friends only?"
           ></v-checkbox>
+
+          <v-file-input
+            v-model="files"
+            chips
+            multiple
+            label="Input pictures.."
+          ></v-file-input>
       </v-card-text>
       <v-card-actions>
           <v-btn text>
@@ -110,7 +117,8 @@
       ],
       isHighlighted: false,
       isCampaign: false,
-      isCloseFriendsOnly: false
+      isCloseFriendsOnly: false,
+      files : []
     }),
 
     methods: {
@@ -122,7 +130,14 @@
       submit () {
         let dto = {"description" : this.description, "isHighlighted" : this.isHighlighted, "isCampaign" : this.isCampaign,
         "isCloseFriendsOnly": this.isCloseFriendsOnly, "location" : this.selectedLocation, "hashTags" : [], "taggedUsers" : []}
-        console.log(JSON.stringify(dto));
+        let json = JSON.stringify(dto);
+        console.log(json);
+        const blob = new Blob([json], {
+        type: 'application/json'
+        });
+        let data = new FormData();
+        data.append("files", this.files);
+        data.append("document", blob);
         axios.post("localhost:81/api/post", dto).then(function (response){
           console.log(response.data)
         })

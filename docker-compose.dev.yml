@@ -30,14 +30,32 @@ services:
             DOCKER_ENV_SET_DEV: ""
         build:
             context: .
+            args:
+                target_ms_go: profile
             dockerfile: Build.dockerfile
-            args: 
-                TARGET_MS_GO: profile
         networks: 
             - net_apigateway
             - net_profile
         depends_on: 
             - db_relational
+
+    post:
+        container_name: post_ms
+        restart: always
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: root
+            MONGO_INITDB_ROOT_PASSWORD: root
+            DOCKER_ENV_SET_DEV: ""
+        build:
+            context: .
+            dockerfile: Build.dockerfile
+            args:
+                target_ms_go: post
+        networks:
+            - net_apigateway
+            - net_post
+        depends_on:
+            - mongo1
             
     db_relational:
         container_name: db_mysql
@@ -92,6 +110,7 @@ services:
             MONGO_INITDB_ROOT_PASSWORD: root
         networks: 
             - net4
+            - net_post
         volumes: 
             - type: volume
               source: data3
@@ -139,6 +158,7 @@ networks:
     net_profile:
     net_auth:
     net_connection:
+    net_post:
     net_:
     net4:
 

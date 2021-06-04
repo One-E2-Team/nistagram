@@ -12,6 +12,7 @@ import (
 	"nistagram/post/repository"
 	"nistagram/post/service"
 	"os"
+	"time"
 )
 
 func initDB() *mongo.Client {
@@ -31,6 +32,8 @@ func initDB() *mongo.Client {
 			dbpassword = os.Getenv("MONGO_INITDB_ROOT_PASSWORD")
 		}
 	}
+
+	time.Sleep(10 * time.Second)
 
 	clientOptions := options.Client().ApplyURI("mongodb://"+dbusername+":"+dbpassword+"@" +dbhost+":"+dbport )
 	client, err := mongo.Connect(context.TODO(), clientOptions)
