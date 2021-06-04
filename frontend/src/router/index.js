@@ -1,7 +1,6 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
-import CreatePost from '../components/CreatePost.vue'
 
 Vue.use(VueRouter)
 
@@ -13,19 +12,32 @@ const routes = [{
   {
     path: '/about',
     name: 'About',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
     component: () =>
-      import ( /* webpackChunkName: "about" */ '../views/About.vue')
+      import ('../views/About.vue')
   },
   {
     path: '/post',
     name: 'Post',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: CreatePost
+    component: () =>
+      import ('../components/CreatePost.vue')
+  },
+  {
+    path: '/log-in',
+    name: 'Login',
+    component: () =>
+      import ('./../components/Login.vue')
+  },
+  {
+    path: '/register',
+    name: 'Register',
+    component: () =>
+      import ('./../components/Register.vue')
+  },
+  {
+    path: '/reset-password',
+    name: 'ResetPassword',
+    component: () =>
+      import ('./../components/ResetPassword.vue')
   }
 ]
 
