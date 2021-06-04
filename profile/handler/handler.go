@@ -39,11 +39,12 @@ func (handler *Handler) Register(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		return
+	} else {
+		w.WriteHeader(http.StatusCreated)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte("{\"success\":\"ok\"}"))
 	}
-	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("{\"success\":\"ok\"}"))
-	w.Header().Set("Content-Type", "application/json")
+	return
 }
 
 func (handler *Handler) Search(w http.ResponseWriter, r *http.Request) {

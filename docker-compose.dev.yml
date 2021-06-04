@@ -31,7 +31,7 @@ services:
         build:
             context: .
             args:
-                target_ms_go: profile
+                ARG_TARGET_MS_GO: profile
             dockerfile: Build.dockerfile
         networks: 
             - net_apigateway
@@ -50,7 +50,7 @@ services:
             context: .
             dockerfile: Build.dockerfile
             args:
-                target_ms_go: post
+                ARG_TARGET_MS_GO: post
         networks:
             - net_apigateway
             - net_post

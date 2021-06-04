@@ -32,7 +32,7 @@ services:
             context: .
             dockerfile: Build.dockerfile
             args: 
-                TARGET_MS_GO: profile
+                ARG_TARGET_MS_GO: profile
         networks: 
             - net_apigateway
             - net_profile
