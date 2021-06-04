@@ -63,6 +63,25 @@
           ]
         }
       ]
+    },
+    {
+      "endpoint": "/api/auth/login",
+      "method": "POST",
+      "output_encoding": "json",
+      "extra_config": {},
+      "backend": [
+        {
+          "url_pattern": "/login",
+          "encoding": "json",
+          "sd": "static",
+          "method": "POST",
+          "extra_config": {},
+          "host": [
+            "auth:8080"
+          ],
+          "disable_host_sanitize": false
+        }
+      ]
     }
   ]
 }
