@@ -2,45 +2,83 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/gorilla/mux"
+	uuid "github.com/nu7hatch/gouuid"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"io"
 	"net/http"
 	"nistagram/post/dto"
 	"nistagram/post/model"
 	"nistagram/post/service"
+	"os"
 )
 
 type Handler struct {
 	PostService *service.PostService
 }
 
+func (handler Handler) Test(w http.ResponseWriter, r *http.Request){
+	w.Write([]byte("{\"success\":\"ok\"}"))
+	w.Header().Set("Content-Type", "application/json")
+}
+
 func (handler *Handler) Create(w http.ResponseWriter, r *http.Request){
 	(w).Header().Set("Access-Control-Allow-Origin", "*")
 
-	var postDto dto.PostDto
-	err := json.NewDecoder(r.Body).Decode(&postDto)
+	err := r.ParseMultipartForm(0)
 
-	postType := model.GetPostType(postDto.PostType)
-
-	fmt.Println(postDto)
-
-	if err != nil || postType == model.NONE{
-		//w.WriteHeader(http.StatusBadRequest)
+	if err != nil{
 		w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 
-	err = handler.PostService.CreatePost(postType,postDto)
+	files := r.MultipartForm.File["files"]
+
+	var mediaNames []string
+
+	for i:=0;i<len(files);i++{
+		file,err := files[i].Open()
+		if err != nil{
+			w.Write([]byte("{\"success\":\"error\"}"))
+			return
+		}
+		uid, err := uuid.NewV4()
+		mediaNames = append(mediaNames, uid.String())
+		f, err := os.OpenFile("../../nistagramstaticdata/data/" + uid.String(), os.O_WRONLY|os.O_CREATE, 0666)
+		if err != nil{
+			w.Write([]byte("{\"success\":\"error\"}"))
+			return
+		}
+		io.Copy(f, file)
+		f.Close()
+		file.Close()
+	}
+
+	var postDto dto.PostDto
+	data := r.FormValue("data")
+	err = json.Unmarshal([]byte(data), &postDto)
+	if err != nil{
+		w.Write([]byte("{\"success\":\"error\"}"))
+		return
+	}
+
+	postType := model.GetPostType(postDto.PostType)
+
+	if postType == model.NONE{
+		w.Write([]byte("{\"success\":\"error\"}"))
+		return
+	}
+
+	err = handler.PostService.CreatePost(postType,postDto, mediaNames)
 
 	if err != nil{
-		//w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}else {
 		w.WriteHeader(http.StatusCreated)
 	}
+
 	w.Write([]byte("{\"success\":\"ok\"}"))
 	w.Header().Set("Content-Type", "application/json")
 
