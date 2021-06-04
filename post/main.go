@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/gorilla/mux"
 	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"net/http"
@@ -33,13 +33,20 @@ func initDB() *mongo.Client {
 		}
 	}
 
-	time.Sleep(10 * time.Second)
-
 	clientOptions := options.Client().ApplyURI("mongodb://"+dbusername+":"+dbpassword+"@" +dbhost+":"+dbport )
-	client, err := mongo.Connect(context.TODO(), clientOptions)
-	printErrorTrack(err)
-	fmt.Println("Connected to mongodb")
-	return client
+	for {
+		client, err := mongo.Connect(context.TODO(), clientOptions)
+
+		if err != nil {
+			fmt.Println("Cannot connect to MongoDB! Sleeping 10s and then retrying....")
+			time.Sleep(10 * time.Second)
+		}else {
+			fmt.Println("Connected to MongoDB")
+			return client
+		}
+	}
+	return nil
+
 }
 
 func initPostRepo(client *mongo.Client) *repository.PostRepository {
@@ -75,7 +82,10 @@ func handleFunc(handler *handler.Handler) {
 
 func closeConnection(client *mongo.Client){
 	err := client.Disconnect(context.TODO())
-	printErrorTrack(err)
+	if err != nil {
+		fmt.Println("Failed to close MongoDB.")
+		return
+	}
 	fmt.Println("Connection to MongoDB closed.")
 }
 
@@ -91,8 +101,4 @@ func main() {
 }
 
 
-func printErrorTrack(err error) {
-	if err!=nil {
-		fmt.Println(err)
-	}
-}
+
