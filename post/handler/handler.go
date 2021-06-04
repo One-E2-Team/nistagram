@@ -27,14 +27,16 @@ func (handler *Handler) Create(w http.ResponseWriter, r *http.Request){
 	fmt.Println(postDto)
 
 	if err != nil || postType == model.NONE{
-		w.WriteHeader(http.StatusBadRequest)
+		//w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 
 	err = handler.PostService.CreatePost(postType,postDto)
 
 	if err != nil{
-		w.WriteHeader(http.StatusBadRequest)
+		//w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}else {
 		w.WriteHeader(http.StatusCreated)

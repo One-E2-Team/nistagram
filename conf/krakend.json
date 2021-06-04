@@ -52,7 +52,7 @@
       "extra_config": {},
       "backend": [
         {
-          "url_pattern": "/post",
+          "url_pattern": "/",
           "encoding": "json",
           "sd": "static",
           "method": "POST",
