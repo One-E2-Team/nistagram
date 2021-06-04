@@ -1,7 +1,11 @@
 <template>
-  <v-form>
+  <v-form
+    ref="form"
+    v-model="valid"
+    lazy-validation>
     <v-container fluid>
-      <v-row>
+      <v-row align="center"
+      justify="center">
         <v-col
           cols="12"
           sm="4"
@@ -18,19 +22,36 @@
           ></v-text-field>
         </v-col>
       </v-row>
-      <v-row >
+      <v-row align="center"
+      justify="center">
         <v-col
           cols="12"
           sm="4"
         >
           <v-text-field
             v-model="password2"
-            :rules="[rules.passwordMatch]"
+            :rules="[rules.required, rules.passwordMatch]"
             :type="'password'"
             label="Repeat password "
           ></v-text-field>
         </v-col>
       </v-row>
+      <v-row align="center"
+      justify="center">
+        <v-col
+          cols="12"
+          sm="4"
+        >
+        <v-btn
+                :disabled="!valid"
+                color="success"
+                class="mr-4"
+                @click="resetPassword"
+                >
+                Confirm
+                </v-btn>
+            </v-col>
+        </v-row>
     </v-container>
   </v-form>
 </template>
@@ -39,6 +60,7 @@
   export default {
     data () {
       return {
+        valid: true,
         show: false,
         password1: '',
         password2: '',
@@ -49,5 +71,13 @@
         },
       }
     },
+    methods:{
+      resetPassword(){
+        if (this.$refs.form.validate()){
+            //TODO: send axios
+            console.log("validation pass!")
+        }
+      }
+    }
   }
 </script>

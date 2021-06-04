@@ -4,8 +4,9 @@
     v-model="valid"
     lazy-validation
   >
-    <v-container fluid>
-        <v-row>
+    <v-container >
+        <v-row align="center"
+      justify="center">
             <v-col
             cols="12"
             sm="4"
@@ -18,7 +19,8 @@
                 ></v-text-field>
             </v-col>
         </v-row>
-        <v-row >
+        <v-row align="center"
+      justify="center">
             <v-col
             cols="12"
             sm="4"
@@ -35,7 +37,8 @@
                 ></v-text-field>
             </v-col>
         </v-row>
-        <v-row >
+        <v-row align="center"
+      justify="center">
             <v-col
             cols="12"
             sm="4"
