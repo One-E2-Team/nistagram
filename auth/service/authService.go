@@ -20,6 +20,9 @@ func (service *AuthService) LogIn(dto dto.LogInDTO) (*model.User, error) {
 	if err != nil {
 		return nil, err
 	}
+	if !user.IsValidated {
+		return nil, fmt.Errorf("USER_NOT_VALIDATED")
+	}
 	if user.IsDeleted {
 		return nil, fmt.Errorf("USER_DELETED")
 	}
@@ -32,10 +35,17 @@ func (service *AuthService) LogIn(dto dto.LogInDTO) (*model.User, error) {
 
 func (service *AuthService) Register(dto dto.RegisterDTO) error {
 	pass := hashAndSalt(dto.Password)
-	user := model.User{ProfileId: util.String2Uint(dto.ProfileIdString), Password: pass,
-		Email: dto.Email, Roles: nil, IsDeleted: false, ValidationExpire: time.Now()}
+	user := model.User{ProfileId: util.String2Uint(dto.ProfileIdString), Password: pass, Email: dto.Email,
+		ValidationUid: uuid.NewString(), Roles: nil, IsDeleted: false, IsValidated: false, ValidationExpire: time.Now().Add(1 * time.Hour)}
 	err := service.AuthRepository.CreateUser(&user)
-	return err
+	if err != nil {
+		return err
+	}
+	//TODO: change host, port and html page
+	message := "Visit this link in the next 60 minutes to validate your account: https://localhost/api/auth/validate/" +
+		util.Uint2String(user.ProfileId) + "/" + user.ValidationUid
+	go util.SendMail(dto.Email, "Account Validation", message)
+	return nil
 }
 
 func (service *AuthService) GetUserByEmail(email string) *model.User {
@@ -51,6 +61,9 @@ func (service *AuthService) RequestPassRecovery(email string) error {
 	user, err := service.AuthRepository.GetUserByEmail(email)
 	if err != nil {
 		return err
+	}
+	if !user.IsValidated {
+		return fmt.Errorf("USER_NOT_VALIDATED")
 	}
 	user.ValidationUid = uuid.NewString()
 	user.ValidationExpire = time.Now().Add(20 * time.Minute)
@@ -70,7 +83,7 @@ func (service *AuthService) ChangePassword(dto dto.RecoveryDTO) error {
 	if err != nil {
 		return err
 	}
-	if user.IsDeleted || user.ValidationUid != dto.Uuid || time.Now().Unix() > user.ValidationExpire.Unix() {
+	if !user.IsValidated || user.IsDeleted || user.ValidationUid != dto.Uuid || time.Now().Unix() > user.ValidationExpire.Unix() {
 		return fmt.Errorf("BAD_RECOVERY_DATA")
 	}
 	user.ValidationExpire = time.Now()
@@ -86,6 +99,21 @@ func (service *AuthService) UpdateUser(dto dto.UpdateUserDTO) error {
 		return err
 	}
 	user.Email = dto.Email
+	err = service.AuthRepository.UpdateUser(*user)
+	return err
+}
+
+func (service *AuthService) ValidateUser(id string, uuid string) error {
+	user, err := service.AuthRepository.GetUserByProfileID(util.String2Uint(id))
+	if err != nil {
+		return err
+	}
+	if user.IsDeleted || user.ValidationUid != uuid || time.Now().Unix() > user.ValidationExpire.Unix() {
+		return fmt.Errorf("BAD_VALIDATION_DATA")
+	}
+	user.IsValidated = true
+	user.ValidationUid = ""
+	user.ValidationExpire = time.Now()
 	err = service.AuthRepository.UpdateUser(*user)
 	return err
 }

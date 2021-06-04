@@ -16,7 +16,6 @@ type ProfileRepository struct {
 
 func (repo *ProfileRepository) CreateProfile(profile *model.Profile) error {
 	result := repo.RelationalDatabase.Create(profile)
-	fmt.Println(result.RowsAffected)
 	if result.RowsAffected == 0 {
 		return fmt.Errorf("Profile not created")
 	}

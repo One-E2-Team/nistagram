@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/mux"
 	"net/http"
 	"nistagram/auth/dto"
 	"nistagram/auth/model"
@@ -118,6 +119,19 @@ func (handler *AuthHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	err = handler.AuthService.UpdateUser(dto)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("{\"success\":\"ok\"}"))
+	w.Header().Set("Content-Type", "application/json")
+}
+
+func (handler *AuthHandler) ValidateUser(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	err := handler.AuthService.ValidateUser(vars["id"], vars["uuid"])
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)

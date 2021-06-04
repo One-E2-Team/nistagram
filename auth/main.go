@@ -82,6 +82,7 @@ func handlerFunc(handler *handler.AuthHandler) {
 	router.HandleFunc("/request-recovery", handler.RequestPassRecovery).Methods("POST")
 	router.HandleFunc("/recover", handler.ChangePassword).Methods("POST")
 	router.HandleFunc("/update-user", handler.UpdateUser).Methods("POST")
+	router.HandleFunc("/validate/{id}/{uuid}", handler.ValidateUser).Methods("GET")
 	var port string = "8000"                     // dev.db environ
 	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD") // dev production environment
 	_, ok1 := os.LookupEnv("DOCKER_ENV_SET_DEV") // dev front environment
