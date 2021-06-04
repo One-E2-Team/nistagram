@@ -12,7 +12,7 @@
             sm="4"
             >
             <v-text-field
-                v-model="name"
+                v-model="email"
                 :rules="[ rules.email , rules.required] "
                 label="Mail:"
                 required
@@ -58,6 +58,7 @@
 </template>
 
 <script>
+    import axios from 'axios'
   export default {
     data: () => ({
       show: false,
@@ -78,8 +79,15 @@
     methods: {
       login () {
         if (this.$refs.form.validate()){
-            //TODO: send axios
-            console.log("validation pass!")
+            let credentials = {
+                "email" : this.email,
+                "password" : this.password
+            }
+            axios({
+                method: "post",
+                url: "http://localhost:81/api/auth/login",
+                data: JSON.stringify(credentials)
+            }).then(response => console.log(response.data))
         }
       },
       
