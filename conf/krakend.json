@@ -82,19 +82,19 @@
       ]
     },
     {
-      "endpoint": "/api/post/",
-      "method": "GET",
+      "endpoint": "/api/auth/login",
+      "method": "POST",
       "output_encoding": "json",
       "extra_config": {},
       "backend": [
         {
-          "url_pattern": "/",
+          "url_pattern": "/login",
           "encoding": "json",
           "sd": "static",
-          "method": "GET",
+          "method": "POST",
           "extra_config": {},
           "host": [
-            "post:8080"
+            "auth:8080"
           ],
           "disable_host_sanitize": false
         }

@@ -9,6 +9,7 @@ import (
 	"nistagram/profile/model"
 	"nistagram/profile/repository"
 	"nistagram/util"
+	"os"
 )
 
 type ProfileService struct {
@@ -34,8 +35,8 @@ func (service *ProfileService) Register(dto dto.RegistrationDto) error {
 		"email":     profile.Email,
 	})
 	responseBody := bytes.NewBuffer(postBody)
-	//TODO: parametrize port and host
-	_, err = http.Post("http://localhost:8000/register", "application/json", responseBody)
+	authHost, authPort := GetAuthHostAndPort()
+	_, err = http.Post("http://"+authHost+":"+authPort+"/register", "application/json", responseBody)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -98,8 +99,8 @@ func (service *ProfileService) ChangePersonalData(dto dto.PersonalDataDTO, logge
 			"email":     profile.Email,
 		})
 		responseBody := bytes.NewBuffer(postBody)
-		//TODO: parametrize port and host
-		_, err = http.Post("http://localhost:8000/update-user", "application/json", responseBody)
+		authHost, authPort := GetAuthHostAndPort()
+		_, err = http.Post("http://"+authHost+":"+authPort+"/update-user", "application/json", responseBody)
 		if err != nil {
 			fmt.Println(err)
 			return err
@@ -109,6 +110,17 @@ func (service *ProfileService) ChangePersonalData(dto dto.PersonalDataDTO, logge
 	return err
 }
 
-func (service *ProfileService) Test(key string) error{
+func (service *ProfileService) Test(key string) error {
 	return service.ProfileRepository.InsertInRedis(key, "test")
+}
+
+func GetAuthHostAndPort() (string, string) {
+	var authHost, authPort string = "localhost", "8000"
+	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD") // dev production environment
+	_, ok1 := os.LookupEnv("DOCKER_ENV_SET_DEV") // dev front environment
+	if ok || ok1 {
+		authHost = "auth"
+		authPort = "8080"
+	}
+	return authHost, authPort
 }

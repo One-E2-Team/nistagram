@@ -15,15 +15,15 @@ type AuthHandler struct {
 }
 
 func (handler *AuthHandler) LogIn(w http.ResponseWriter, r *http.Request) {
-	var dto dto.LogInDTO
-	err := json.NewDecoder(r.Body).Decode(&dto)
+	var req dto.LogInDTO
+	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	var user *model.User
-	user, err = handler.AuthService.LogIn(dto)
+	user, err = handler.AuthService.LogIn(req)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -36,8 +36,19 @@ func (handler *AuthHandler) LogIn(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	w.Header().Set("Authorization", "Bearer "+token)
+	resp := dto.TokenResponseDTO{
+		Token: token,
+		Email: user.Email,
+		Roles: user.Roles,
+	}
+	json, err := json.Marshal(resp)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 	w.WriteHeader(http.StatusOK)
+	w.Write(json)
 	w.Header().Set("Content-Type", "application/json")
 }
 
@@ -98,7 +109,7 @@ func (handler *AuthHandler) ChangePassword(w http.ResponseWriter, r *http.Reques
 	w.Header().Set("Content-Type", "application/json")
 }
 
-func (handler *AuthHandler) UpdateUser(w http.ResponseWriter, r *http.Request){
+func (handler *AuthHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	var dto dto.UpdateUserDTO
 	err := json.NewDecoder(r.Body).Decode(&dto)
 	if err != nil {

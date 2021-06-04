@@ -54,6 +54,24 @@ services:
               target: /var/lib/mysql
         cap_add:
             - SYS_NICE  # CAP_SYS_NICE
+    
+    auth:
+        container_name: auth_ms
+        restart: always
+        environment: 
+            DB_USERNAME: ${DB_AUTH_USERNAME}
+            DB_PASSWORD: ${DB_AUTH_PASSWORD}
+            DOCKER_ENV_SET_PROD: ""
+        build:
+            context: .
+            dockerfile: Build.dockerfile
+            args: 
+                ARG_TARGET_MS_GO: auth
+        networks: 
+            - net_apigateway
+            - net_auth
+        depends_on: 
+            - db_auth
 
     db_auth:
         container_name: db_mysql_auth
