@@ -108,3 +108,7 @@ func (service *ProfileService) ChangePersonalData(dto dto.PersonalDataDTO, logge
 	err = service.ProfileRepository.UpdatePersonalData(profile.PersonalData)
 	return err
 }
+
+func (service *ProfileService) Test(key string) error{
+	return service.ProfileRepository.InsertInRedis(key, "test")
+}
