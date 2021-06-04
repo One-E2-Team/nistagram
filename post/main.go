@@ -55,6 +55,7 @@ func initHandler(postService *service.PostService) *handler.Handler{
 
 func handleFunc(handler *handler.Handler) {
 	router := mux.NewRouter().StrictSlash(true)
+	router.HandleFunc("/", handler.Test).Methods("GET")
 	router.HandleFunc("/", handler.Create).Methods("POST")
 	router.HandleFunc("/{postType}/{id}",handler.GetPost).Methods("GET")
 	router.HandleFunc("/{postType}/{id}",handler.DeletePost).Methods("DELETE")

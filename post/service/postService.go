@@ -12,9 +12,15 @@ type PostService struct {
 	PostRepository *repository.PostRepository
 }
 
-func (service *PostService) CreatePost(postType model.PostType,post dto.PostDto) error {
+func (service *PostService) CreatePost(postType model.PostType,post dto.PostDto, mediaNames []string) error {
+	var medias []model.Media
+	for i:=0;i<len(mediaNames);i++ {
+		m := model.Media{FilePath: mediaNames[i], WebSite: ""}
+		medias = append(medias, m)
+	}
+
 	newPost := model.Post{PublisherId: 123, PublisherUsername: "andrej",
-		PostType: model.PostType(postType), Medias: nil, PublishDate: time.Now(),
+		PostType: postType, Medias: medias, PublishDate: time.Now(),
 		Description: post.Description, IsHighlighted: post.IsHighlighted, IsCampaign: post.IsCampaign,
 		IsCloseFriendsOnly: post.IsCloseFriendsOnly,
 		HashTags: nil, TaggedUsers: post.TaggedUsers, IsPrivate: false, IsDeleted: false}

@@ -21,3 +21,6 @@ type Post struct {
 	IsDeleted bool `json:"isDeleted"`
 }
 
+func (post *Post) AddMedia(item Media){
+	post.Medias = append(post.Medias, item)
+}
