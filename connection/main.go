@@ -61,8 +61,8 @@ func initHandler(service *service.ConnectionService) *handler.Handler {
 
 func handleFunc(handler *handler.Handler) {
 	router := mux.NewRouter().StrictSlash(true)
-	//router.HandleFunc("/", handler.Register).Methods("POST")
-	router.HandleFunc("/profile/{id}/{username}", handler.AddProfile).Methods("POST")
+	router.HandleFunc("/profile/{id}", handler.AddProfile).Methods("POST")
+	router.HandleFunc("/connection/{followerId}/{profileId}", handler.FollowRequest).Methods("POST")
 	//router.HandleFunc("/{username}", handler.GetProfileByUsername).Methods("GET")
 	fmt.Printf("Starting server..")
 	var port string = "8085" // dev.db environ

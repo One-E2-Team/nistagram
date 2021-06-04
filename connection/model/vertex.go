@@ -4,7 +4,6 @@ import "encoding/json"
 
 type Profile struct {
 	ProfileID	uint 	`json:"profileID"`
-	Username	string	`json:"username"`
 }
 
 func (profile *Profile) ToMap() map[string]interface{}{

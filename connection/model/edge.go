@@ -1,5 +1,7 @@
 package model
 
+import "encoding/json"
+
 type Connection struct {
 	PrimaryProfile		Profile	`json:"primary"`
 	SecondaryProfile	Profile	`json:"secondary"`
@@ -9,7 +11,16 @@ type Connection struct {
 	NotifyStory			bool	`json:"notifyStory"`
 	NotifyMessage		bool	`json:"notifyMessage"`
 	NotifyComment		bool	`json:"notifyComment"`
+	ConnectionRequest	bool	`json:"connectionRequest"`
 	Approved			bool	`json:"approved"`
+	MessageRequest		bool	`json:"messageRequest"`
 	MessageConnected	bool	`json:"messageConnected"`
 	Block				bool	`json:"block"`
+}
+
+func (conn *Connection) ToMap() map[string]interface{}{
+	var res map[string]interface{}
+	connJson, _ := json.Marshal(conn)
+	json.Unmarshal([]byte(connJson), &res)
+	return res
 }
