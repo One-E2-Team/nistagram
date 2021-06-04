@@ -18,10 +18,11 @@ type Handler struct {
 
 func (handler *Handler) Create(w http.ResponseWriter, r *http.Request){
 	(w).Header().Set("Access-Control-Allow-Origin", "*")
-	params := mux.Vars(r)
-	postType := model.GetPostType(params["postType"])
+
 	var postDto dto.PostDto
 	err := json.NewDecoder(r.Body).Decode(&postDto)
+
+	postType := model.GetPostType(postDto.PostType)
 
 	fmt.Println(postDto)
 

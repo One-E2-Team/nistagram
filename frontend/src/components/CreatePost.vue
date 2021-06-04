@@ -129,7 +129,8 @@
       },
       submit () {
         let dto = {"description" : this.description, "isHighlighted" : this.isHighlighted, "isCampaign" : this.isCampaign,
-        "isCloseFriendsOnly": this.isCloseFriendsOnly, "location" : this.selectedLocation, "hashTags" : [], "taggedUsers" : []}
+        "isCloseFriendsOnly": this.isCloseFriendsOnly, "location" : this.selectedLocation, 
+        "hashTags" : [], "taggedUsers" : [], "postType" : this.postType}
         let json = JSON.stringify(dto);
         console.log(json);
         const blob = new Blob([json], {
