@@ -21,6 +21,7 @@ func (handler *AuthHandler) LogIn(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 	var user *model.User
@@ -28,6 +29,7 @@ func (handler *AuthHandler) LogIn(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 
@@ -35,6 +37,7 @@ func (handler *AuthHandler) LogIn(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 	resp := dto.TokenResponseDTO{
@@ -42,33 +45,36 @@ func (handler *AuthHandler) LogIn(w http.ResponseWriter, r *http.Request) {
 		Email: user.Email,
 		Roles: user.Roles,
 	}
-	json, err := json.Marshal(resp)
+	respJson, err := json.Marshal(resp)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	w.Write(json)
+	_, _ = w.Write(respJson)
 	w.Header().Set("Content-Type", "application/json")
 }
 
 func (handler *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
-	var dto dto.RegisterDTO
-	err := json.NewDecoder(r.Body).Decode(&dto)
+	var registerDTO dto.RegisterDTO
+	err := json.NewDecoder(r.Body).Decode(&registerDTO)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
-	err = handler.AuthService.Register(dto)
+	err = handler.AuthService.Register(registerDTO)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("{\"success\":\"ok\"}"))
+	_, _ = w.Write([]byte("{\"success\":\"ok\"}"))
 	w.Header().Set("Content-Type", "application/json")
 }
 
@@ -78,54 +84,60 @@ func (handler *AuthHandler) RequestPassRecovery(w http.ResponseWriter, r *http.R
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 	err = handler.AuthService.RequestPassRecovery(email)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Check your email!"))
+	_, _ = w.Write([]byte("Check your email!"))
 	w.Header().Set("Content-Type", "application/json")
 }
 
 func (handler *AuthHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
-	var dto dto.RecoveryDTO
-	err := json.NewDecoder(r.Body).Decode(&dto)
+	var recoveryDTO dto.RecoveryDTO
+	err := json.NewDecoder(r.Body).Decode(&recoveryDTO)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
-	err = handler.AuthService.ChangePassword(dto)
+	err = handler.AuthService.ChangePassword(recoveryDTO)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Password successfully changed!"))
+	_, _ = w.Write([]byte("Password successfully changed!"))
 	w.Header().Set("Content-Type", "application/json")
 }
 
 func (handler *AuthHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
-	var dto dto.UpdateUserDTO
-	err := json.NewDecoder(r.Body).Decode(&dto)
+	var updateUserDto dto.UpdateUserDTO
+	err := json.NewDecoder(r.Body).Decode(&updateUserDto)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
-	err = handler.AuthService.UpdateUser(dto)
+	err = handler.AuthService.UpdateUser(updateUserDto)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("{\"success\":\"ok\"}"))
+	_, _ = w.Write([]byte("{\"success\":\"ok\"}"))
 	w.Header().Set("Content-Type", "application/json")
 }
 
@@ -135,9 +147,10 @@ func (handler *AuthHandler) ValidateUser(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("{\"success\":\"ok\"}"))
+	_, _ = w.Write([]byte("{\"success\":\"ok\"}"))
 	w.Header().Set("Content-Type", "application/json")
 }
