@@ -3,8 +3,8 @@ package model
 import "encoding/json"
 
 type Connection struct {
-	PrimaryProfile		Profile	`json:"primary"`
-	SecondaryProfile	Profile	`json:"secondary"`
+	PrimaryProfile		uint	`json:"primary"`
+	SecondaryProfile	uint	`json:"secondary"`
 	Muted				bool	`json:"muted"`
 	CloseFriend			bool	`json:"closeFriend"`
 	NotifyPost			bool	`json:"notifyPost"`
