@@ -1,6 +1,11 @@
 <template>
+<v-container>
+  <v-row align="center" justify="center">
+    <v-col cols="12" sm="9" >
   <v-stepper v-model="e1">
-    <v-stepper-header>
+    
+      
+    <v-stepper-header >
       <v-stepper-step :complete="e1 > 1" step="1">
         Credentials
       </v-stepper-step>
@@ -14,7 +19,7 @@
       <v-divider></v-divider>
 
       <v-stepper-step step="3">
-        Name of step 3
+        About me
       </v-stepper-step>
     </v-stepper-header>
 
@@ -24,7 +29,7 @@
         <v-form ref="form1" v-model="valid" lazy-validation>
           <v-container >
             <v-row align="center" justify="center">
-              <v-col cols="12" sm="4" >
+              <v-col cols="12" sm="6" >
                 <v-text-field
                     v-model="credentials.email"
                     :rules="[ rules.email , rules.required] "
@@ -34,7 +39,7 @@
               </v-col>
             </v-row>
             <v-row align="center" justify="center">
-              <v-col cols="12" sm="4">
+              <v-col cols="12" sm="6">
                 <v-text-field
                     v-model="credentials.password"
                     :append-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
@@ -48,7 +53,7 @@
               </v-col>
             </v-row>
             <v-row align="center" justify="center">
-              <v-col cols="12" sm="4">
+              <v-col cols="12" sm="6">
                 <v-btn
                 :disabled="!valid"
                 color="primary"
@@ -67,7 +72,7 @@
         <v-form ref="form2" v-model="valid" lazy-validation class="text-center">
           <v-container >
             <v-row align="center" justify="center">
-              <v-col cols="12" sm="6" >
+              <v-col cols="12" sm="8" >
                 <v-text-field
                   v-model="person.username"
                   :rules="[ rules.required , rules.name] "
@@ -77,7 +82,7 @@
               </v-col>
             </v-row>
           <v-row align="center" justify="center">
-            <v-col cols="12" sm="6" >
+            <v-col cols="12" sm="8" >
               <v-text-field
                 v-model="person.name"
                 :rules="[ rules.required , rules.name] "
@@ -87,7 +92,7 @@
             </v-col>
           </v-row>
           <v-row align="center" justify="center">
-            <v-col cols="12" sm="6" >  
+            <v-col cols="12" sm="8" >  
               <v-text-field
                 v-model="person.surname"
                 :rules="[ rules.required , rules.name] "
@@ -97,7 +102,7 @@
             </v-col>
           </v-row>
           <v-row align="center" justify="center">
-            <v-col cols="12" sm="6" >  
+            <v-col cols="12" sm="8" >  
               <v-menu
                 v-model="menu"
                 :close-on-content-click="false"
@@ -124,7 +129,7 @@
             </v-col>
           </v-row>
           <v-row align="center" justify="center">
-            <v-col cols="12" sm="6" >          
+            <v-col cols="12" sm="8" >          
               <v-text-field
                 v-model="person.telephone"
                 :rules="[ rules.required , rules.name] "
@@ -134,7 +139,7 @@
             </v-col>
           </v-row>
           <v-row align="center" justify="center">
-            <v-col cols="12" sm="6" >          
+            <v-col cols="12" sm="8" >          
               <div class="text-left">
                 <label>Gender:</label>
               </div> 
@@ -155,7 +160,7 @@
           </v-row>
 
           <v-row align="center" justify="center">
-              <v-col cols="12" sm="4" class="d-flex justify-space-around mb-6">
+              <v-col cols="12" sm="6" class="d-flex justify-space-around mb-6">
                 <v-btn
                 color="primary"
                 @click="continueTo3">
@@ -174,30 +179,94 @@
         </v-form>
       </v-stepper-content>
 
-
-
-
       <!--Step3 content -->
       <v-stepper-content step="3">
-        <v-card
-          class="mb-12"
-          color="grey lighten-1"
-          height="200px"
-        ></v-card>
+        <v-form ref="form3" v-model="valid" lazy-validation class="text-center">
+          <v-container >
+            <v-row align="center" justify="center">
+              <v-col cols="12" sm="8" >
+                <v-textarea
+                  background-color="grey lighten-2"
+                  color="cyan"
+                  label="Biography"
+                  v-model="person.biography"
 
-        <v-btn
-          color="primary"
-          @click="e1 = 1"
-        >
-          Continue
-        </v-btn>
+                ></v-textarea>
+              </v-col>
+            </v-row>
 
-        <v-btn text>
-          Cancel
-        </v-btn>
+            <v-row align="center" justify="center">
+              <v-col cols="12" sm="8" >  
+                <v-text-field
+                  v-model="person.webSite"
+                  label="Web site:"
+                  ></v-text-field>
+              </v-col>
+            </v-row>
+
+            <v-row align="center" justify="center">
+              <v-col cols="12" sm="8" >
+              <v-checkbox
+                  v-model="isPrivate"
+                  :label="`Private account`"
+                ></v-checkbox>
+              </v-col>
+            </v-row>
+
+          
+            <v-row align="center" justify="center">
+              <v-col cols="12" sm="8" >
+
+                <v-combobox
+                  v-model="person.interests"
+                  :items="interests"
+                  chips
+                  clearable
+                  label="Your interests"
+                  multiple
+                  prepend-icon="mdi-filter-variant"
+                  solo
+                >
+                  <template v-slot:selection="{ attrs, item, select, selected }">
+                    <v-chip
+                      v-bind="attrs"
+                      :input-value="selected"
+                      close
+                      @click="select"
+                      @click:close="remove(item)"
+                    >
+                      <strong>{{ item }}</strong>&nbsp;
+                    </v-chip>
+                  </template>
+                </v-combobox>
+              </v-col>
+            </v-row>
+          
+
+          <v-row align="center" justify="center">
+              <v-col cols="12" sm="6" class="d-flex justify-space-around mb-6">
+                <v-btn
+                color="primary"
+                @click="continueTo3">
+                Continue
+                </v-btn>
+              <v-btn
+              color="normal"
+              class="d-flex justify-space-around mb-6"
+              @click="e1=1">
+              Back
+              </v-btn>
+            </v-col>
+          </v-row>
+          </v-container>
+
+        </v-form>
       </v-stepper-content>
     </v-stepper-items>
   </v-stepper>
+    </v-col>
+  </v-row>
+</v-container>
 </template>
 
 <script>
@@ -216,8 +285,13 @@
         surname: '',
         telephone: '',
         gender: '',
-        birthDate: ''
-      } ,     
+        birthDate: '',
+        biography: '',
+        webSite: '',
+        interests: []
+      } ,  
+      interests: ['plavuse','cokoladne','brinete','maloletne'],
+      isPrivate: false,
 
       rules: {
           required: value => !!value || 'Required.',
@@ -242,7 +316,11 @@
             this.e1 = 3
         }
         this.e1 = 3
-      }
+      },
+      remove (item) {
+        this.person.interests.splice(this.person.interests.indexOf(item), 1)
+        this.person.interests = [...this.person.interests]
+      },
       
     },
   }

@@ -5,12 +5,8 @@
     lazy-validation
   >
     <v-container >
-        <v-row align="center"
-      justify="center">
-            <v-col
-            cols="12"
-            sm="4"
-            >
+        <v-row align="center" justify="center">
+            <v-col cols="12" sm="4">
             <v-text-field
                 v-model="email"
                 :rules="[ rules.email , rules.required] "
@@ -19,12 +15,8 @@
                 ></v-text-field>
             </v-col>
         </v-row>
-        <v-row align="center"
-      justify="center">
-            <v-col
-            cols="12"
-            sm="4"
-            >
+        <v-row align="center" justify="center">
+            <v-col cols="12" sm="4">
             <v-text-field
                 v-model="password"
                 :append-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
@@ -37,12 +29,8 @@
                 ></v-text-field>
             </v-col>
         </v-row>
-        <v-row align="center"
-      justify="center">
-            <v-col
-            cols="12"
-            sm="4"
-            >
+        <v-row align="center" justify="center">
+            <v-col cols="12" sm="4" >
                 <v-btn
                 :disabled="!valid"
                 color="success"
