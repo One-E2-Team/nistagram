@@ -12,6 +12,10 @@ type PostService struct {
 	PostRepository *repository.PostRepository
 }
 
+func (service *PostService) GetAll() ([]model.Post){
+	return service.PostRepository.GetAll()
+}
+
 func (service *PostService) CreatePost(postType model.PostType,post dto.PostDto, mediaNames []string) error {
 	var medias []model.Media
 	for i:=0;i<len(mediaNames);i++ {

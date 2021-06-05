@@ -18,7 +18,11 @@ type Handler struct {
 	PostService *service.PostService
 }
 
-func (handler Handler) Test(w http.ResponseWriter, r *http.Request){
+func (handler Handler) GetAll(w http.ResponseWriter, r *http.Request){
+
+	result := handler.PostService.GetAll()
+	json.NewEncoder(w).Encode(&result)
+
 	w.Write([]byte("{\"success\":\"ok\"}"))
 	w.Header().Set("Content-Type", "application/json")
 }
@@ -44,8 +48,8 @@ func (handler *Handler) Create(w http.ResponseWriter, r *http.Request){
 			return
 		}
 		uid, err := uuid.NewV4()
-		mediaNames = append(mediaNames, uid.String())
-		f, err := os.OpenFile("../../nistagramstaticdata/data/" + uid.String(), os.O_WRONLY|os.O_CREATE, 0666)
+		mediaNames = append(mediaNames, uid.String() + ".jpg")
+		f, err := os.OpenFile("../../nistagramstaticdata/data/" + uid.String() + ".jpg", os.O_WRONLY|os.O_CREATE, 0666)
 		if err != nil{
 			w.Write([]byte("{\"success\":\"error\"}"))
 			return

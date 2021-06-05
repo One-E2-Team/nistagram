@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -12,6 +13,40 @@ import (
 
 type PostRepository struct {
 	Client *mongo.Client
+}
+
+func (repo *PostRepository) GetAll() []model.Post {
+	postCollection, err := repo.getCollection(model.GetPostType("post"))
+	if err != nil{
+		fmt.Println("Error: can't get post collection!")
+	}
+	storyCollection, err := repo.getCollection(model.GetPostType("story"))
+	if err != nil{
+		fmt.Println("Error: can't get story collection!")
+	}
+	postCursor, err := postCollection.Find(context.TODO(), bson.D{})
+	if err != nil{
+		fmt.Println("Error: can't find posts!")
+	}
+	storyCursor, err := storyCollection.Find(context.TODO(), bson.D{})
+	if err != nil{
+		fmt.Println("Error: can't find stories!")
+	}
+	var posts []model.Post
+
+	for postCursor.Next(context.TODO()){
+		var result model.Post
+		err = postCursor.Decode(&result)
+		posts = append(posts, result)
+	}
+
+	for storyCursor.Next(context.TODO()){
+		var result model.Post
+		err = storyCursor.Decode(&result)
+		posts = append(posts, result)
+	}
+
+	return posts
 }
 
 func (repo *PostRepository) Create(post *model.Post) error {
