@@ -8,8 +8,8 @@ import (
 )
 
 func SendMail(sendTo string, subject string, mailMessage string) {
-	from := os.Getenv("ISA_MAIL_USERNAME")
-	password := os.Getenv("ISA_MAIL_PASSWORD")
+	from := os.Getenv("MAIL_USERNAME")
+	password := os.Getenv("MAIL_PASSWORD")
 	to := []string{sendTo}
 	smtpHost := "smtp.gmail.com"
 	smtpPort := "587"
