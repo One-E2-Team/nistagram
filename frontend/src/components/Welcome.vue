@@ -42,12 +42,7 @@
                 >
                 Register
                 </v-btn>
-         <v-img
-          :src="require('../assets/minions.jpg')"
-          class="my-3"
-          contain
-          height="200"
-        />
+         
       </v-col>
     </v-row>
   </v-container>

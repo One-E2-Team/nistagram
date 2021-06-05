@@ -62,8 +62,7 @@
   export default {
     data: () => ({
       show: false,
-      valid: true,
-      name: '',      
+      valid: true,    
       email: '',
       password: '',
 
