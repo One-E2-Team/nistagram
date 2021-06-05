@@ -101,7 +101,26 @@
       ]
     },
     {
-      "endpoint": "/api/post",
+      "endpoint": "/static/data/{media}",
+      "method": "GET",
+      "output_encoding": "no-op",
+      "extra_config": {},
+      "backend": [
+        {
+          "url_pattern": "/data/{media}",
+          "encoding": "no-op",
+          "sd": "static",
+          "method": "GET",
+          "extra_config": {},
+          "host": [
+            "static:80"
+          ],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/post/",
       "method": "GET",
       "output_encoding": "json",
       "extra_config": {},
@@ -115,6 +134,7 @@
           "host": [
             "post:8080"
           ],
+          "is_collection": true,
           "disable_host_sanitize": false
         }
       ]

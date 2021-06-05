@@ -19,11 +19,17 @@ type Handler struct {
 }
 
 func (handler Handler) GetAll(w http.ResponseWriter, r *http.Request){
-
+	(w).Header().Set("Access-Control-Allow-Origin", "*")
 	result := handler.PostService.GetAll()
-	json.NewEncoder(w).Encode(&result)
+	//json.NewEncoder(w).Encode(&result)
 
-	w.Write([]byte("{\"success\":\"ok\"}"))
+	js, err := json.Marshal(result)
+	if err != nil{
+		w.Write([]byte("{\"success\":\"error\"}"))
+	}
+	w.Write(js)
+
+	//w.Write([]byte("{\"success\":\"ok\"}"))
 	w.Header().Set("Content-Type", "application/json")
 }
 
