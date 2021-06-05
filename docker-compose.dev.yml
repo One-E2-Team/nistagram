@@ -19,7 +19,7 @@ services:
         networks: 
             - net_apigateway
         volumes: 
-            - "../nistagramstaticdata/data:/usr/share/nginx/html:ro"
+            - "../nistagramstaticdata:/usr/share/nginx/html:ro"
 
     profile:
         container_name: profile_ms
@@ -46,6 +46,8 @@ services:
             DB_USERNAME: root
             DB_PASSWORD: root
             DOCKER_ENV_SET_DEV: ""
+            MAIL_USERNAME: ${MAIL_USERNAME}
+            MAIL_PASSWORD: ${MAIL_PASSWORD}
         build:
             context: .
             args:

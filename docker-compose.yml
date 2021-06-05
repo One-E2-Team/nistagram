@@ -61,6 +61,8 @@ services:
         environment: 
             DB_USERNAME: ${DB_AUTH_USERNAME}
             DB_PASSWORD: ${DB_AUTH_PASSWORD}
+            MAIL_USERNAME: ${MAIL_USERNAME}
+            MAIL_PASSWORD: ${MAIL_PASSWORD}
             DOCKER_ENV_SET_PROD: ""
         build:
             context: .
