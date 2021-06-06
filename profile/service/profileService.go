@@ -41,6 +41,12 @@ func (service *ProfileService) Register(dto dto.RegistrationDto) error {
 		fmt.Println(err)
 		return err
 	}
+	connHost, connPort := GetConnectionHostAndPort()
+	_, err = http.Post("http://"+connHost+":"+connPort+"/profile/" + util.Uint2String(profile.ID), "application/json", responseBody)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
 	return nil
 }
 
@@ -110,9 +116,41 @@ func (service *ProfileService) ChangePersonalData(dto dto.PersonalDataDTO, logge
 	return err
 }
 
-func (service *ProfileService) GetAllInterests() ([]string, error){
+func (service *ProfileService) GetAllInterests() ([]string, error) {
 	interests, err := service.ProfileRepository.GetAllInterests()
 	return interests, err
+}
+
+func (service *ProfileService) GetMyProfileSettings(loggedUserId uint) (dto.ProfileSettingsDTO, error) {
+	ret := dto.ProfileSettingsDTO{}
+	profile, err := service.ProfileRepository.GetProfileByID(loggedUserId)
+	if err != nil {
+		return ret, err
+	}
+	ret.CanReceiveMessageFromUnknown = profile.ProfileSettings.CanReceiveMessageFromUnknown
+	ret.CanBeTagged = profile.ProfileSettings.CanBeTagged
+	ret.IsPrivate = profile.ProfileSettings.IsPrivate
+	return ret, nil
+}
+
+func (service *ProfileService) GetMyPersonalData(loggedUserId uint) (dto.PersonalDataDTO, error) {
+	profile, err := service.ProfileRepository.GetProfileByID(loggedUserId)
+	if err != nil {
+		return dto.PersonalDataDTO{}, err
+	}
+	personalData := profile.PersonalData
+	ret := dto.PersonalDataDTO{Username: profile.Username, Name: personalData.Name, Surname: personalData.Surname,
+		Email: profile.Email, Telephone: personalData.Telephone, Gender: personalData.Gender,
+		BirthDate: personalData.BirthDate, Biography: personalData.BirthDate, Website: profile.Website}
+	return ret, nil
+}
+
+func (service *ProfileService) GetProfileByID(id uint) (*model.Profile, error) {
+	profile, err := service.ProfileRepository.GetProfileByID(id)
+	if err != nil {
+		return nil, err
+	}
+	return profile, nil
 }
 
 func (service *ProfileService) Test(key string) error {
@@ -128,4 +166,15 @@ func GetAuthHostAndPort() (string, string) {
 		authPort = "8080"
 	}
 	return authHost, authPort
+}
+
+func GetConnectionHostAndPort() (string, string) {
+	var connHost, connPort string = "localhost", "8085"
+	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD") // dev production environment
+	_, ok1 := os.LookupEnv("DOCKER_ENV_SET_DEV") // dev front environment
+	if ok || ok1 {
+		connHost = "connection"
+		connPort = "8080"
+	}
+	return connHost, connPort
 }
