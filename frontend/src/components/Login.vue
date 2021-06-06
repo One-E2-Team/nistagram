@@ -74,7 +74,7 @@
                 method: "post",
                 url: "http://localhost:81/api/auth/login",
                 data: JSON.stringify(credentials)
-            }).then(response => console.log(response.data))
+            }).then(response => console.log(response.data)) //TODO: redirect
         }
       },
       

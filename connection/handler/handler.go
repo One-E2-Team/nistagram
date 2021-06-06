@@ -25,6 +25,20 @@ func (handler *Handler) AddProfile(w http.ResponseWriter, r *http.Request){
 	}
 }
 
+func (handler *Handler) GetConnection(w http.ResponseWriter, r *http.Request){
+	vars := mux.Vars(r)
+	id1, e1 := strconv.ParseUint(vars["followerId"],10,32)
+	id2, e2 := strconv.ParseUint(vars["profileId"],10,32)
+	if e1!=nil || e2!=nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	connection := handler.ConnectionService.GetConnection(uint(id1), uint(id2))
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(connection)
+}
+
 func (handler *Handler) FollowRequest(w http.ResponseWriter, r *http.Request){
 	vars := mux.Vars(r)
 	id1, e1 := strconv.ParseUint(vars["followerId"],10,32)

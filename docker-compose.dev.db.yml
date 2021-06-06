@@ -37,6 +37,7 @@ services:
         environment: 
             - NEO4J_dbms_connector_bolt_advertised__address=0.0.0.0:7687
             - NEO4J_dbms_connector_bolt_listen__address=0.0.0.0:7687
+            - NEO4J_dbms_logs_query_enabled=INFO
             - NEO4J_AUTH=none
         networks: 
             - net_connection
