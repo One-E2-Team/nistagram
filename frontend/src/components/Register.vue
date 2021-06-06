@@ -247,8 +247,8 @@
               <v-col cols="12" sm="6" class="d-flex justify-space-around mb-6">
                 <v-btn
                 color="primary"
-                @click="continueTo3">
-                Continue
+                @click="register">
+                Register
                 </v-btn>
               <v-btn
               color="normal"
@@ -270,6 +270,8 @@
 </template>
 
 <script>
+import axios from 'axios'
+
   export default {
     data: () => ({
       e1: 1,
@@ -321,6 +323,36 @@
         this.person.interests.splice(this.person.interests.indexOf(item), 1)
         this.person.interests = [...this.person.interests]
       },
+      register (){
+        let data = {
+          username: this.person.username,
+          password: this.credentials.password,
+          name: this.person.name,
+          surname: this.person.surname,
+          email: this.credentials.email,
+          telephone: this.person.telephone,
+          gender: this.person.gender,
+          birthDate: this.person.birthDate,
+          isPrivate: this.isPrivate,
+          biography: this.person.biography,
+          webSite: this.person.webSite,
+          interests: []
+        }
+        axios({
+          method: "post",
+          url: "http://localhost:81/api/profile/",
+          data: JSON.stringify(data),
+          config: { headers: {'Content-Type': 'multipart/form-data' }}
+        }).then(function (response) {
+          if (response.status == 200) {
+            alert('Check your email!');
+            //TODO: redirect on home page
+          }
+        })
+        .catch(function (response) {
+          console.log(response);
+        });
+      }
       
     },
   }

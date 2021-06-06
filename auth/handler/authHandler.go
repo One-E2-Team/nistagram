@@ -151,6 +151,6 @@ func (handler *AuthHandler) ValidateUser(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write([]byte("{\"success\":\"ok\"}"))
+	_, _ = w.Write([]byte("{\"success\":\"validated\"}"))
 	w.Header().Set("Content-Type", "application/json")
 }
