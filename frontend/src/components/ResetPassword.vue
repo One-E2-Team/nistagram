@@ -66,7 +66,11 @@ import * as validator from '../plugins/validator.js'
         show: false,
         password1: '',
         password2: '',
-        rules: validator.rules
+        rules: {
+          required: validator.rules.required,
+          min: validator.rules.min,
+          passwordMatch: () => (this.password1 === this.password2) || 'Password must match'
+        },
       }
     },
     methods:{

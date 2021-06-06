@@ -116,9 +116,27 @@ export default {
             menu: false
         }
     },
+    created(){
+        axios({
+            method: 'get',
+            url: "http://" + comm.server + "/api/profile/my-personal-data",
+            }).then(response => {
+                if(response.status == 200){
+                    this.person = response.data
+                }
+            });
+    },
     methods:{
         updateSettings(){
-
+            axios({
+            method: 'put',
+            url: "http://" + comm.server + "/api/profile/my-personal-data",
+            data: JSON.stringify(this.person)
+            }).then(response => {
+                if(response.status == 200){
+                console.log(response.data)
+                }
+            });
         }
     }
 }
