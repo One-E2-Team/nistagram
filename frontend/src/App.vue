@@ -4,9 +4,17 @@
       <router-link to="/">Home</router-link> |
       <router-link to="/explore">Explore</router-link>
     </div>
+    <nav-bar/>
     <router-view/>
   </v-app>
 </template>
+
+<script>
+import NavBar from './components/NavBar.vue'
+export default {
+  components: { NavBar }
+}
+</script>
 
 <style lang="scss">
 #app {
@@ -30,3 +38,5 @@
   }
 }
 </style>
+
+    NavBar

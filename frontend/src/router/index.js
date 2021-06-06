@@ -44,6 +44,12 @@ const routes = [{
     name: 'ResetPassword',
     component: () =>
       import ('./../components/ResetPassword.vue')
+  },
+  {
+    path: '/profile/settings',
+    name: 'ProfileSettings',
+    component: () =>
+      import ('./../components/ProfileSettings.vue')
   }
 ]
 
