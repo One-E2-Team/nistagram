@@ -19,7 +19,6 @@
         <v-row justify="center">
          <v-btn
                 color="success"
-                class="mr-4"
                 elevation="8"
                 large
                 @click="login"
@@ -30,12 +29,10 @@
       </v-col>
 
       <v-col
-        class="mb-5"
         cols="12"
       >
         <v-btn
                 color="primary"
-                class="mr-4"
                 elevation="8"
                 large
                 @click="register"
