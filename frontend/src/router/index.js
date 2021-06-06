@@ -2,6 +2,7 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
 import HomePage from '../components/HomePage'
+import Explore from '../components/Explore'
 
 Vue.use(VueRouter)
 
@@ -16,10 +17,9 @@ const routes = [{
     component: HomePage
   },
   {
-    path: '/about',
-    name: 'About',
-    component: () =>
-      import ('../views/About.vue')
+    path: '/explore',
+    name: 'Explore',
+    component: Explore
   },
   {
     path: '/post',
@@ -44,6 +44,18 @@ const routes = [{
     name: 'ResetPassword',
     component: () =>
       import ('./../components/ResetPassword.vue')
+  },
+  {
+    path: '/profile/settings',
+    name: 'ProfileSettings',
+    component: () =>
+      import ('./../components/ProfileSettings.vue')
+  },
+  {
+    path: '/profile/settings/personal',
+    name: 'PersonalSettings',
+    component: () =>
+      import ('./../components/PersonalSettings.vue')
   }
 ]
 

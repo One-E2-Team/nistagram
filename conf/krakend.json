@@ -16,7 +16,19 @@
         "PUT",
         "DELETE"
       ],
-      "allow_headers": []
+      "allow_headers": [
+        "*"
+      ]
+    },
+    "github_com/devopsfaith/krakend-gologging": {
+      "level": "DEBUG",
+      "prefix": "[KRAKEND]",
+      "syslog": true,
+      "stdout": true,
+      "format": "logstash"
+    },
+    "github_com/devopsfaith/krakend-logstash": {
+      "enabled": true
     }
   },
   "timeout": "3000ms",
@@ -66,19 +78,22 @@
     {
       "endpoint": "/api/post/",
       "method": "POST",
-      "output_encoding": "json",
+      "output_encoding": "no-op",
       "extra_config": {},
+      "headers_to_pass": [
+        "*"
+      ],
       "backend": [
         {
-          "url_pattern": "",
-          "encoding": "json",
+          "url_pattern": "/",
+          "encoding": "no-op",
           "sd": "static",
           "method": "POST",
           "extra_config": {},
-          "disable_host_sanitize": false,
           "host": [
             "post:8080"
-          ]
+          ],
+          "disable_host_sanitize": false
         }
       ]
     },
@@ -260,6 +275,74 @@
       "headers_to_pass": [
         "Authorization"
       ]
+    },
+    {
+      "endpoint": "/api/profile/my-profile-settings",
+      "method": "PUT",
+      "output_encoding": "json",
+      "extra_config": {},
+      "headers_to_pass": [
+        "Authorization"
+      ],
+      "backend": [
+        {
+          "url_pattern": "/change-profile-settings",
+          "encoding": "json",
+          "sd": "static",
+          "method": "PUT",
+          "extra_config": {},
+          "host": [
+            "profile:8080"
+          ],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/post/public/",
+      "method": "GET",
+      "output_encoding": "json",
+      "extra_config": {},
+      "backend": [
+        {
+          "url_pattern": "/public",
+          "encoding": "json",
+          "sd": "static",
+          "method": "GET",
+          "extra_config": {},
+          "host": [
+            "post:8080"
+          ],
+          "disable_host_sanitize": false,
+          "is_collection": true,
+          "target": ""
+        }]
+    },
+    {
+      "endpoint": "/api/profile/my-personal-data",
+      "method": "PUT",
+      "output_encoding": "json",
+      "extra_config": {},
+      "headers_to_pass": [
+        "Authorization"
+      ],
+      "backend": [
+        {
+          "url_pattern": "/change-personal-data",
+          "encoding": "json",
+          "sd": "static",
+          "method": "PUT",
+          "extra_config": {},
+          "host": [
+            "profile:8080"
+          ],
+          "disable_host_sanitize": false
+        }
+      ]
     }
-  ]
+  ],
+  "read_timeout": "0s",
+  "write_timeout": "0s",
+  "idle_timeout": "0s",
+  "read_header_timeout": "0s"
 }

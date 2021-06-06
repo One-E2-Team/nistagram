@@ -63,21 +63,19 @@
 </template>
 
 <script>
-  import axios from 'axios'
-  import * as comm from '../configuration/communication.js'
+import axios from 'axios'
+import * as comm from '../configuration/communication.js'
   export default {
+    name: 'Explore',
 
-    name: 'CreatePost',
-
-    mounted(){
-        axios.get("http://" + comm.server +"/api/post/").then((response) => {
+     mounted(){
+        axios.get("http://" + comm.server +"/api/post/public").then((response) => {
             let res = response.data.collection;
             res.forEach((post) => {
                 if(post.medias != null){
                   post.medias.forEach((media) =>{
-                    media.filePath = "http://" + comm.server +"/static/data/" + media.filePath;
+                   media.filePath = "http://" + comm.server +"/static/data/" + media.filePath;
                   });
-
                 }
             });
             this.posts = res;

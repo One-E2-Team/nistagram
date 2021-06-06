@@ -48,6 +48,7 @@
 <script>
     import axios from 'axios'
     import * as comm from '../configuration/communication.js'
+    import * as validator from '../plugins/validator.js'
   export default {
     data: () => ({
       show: false,
@@ -55,13 +56,7 @@
       email: '',
       password: '',
 
-      rules: {
-          required: value => !!value || 'Required.',
-          min: v => v.length >= 8 || 'Min 8 characters',
-          email: v => /.+@.+\..+/.test(v) || 'E-mail must be valid',
-          name: v => (v && v.length <= 10) || 'Name must be less than 10 characters',
-          emailMatch: () => (`The email and password you entered don't match`),
-        },
+      rules: validator.rules
     }),
 
     methods: {
@@ -78,7 +73,7 @@
             }).then(response => {
               if(response.status==200){
                 comm.setJWTToken(response.data)
-                 axios.defaults.headers.common['Authorization'] = 'Bearer ' + comm.getJWTToken().accessToken;
+                 axios.defaults.headers.common['Authorization'] = 'Bearer ' + comm.getJWTToken().token;
               }
             }) //TODO: redirect
         }

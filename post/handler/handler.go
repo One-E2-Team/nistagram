@@ -2,16 +2,20 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/mux"
 	uuid "github.com/nu7hatch/gouuid"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"nistagram/post/dto"
 	"nistagram/post/model"
 	"nistagram/post/service"
 	"os"
+	"strconv"
+	"strings"
 )
 
 type Handler struct {
@@ -19,7 +23,6 @@ type Handler struct {
 }
 
 func (handler Handler) GetAll(w http.ResponseWriter, r *http.Request){
-	(w).Header().Set("Access-Control-Allow-Origin", "*")
 	result := handler.PostService.GetAll()
 	//json.NewEncoder(w).Encode(&result)
 
@@ -33,30 +36,60 @@ func (handler Handler) GetAll(w http.ResponseWriter, r *http.Request){
 	w.Header().Set("Content-Type", "application/json")
 }
 
+func (handler Handler) GetPublic(w http.ResponseWriter, r *http.Request){
+	result := handler.PostService.GetPublic()
+
+	js, err := json.Marshal(result)
+	if err != nil{
+		w.Write([]byte("{\"success\":\"error\"}"))
+	}
+	w.Write(js)
+
+	//w.Write([]byte("{\"success\":\"ok\"}"))
+	w.Header().Set("Content-Type", "application/json")
+}
+
 func (handler *Handler) Create(w http.ResponseWriter, r *http.Request){
-	(w).Header().Set("Access-Control-Allow-Origin", "*")
+
+	fmt.Println("In function create..")
 
 	err := r.ParseMultipartForm(0)
 
 	if err != nil{
+		fmt.Println(err)
 		w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 
-	files := r.MultipartForm.File["files"]
+	i := 0
+	var files []*multipart.FileHeader
+	for {
+		file := r.MultipartForm.File["file"+strconv.Itoa(i)]
+		if len(file) > 0 {
+			files = append(files, file[0])
+			i++
+		}else{
+			break
+		}
+	}
 
 	var mediaNames []string
-
 	for i:=0;i<len(files);i++{
 		file,err := files[i].Open()
 		if err != nil{
+			fmt.Println(err)
 			w.Write([]byte("{\"success\":\"error\"}"))
 			return
 		}
 		uid, err := uuid.NewV4()
-		mediaNames = append(mediaNames, uid.String() + ".jpg")
-		f, err := os.OpenFile("../../nistagramstaticdata/data/" + uid.String() + ".jpg", os.O_WRONLY|os.O_CREATE, 0666)
 		if err != nil{
+			fmt.Println(err)
+		}
+		fn := strings.Split(files[i].Filename, ".")
+		mediaNames = append(mediaNames, uid.String() + "." + fn[1])
+		f, err := os.OpenFile("../../nistagramstaticdata/data/" + uid.String() + "." + fn[1], os.O_WRONLY|os.O_CREATE, 0666)
+		if err != nil{
+			fmt.Println(err)
 			w.Write([]byte("{\"success\":\"error\"}"))
 			return
 		}
@@ -66,9 +99,11 @@ func (handler *Handler) Create(w http.ResponseWriter, r *http.Request){
 	}
 
 	var postDto dto.PostDto
-	data := r.FormValue("data")
-	err = json.Unmarshal([]byte(data), &postDto)
+	data := r.MultipartForm.Value["data"]
+	fmt.Println(data)
+	err = json.Unmarshal([]byte(data[0]), &postDto)
 	if err != nil{
+		fmt.Println(err)
 		w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
@@ -83,6 +118,7 @@ func (handler *Handler) Create(w http.ResponseWriter, r *http.Request){
 	err = handler.PostService.CreatePost(postType,postDto, mediaNames)
 
 	if err != nil{
+		fmt.Println(err)
 		w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}else {
