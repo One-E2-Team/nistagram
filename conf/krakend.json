@@ -316,7 +316,8 @@
           "disable_host_sanitize": false,
           "is_collection": true,
           "target": ""
-        }]
+        }
+      ]
     },
     {
       "endpoint": "/api/profile/my-personal-data",
@@ -335,6 +336,72 @@
           "extra_config": {},
           "host": [
             "profile:8080"
+          ],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/connection/following/{followerId}/{profileId}",
+      "method": "POST",
+      "output_encoding": "json",
+      "extra_config": {},
+      "headers_to_pass": [
+        "Authorization"
+      ],
+      "backend": [
+        {
+          "url_pattern": "/connection/following/{followerId}/{profileId}",
+          "encoding": "json",
+          "sd": "static",
+          "method": "POST",
+          "extra_config": {},
+          "host": [
+            "connection:8080"
+          ],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/connection/following/approve/{followerId}/{profileId}",
+      "method": "POST",
+      "output_encoding": "json",
+      "extra_config": {},
+      "headers_to_pass": [
+        "Authorization"
+      ],
+      "backend": [
+        {
+          "url_pattern": "/connection/following/approve/{followerId}/{profileId}",
+          "encoding": "json",
+          "sd": "static",
+          "method": "POST",
+          "extra_config": {},
+          "host": [
+            "connection:8080"
+          ],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/connection/following/{followerId}/{profileId}/public",
+      "method": "GET",
+      "output_encoding": "json",
+      "extra_config": {},
+      "headers_to_pass": [
+        "Authorization"
+      ],
+      "backend": [
+        {
+          "url_pattern": "/connection/following/{followerId}/{profileId}/public",
+          "encoding": "json",
+          "sd": "static",
+          "method": "GET",
+          "extra_config": {},
+          "host": [
+            "connection:8080"
           ],
           "disable_host_sanitize": false
         }
