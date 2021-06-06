@@ -12,6 +12,7 @@ import (
 	"nistagram/profile/model"
 	"nistagram/profile/repository"
 	"nistagram/profile/service"
+	"nistagram/util"
 	"os"
 	"time"
 )
@@ -91,14 +92,12 @@ func handleFunc(handler *handler.Handler) {
 	router.HandleFunc("/change-profile-settings", handler.ChangeProfileSettings).Methods("PUT")
 	router.HandleFunc("/change-personal-data", handler.ChangePersonalData).Methods("PUT")
 	router.HandleFunc("/interests", handler.GetAllInterests).Methods("GET")
+	router.HandleFunc("/my-profile-settings", handler.GetMyProfileSettings).Methods("GET")
+	router.HandleFunc("/my-personal-data", handler.GetMyPersonalData).Methods("GET")
+	router.HandleFunc("/get-by-id/{id}", handler.GetProfileByID).Methods("GET")
 	router.HandleFunc("/test", handler.Test).Methods("GET")
 	fmt.Println("Starting server..")
-	var port string = "8083"                     // dev.db environ
-	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD") // dev production environment
-	_, ok1 := os.LookupEnv("DOCKER_ENV_SET_DEV") // dev front environment
-	if ok || ok1 {
-		port = "8080"
-	}
+	_, port := util.GetProfileHostAndPort()
 	http.ListenAndServe(":"+port, router)
 }
 

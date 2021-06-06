@@ -10,6 +10,7 @@ import (
 	"nistagram/auth/model"
 	"nistagram/auth/repository"
 	"nistagram/auth/service"
+	"nistagram/util"
 	"os"
 	"time"
 )
@@ -83,12 +84,7 @@ func handlerFunc(handler *handler.AuthHandler) {
 	router.HandleFunc("/recover", handler.ChangePassword).Methods("POST")
 	router.HandleFunc("/update-user", handler.UpdateUser).Methods("POST")
 	router.HandleFunc("/validate/{id}/{uuid}", handler.ValidateUser).Methods("GET")
-	var port string = "8000"                     // dev.db environ
-	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD") // dev production environment
-	_, ok1 := os.LookupEnv("DOCKER_ENV_SET_DEV") // dev front environment
-	if ok || ok1 {
-		port = "8080"
-	}
+	_, port := util.GetAuthHostAndPort()
 	err := http.ListenAndServe(":"+port, router)
 	if err != nil {
 		fmt.Println(err)
