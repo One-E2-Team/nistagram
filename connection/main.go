@@ -8,6 +8,7 @@ import (
 	"nistagram/connection/handler"
 	"nistagram/connection/repository"
 	"nistagram/connection/service"
+	"nistagram/util"
 	"os"
 	"time"
 )
@@ -69,12 +70,7 @@ func handleFunc(handler *handler.Handler) {
 	router.HandleFunc("/connection/following/approve/{followerId}", handler.FollowRequest).Methods("POST")
 	//router.HandleFunc("/{username}", handler.GetProfileByUsername).Methods("GET")
 	fmt.Printf("Starting server..")
-	var port string = "8085" // dev.db environ
-	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD") // dev production environment
-	_, ok1 := os.LookupEnv("DOCKER_ENV_SET_DEV") // dev front environment
-	if ok || ok1 {
-		port = "8080"
-	}
+	_, port := util.GetConnectionHostAndPort()
 	http.ListenAndServe(":" + port, router)
 }
 
