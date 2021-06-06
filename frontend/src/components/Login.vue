@@ -78,7 +78,7 @@
             }).then(response => {
               if(response.status==200){
                 comm.setJWTToken(response.data)
-                 axios.defaults.headers.common['Authorization'] = 'Bearer ' + comm.getJWTToken().accessToken;
+                 axios.defaults.headers.common['Authorization'] = 'Bearer ' + comm.getJWTToken().token;
               }
             }) //TODO: redirect
         }

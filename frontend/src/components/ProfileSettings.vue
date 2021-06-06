@@ -9,17 +9,17 @@
         ref="form"
       >
       <v-checkbox
-          v-model="isPrivate"
+          v-model="settings.isPrivate"
           :label="'Private account'"
         ></v-checkbox>
 
         <v-checkbox
-          v-model="canReceiveMessageFromUnknown"
+          v-model="settings.canReceiveMessageFromUnknown"
           :label="`Can be tagged on posts`"
         ></v-checkbox>
 
         <v-checkbox
-          v-model="canBeTagged"
+          v-model="settings.canBeTagged"
           :label="`Can recieve message from unknown profiles`"
         ></v-checkbox>
 
@@ -43,34 +43,38 @@ import axios from 'axios'
 export default {
   data(){
     return{
-      isPrivate:false,
-      canReceiveMessageFromUnknown: false,
-      canBeTagged: false
+      settings: {
+        isPrivate:false,
+        canReceiveMessageFromUnknown: false,
+        canBeTagged: false
+      },
     }
   },
 
   created(){
-    //TODO: prezumi podesavanja trenutnog korisnika
-    /*axios.get(comm.server)
-      .then(response => {
-        if(response.status = 200){
-          this.isPrivate = response.data.isPrivate
-          this.canReceiveMessageFromUnknown = response.data.canReceiveMessageFromUnknown
-          this.canBeTagged = response.data.canBeTagged
+    axios({
+      method: 'get',
+      url: "http://" + comm.server + "/api/profile/my-profile-settings",
+    }).then(response => {
+        if(response.status == 200){
+          this.settings.isPrivate = response.data.isPrivate
+          this.settings.canReceiveMessageFromUnknown = response.data.canReceiveMessageFromUnknown
+          this.settings.canBeTagged = response.data.canBeTagged
         }
-      })*/
+      });
   },
 
   methods:{
     updateSettings(){
-      axios.put(""+comm.server)
-      .then(response => {
+      axios({
+      method: 'put',
+      url: "http://" + comm.server + "/api/profile/my-profile-settings",
+      data: JSON.stringify(this.settings)
+      }).then(response => {
         if(response.status == 200){
-          this.isPrivate = response.data.isPrivate
-          this.canReceiveMessageFromUnknown = response.data.canReceiveMessageFromUnknown
-          this.canBeTagged = response.data.canBeTagged
+          console.log(response.data)
         }
-      })
+      });
     }
   }
 }
