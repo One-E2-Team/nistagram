@@ -196,12 +196,12 @@
     {
       "endpoint": "/api/auth/validate/{id}/{uuid}",
       "method": "GET",
-      "output_encoding": "json",
+      "output_encoding": "no-op",
       "extra_config": {},
       "backend": [
         {
           "url_pattern": "/validate/{id}/{uuid}",
-          "encoding": "json",
+          "encoding": "no-op",
           "sd": "static",
           "method": "GET",
           "extra_config": {},
@@ -316,7 +316,8 @@
           "disable_host_sanitize": false,
           "is_collection": true,
           "target": ""
-        }]
+        }
+      ]
     },
     {
       "endpoint": "/api/profile/my-personal-data",
