@@ -103,7 +103,7 @@ func (handler *Handler) ChangePersonalData(w http.ResponseWriter, r *http.Reques
 	w.Header().Set("Content-Type", "application/json")
 }
 
-func (handler *Handler) Test(w http.ResponseWriter, r *http.Request){
+func (handler *Handler) Test(w http.ResponseWriter, r *http.Request) {
 	var key string
 	err := json.NewDecoder(r.Body).Decode(&key)
 	if err != nil {
@@ -118,4 +118,56 @@ func (handler *Handler) Test(w http.ResponseWriter, r *http.Request){
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+}
+
+func (handler *Handler) GetAllInterests(w http.ResponseWriter, r *http.Request) {
+	interests, err := handler.ProfileService.GetAllInterests()
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(interests)
+}
+
+func (handler *Handler) GetMyProfileSettings(w http.ResponseWriter, r *http.Request) {
+	settings, err := handler.ProfileService.GetMyProfileSettings(util.GetLoggedUserIDFromToken(r))
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(settings)
+
+}
+
+func (handler *Handler) GetMyPersonalData(w http.ResponseWriter, r *http.Request) {
+	data, err := handler.ProfileService.GetMyPersonalData(util.GetLoggedUserIDFromToken(r))
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(data)
+}
+
+func (handler *Handler) GetProfileByID(w http.ResponseWriter, r *http.Request) {
+	var id uint
+	vars := mux.Vars(r)
+	id = util.String2Uint(vars["id"])
+	profile, err := handler.ProfileService.GetProfileByID(id)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+	} else {
+		w.WriteHeader(http.StatusOK)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(*profile)
 }

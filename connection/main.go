@@ -8,6 +8,7 @@ import (
 	"nistagram/connection/handler"
 	"nistagram/connection/repository"
 	"nistagram/connection/service"
+	"nistagram/util"
 	"os"
 	"time"
 )
@@ -62,16 +63,14 @@ func initHandler(service *service.ConnectionService) *handler.Handler {
 func handleFunc(handler *handler.Handler) {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/profile/{id}", handler.AddProfile).Methods("POST")
-	router.HandleFunc("/connection/{followerId}/{profileId}", handler.FollowRequest).Methods("POST")
-	router.HandleFunc("/connection/{followerId}/{profileId}", handler.GetConnection).Methods("GET")
+	router.HandleFunc("/connection/following/{followerId}/{profileId}", handler.FollowRequest).Methods("POST")
+	router.HandleFunc("/connection/following/{followerId}/{profileId}", handler.GetConnection).Methods("GET")
+	router.HandleFunc("/connection/following/all/{id}", handler.GetFollowedProfiles).Methods("GET")
+	router.HandleFunc("/connection/following/show/{id}", handler.GetFollowedProfilesNotMuted).Methods("GET")
+	router.HandleFunc("/connection/following/approve/{followerId}", handler.FollowRequest).Methods("POST")
 	//router.HandleFunc("/{username}", handler.GetProfileByUsername).Methods("GET")
 	fmt.Printf("Starting server..")
-	var port string = "8085" // dev.db environ
-	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD") // dev production environment
-	_, ok1 := os.LookupEnv("DOCKER_ENV_SET_DEV") // dev front environment
-	if ok || ok1 {
-		port = "8080"
-	}
+	_, port := util.GetConnectionHostAndPort()
 	http.ListenAndServe(":" + port, router)
 }
 

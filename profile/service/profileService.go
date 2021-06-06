@@ -9,7 +9,6 @@ import (
 	"nistagram/profile/model"
 	"nistagram/profile/repository"
 	"nistagram/util"
-	"os"
 )
 
 type ProfileService struct {
@@ -35,8 +34,14 @@ func (service *ProfileService) Register(dto dto.RegistrationDto) error {
 		"email":     profile.Email,
 	})
 	responseBody := bytes.NewBuffer(postBody)
-	authHost, authPort := GetAuthHostAndPort()
+	authHost, authPort := util.GetAuthHostAndPort()
 	_, err = http.Post("http://"+authHost+":"+authPort+"/register", "application/json", responseBody)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	connHost, connPort := util.GetConnectionHostAndPort()
+	_, err = http.Post("http://"+connHost+":"+connPort+"/profile/" + util.Uint2String(profile.ID), "application/json", responseBody)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -99,7 +104,7 @@ func (service *ProfileService) ChangePersonalData(dto dto.PersonalDataDTO, logge
 			"email":     profile.Email,
 		})
 		responseBody := bytes.NewBuffer(postBody)
-		authHost, authPort := GetAuthHostAndPort()
+		authHost, authPort := util.GetAuthHostAndPort()
 		_, err = http.Post("http://"+authHost+":"+authPort+"/update-user", "application/json", responseBody)
 		if err != nil {
 			fmt.Println(err)
@@ -110,17 +115,43 @@ func (service *ProfileService) ChangePersonalData(dto dto.PersonalDataDTO, logge
 	return err
 }
 
-func (service *ProfileService) Test(key string) error {
-	return service.ProfileRepository.InsertInRedis(key, "test")
+func (service *ProfileService) GetAllInterests() ([]string, error) {
+	interests, err := service.ProfileRepository.GetAllInterests()
+	return interests, err
 }
 
-func GetAuthHostAndPort() (string, string) {
-	var authHost, authPort string = "localhost", "8000"
-	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD") // dev production environment
-	_, ok1 := os.LookupEnv("DOCKER_ENV_SET_DEV") // dev front environment
-	if ok || ok1 {
-		authHost = "auth"
-		authPort = "8080"
+func (service *ProfileService) GetMyProfileSettings(loggedUserId uint) (dto.ProfileSettingsDTO, error) {
+	ret := dto.ProfileSettingsDTO{}
+	profile, err := service.ProfileRepository.GetProfileByID(loggedUserId)
+	if err != nil {
+		return ret, err
 	}
-	return authHost, authPort
+	ret.CanReceiveMessageFromUnknown = profile.ProfileSettings.CanReceiveMessageFromUnknown
+	ret.CanBeTagged = profile.ProfileSettings.CanBeTagged
+	ret.IsPrivate = profile.ProfileSettings.IsPrivate
+	return ret, nil
+}
+
+func (service *ProfileService) GetMyPersonalData(loggedUserId uint) (dto.PersonalDataDTO, error) {
+	profile, err := service.ProfileRepository.GetProfileByID(loggedUserId)
+	if err != nil {
+		return dto.PersonalDataDTO{}, err
+	}
+	personalData := profile.PersonalData
+	ret := dto.PersonalDataDTO{Username: profile.Username, Name: personalData.Name, Surname: personalData.Surname,
+		Email: profile.Email, Telephone: personalData.Telephone, Gender: personalData.Gender,
+		BirthDate: personalData.BirthDate, Biography: personalData.BirthDate, Website: profile.Website}
+	return ret, nil
+}
+
+func (service *ProfileService) GetProfileByID(id uint) (*model.Profile, error) {
+	profile, err := service.ProfileRepository.GetProfileByID(id)
+	if err != nil {
+		return nil, err
+	}
+	return profile, nil
+}
+
+func (service *ProfileService) Test(key string) error {
+	return service.ProfileRepository.InsertInRedis(key, "test")
 }

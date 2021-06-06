@@ -64,18 +64,20 @@
 
 <script>
   import axios from 'axios'
+  import * as comm from '../configuration/communication.js'
   export default {
 
     name: 'CreatePost',
 
     mounted(){
-        axios.get("http://localhost:81/api/post/").then((response) => {
+        axios.get("http://" + comm.server +"api/post/").then((response) => {
             let res = response.data.collection;
             res.forEach((post) => {
                 if(post.medias != null){
                   post.medias.forEach((media) =>{
-                    media.filePath = "http://localhost:81/static/data/" + media.filePath;
+                    media.filePath = "http://" + comm.server +"/static/data/" + media.filePath;
                   });
+
                 }
             });
             this.posts = res;

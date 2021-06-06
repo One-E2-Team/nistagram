@@ -11,6 +11,7 @@ import (
 	"nistagram/post/handler"
 	"nistagram/post/repository"
 	"nistagram/post/service"
+	"nistagram/util"
 	"os"
 	"time"
 )
@@ -68,12 +69,7 @@ func handleFunc(handler *handler.Handler) {
 	router.HandleFunc("/{postType}/{id}",handler.DeletePost).Methods("DELETE")
 	router.HandleFunc("/{postType}/{id}",handler.UpdatePost).Methods("PUT")
 	fmt.Printf("Starting server..")
-	var port string = "8085"                     // dev.db environ
-	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD") // dev production environment
-	_, ok1 := os.LookupEnv("DOCKER_ENV_SET_DEV") // dev front environment
-	if ok || ok1 {
-		port = "8080"
-	}
+	_, port := util.GetPostHostAndPort()
 	http.ListenAndServe(":" + port, handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type",
 		"Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}),
 		handlers.AllowedOrigins([]string{"*"}))(router))

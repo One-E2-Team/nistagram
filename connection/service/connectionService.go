@@ -72,6 +72,7 @@ func (service *ConnectionService) ApproveConnection(followerId, profileId uint) 
 	if okSelect && connection == nil {
 		return connection, false
 	}
+	// TODO: private not private
 	connection.ConnectionRequest = false
 	connection.Approved = true
 	resConnection, ok := service.ConnectionRepository.UpdateConnection(connection)
@@ -165,3 +166,13 @@ func (service *ConnectionService) ToggleMuted(followerId, profileId uint) (*mode
 		return connection, false
 	}
 }
+
+func (service *ConnectionService) GetConnectedProfiles(conn model.Connection, excludeMuted bool) *[]model.Profile {
+	ret := service.ConnectionRepository.GetConnectedProfiles(conn, excludeMuted)
+	if ret == nil {
+		temp := make([]model.Profile, 0)
+		return &temp
+	}
+	return ret
+}
+
