@@ -15,7 +15,8 @@
         "POST",
         "PUT",
         "DELETE"
-      ]
+      ],
+      "allow_headers": []
     }
   },
   "timeout": "3000ms",
@@ -214,6 +215,50 @@
           "is_collection": true,
           "disable_host_sanitize": false
         }
+      ]
+    },
+    {
+      "endpoint": "/api/profile/my-profile-settings",
+      "method": "GET",
+      "output_encoding": "json",
+      "extra_config": {},
+      "backend": [
+        {
+          "url_pattern": "/my-profile-settings",
+          "encoding": "json",
+          "sd": "static",
+          "method": "GET",
+          "extra_config": {},
+          "host": [
+            "profile:8080"
+          ],
+          "disable_host_sanitize": false
+        }
+      ],
+      "headers_to_pass": [
+        "Authorization"
+      ]
+    },
+    {
+      "endpoint": "/api/profile/my-personal-data",
+      "method": "GET",
+      "output_encoding": "json",
+      "extra_config": {},
+      "backend": [
+        {
+          "url_pattern": "/my-personal-data",
+          "encoding": "json",
+          "sd": "static",
+          "method": "GET",
+          "extra_config": {},
+          "host": [
+            "profile:8080"
+          ],
+          "disable_host_sanitize": false
+        }
+      ],
+      "headers_to_pass": [
+        "Authorization"
       ]
     }
   ]

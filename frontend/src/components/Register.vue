@@ -313,7 +313,7 @@ import * as comm from '../configuration/communication.js'
           url: "http://" + comm.server +"/api/profile/interests",
         }).then(response => {
           if (response.status == 200) {
-            this.interests = response.data.collections
+            this.interests = response.data.collection
           }
         })
         .catch(response => {
@@ -351,7 +351,7 @@ import * as comm from '../configuration/communication.js'
           isPrivate: this.isPrivate,
           biography: this.person.biography,
           webSite: this.person.webSite,
-          interests: this.person.interests
+          interestedIn: this.person.interests
         }
         axios({
           method: "post",
