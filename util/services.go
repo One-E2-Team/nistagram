@@ -29,7 +29,7 @@ func GetConnectionHostAndPort() (string, string) {
 func GetProfileHostAndPort() (string, string) {
 	var profileHost, profilePort string = "localhost", "8083" // dev.db environment
 	if dockerChecker() {
-		profileHost = "connection"
+		profileHost = "profile"
 		profilePort = "8080"
 	}
 	return profileHost, profilePort
@@ -38,7 +38,7 @@ func GetProfileHostAndPort() (string, string) {
 func GetPostHostAndPort() (string, string) {
 	var postHost, postPort string = "localhost", "8086" // dev.db environment
 	if dockerChecker() {
-		postHost = "connection"
+		postHost = "post"
 		postPort = "8080"
 	}
 	return postHost, postPort
