@@ -142,10 +142,10 @@
           url: "http://" + comm.server + "/api/post",
           data: data,
           config: { headers: {'Content-Type': 'multipart/form-data' }}
-        }).then(function (response) {
+        }).then(response => {
           console.log(response);
         })
-        .catch(function (response) {
+        .catch(response => {
           console.log(response);
         });
       }

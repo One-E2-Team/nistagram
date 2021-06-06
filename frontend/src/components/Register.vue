@@ -311,12 +311,12 @@ import * as comm from '../configuration/communication.js'
       axios({
           method: "get",
           url: "http://" + comm.server +"/api/profile/interests",
-        }).then(function (response) {
+        }).then(response => {
           if (response.status == 200) {
-            this.interests = response.data
+            this.interests = response.data.collections
           }
         })
-        .catch(function (response) {
+        .catch(response => {
           console.log(response);
         });
     },
