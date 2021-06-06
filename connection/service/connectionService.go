@@ -72,6 +72,7 @@ func (service *ConnectionService) ApproveConnection(followerId, profileId uint) 
 	if okSelect && connection == nil {
 		return connection, false
 	}
+	// TODO: private not private
 	connection.ConnectionRequest = false
 	connection.Approved = true
 	resConnection, ok := service.ConnectionRepository.UpdateConnection(connection)

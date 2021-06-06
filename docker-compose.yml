@@ -99,6 +99,24 @@ services:
             - ./conf/redis.conf:/usr/local/etc/redis/redis.conf
         command: redis-server /usr/local/etc/redis/redis.conf
 
+    connection:
+        container_name: connection_ms
+        restart: always
+        environment: 
+            DB_USERNAME: root
+            DB_PASSWORD: root
+            DOCKER_ENV_SET_PROD: ""
+        build:
+            context: .
+            args:
+                ARG_TARGET_MS_GO: connection
+            dockerfile: Build.dockerfile
+        networks: 
+            - net_apigateway
+            - net_db_graph
+        depends_on: 
+            - graphdb_connection
+
     graphdb_connection:
         container_name: graphdb_neo4j
         image: neo4j
