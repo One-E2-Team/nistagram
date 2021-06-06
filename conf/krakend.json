@@ -195,6 +195,26 @@
           "disable_host_sanitize": false
         }
       ]
+    },
+    {
+      "endpoint": "/api/profile/interests",
+      "method": "GET",
+      "output_encoding": "json",
+      "extra_config": {},
+      "backend": [
+        {
+          "url_pattern": "/interests",
+          "encoding": "json",
+          "sd": "static",
+          "method": "GET",
+          "extra_config": {},
+          "host": [
+            "profile:8080"
+          ],
+          "is_collection": true,
+          "disable_host_sanitize": false
+        }
+      ]
     }
   ]
 }

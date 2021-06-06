@@ -94,6 +94,7 @@
 
 <script>
   import axios from 'axios'
+  import * as comm from '../configuration/communication.js'
   export default {
 
     name: 'CreatePost',
@@ -128,9 +129,6 @@
         })
       },
       submit () {
-        /*axios.get("http://localhost:81/api/post/").then(function (response){
-          console.log(response.data)
-        })*/
         let dto = {"description" : this.description, "isHighlighted" : this.isHighlighted, "isCampaign" : this.isCampaign,
         "isCloseFriendsOnly": this.isCloseFriendsOnly, "location" : this.selectedLocation, 
         "hashTags" : [], "taggedUsers" : [], "postType" : this.selectedPostType}
@@ -141,13 +139,13 @@
          data.append("data", json);
         axios({
           method: "post",
-          url: "http://localhost:81/api/post",
+          url: "http://" + comm.server + "/api/post",
           data: data,
           config: { headers: {'Content-Type': 'multipart/form-data' }}
-        }).then(function (response) {
+        }).then(response => {
           console.log(response);
         })
-        .catch(function (response) {
+        .catch(response => {
           console.log(response);
         });
       }

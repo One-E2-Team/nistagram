@@ -70,6 +70,12 @@ func (repo *ProfileRepository) UpdatePersonalData(personalData model.PersonalDat
 	return nil
 }
 
+func (repo *ProfileRepository) GetAllInterests() ([]string, error) {
+	var interests []string
+	result := repo.RelationalDatabase.Table("interests").Select("name").Find(&interests, "name LIKE ?", "%%")
+	return interests, result.Error
+}
+
 func (repo *ProfileRepository) InsertInRedis(key string, value string) error {
 	//model := model.Interest{
 	//	Model: gorm.Model{},
