@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"net/http"
+	"nistagram/connection/model"
 	"nistagram/connection/service"
 	"strconv"
 )
@@ -55,4 +56,52 @@ func (handler *Handler) FollowRequest(w http.ResponseWriter, r *http.Request){
 	} else {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
+}
+
+func (handler *Handler) GetFollowedProfilesNotMuted(w http.ResponseWriter, r *http.Request){
+	vars := mux.Vars(r)
+	id, _ := strconv.ParseUint(vars["id"],10,32)
+	conn := model.Connection{
+		PrimaryProfile:    uint(id),
+		SecondaryProfile:  0,
+		Muted:             false,
+		CloseFriend:       false,
+		NotifyPost:        false,
+		NotifyStory:       false,
+		NotifyMessage:     false,
+		NotifyComment:     false,
+		ConnectionRequest: false,
+		Approved:          true,
+		MessageRequest:    false,
+		MessageConnected:  false,
+		Block:             false,
+	}
+	profiles := handler.ConnectionService.GetConnectedProfiles(conn, true)
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(*profiles)
+}
+
+func (handler *Handler) GetFollowedProfiles(w http.ResponseWriter, r *http.Request){
+	vars := mux.Vars(r)
+	id, _ := strconv.ParseUint(vars["id"],10,32)
+	conn := model.Connection{
+		PrimaryProfile:    uint(id),
+		SecondaryProfile:  0,
+		Muted:             false,
+		CloseFriend:       false,
+		NotifyPost:        false,
+		NotifyStory:       false,
+		NotifyMessage:     false,
+		NotifyComment:     false,
+		ConnectionRequest: false,
+		Approved:          true,
+		MessageRequest:    false,
+		MessageConnected:  false,
+		Block:             false,
+	}
+	profiles := handler.ConnectionService.GetConnectedProfiles(conn, false)
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(*profiles)
 }

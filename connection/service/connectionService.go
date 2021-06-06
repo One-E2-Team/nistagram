@@ -165,3 +165,13 @@ func (service *ConnectionService) ToggleMuted(followerId, profileId uint) (*mode
 		return connection, false
 	}
 }
+
+func (service *ConnectionService) GetConnectedProfiles(conn model.Connection, excludeMuted bool) *[]model.Profile {
+	ret := service.ConnectionRepository.GetConnectedProfiles(conn, excludeMuted)
+	if ret == nil {
+		temp := make([]model.Profile, 0)
+		return &temp
+	}
+	return ret
+}
+
