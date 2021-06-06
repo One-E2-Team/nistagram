@@ -36,7 +36,7 @@ func GetProfileHostAndPort() (string, string) {
 }
 
 func GetPostHostAndPort() (string, string) {
-	var postHost, postPort string = "localhost", "8085" // dev.db environment
+	var postHost, postPort string = "localhost", "8086" // dev.db environment
 	if dockerChecker() {
 		postHost = "connection"
 		postPort = "8080"
