@@ -63,7 +63,9 @@ func initHandler(service *service.ConnectionService) *handler.Handler {
 func handleFunc(handler *handler.Handler) {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/profile/{id}", handler.AddProfile).Methods("POST")
-	router.HandleFunc("/connection/following/{followerId}/{profileId}", handler.FollowRequest).Methods("POST")
+	router.HandleFunc("/connection/following/{followerId}/{profileId}", handler.FollowRequest).Methods("POST") //frontend func
+	router.HandleFunc("/connection/following/approve/{followerId}/{profileId}", handler.FollowApprove).Methods("POST") // frontend func
+	router.HandleFunc("/connection/following/{followerId}/{profileId}/public", handler.GetConnectionPublic).Methods("GET") // frontend func
 	router.HandleFunc("/connection/following/{followerId}/{profileId}", handler.GetConnection).Methods("GET")
 	router.HandleFunc("/connection/following/all/{id}", handler.GetFollowedProfiles).Methods("GET")
 	router.HandleFunc("/connection/following/show/{id}", handler.GetFollowedProfilesNotMuted).Methods("GET")
