@@ -70,7 +70,7 @@
     name: 'CreatePost',
 
     mounted(){
-        axios.get("http://" + comm.server +"api/post/").then((response) => {
+        axios.get("http://" + comm.server +"/api/post/").then((response) => {
             let res = response.data.collection;
             res.forEach((post) => {
                 if(post.medias != null){
