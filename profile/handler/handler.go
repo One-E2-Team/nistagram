@@ -119,3 +119,15 @@ func (handler *Handler) Test(w http.ResponseWriter, r *http.Request){
 	}
 	w.WriteHeader(http.StatusOK)
 }
+
+func (handler *Handler) GetAllInterests(w http.ResponseWriter, r *http.Request){
+	interests, err := handler.ProfileService.GetAllInterests()
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(interests)
+}

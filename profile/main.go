@@ -90,6 +90,7 @@ func handleFunc(handler *handler.Handler) {
 	router.HandleFunc("/get/{username}", handler.GetProfileByUsername).Methods("GET")
 	router.HandleFunc("/change-profile-settings", handler.ChangeProfileSettings).Methods("PUT")
 	router.HandleFunc("/change-personal-data", handler.ChangePersonalData).Methods("PUT")
+	router.HandleFunc("/interests", handler.GetAllInterests).Methods("GET")
 	router.HandleFunc("/test", handler.Test).Methods("GET")
 	fmt.Println("Starting server..")
 	var port string = "8083"                     // dev.db environ

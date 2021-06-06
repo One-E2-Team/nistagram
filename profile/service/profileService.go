@@ -110,6 +110,11 @@ func (service *ProfileService) ChangePersonalData(dto dto.PersonalDataDTO, logge
 	return err
 }
 
+func (service *ProfileService) GetAllInterests() ([]string, error){
+	interests, err := service.ProfileRepository.GetAllInterests()
+	return interests, err
+}
+
 func (service *ProfileService) Test(key string) error {
 	return service.ProfileRepository.InsertInRedis(key, "test")
 }
