@@ -57,6 +57,8 @@
 </template>
 
 <script>
+
+import * as validator from '../plugins/validator.js'
   export default {
     data () {
       return {
@@ -64,11 +66,7 @@
         show: false,
         password1: '',
         password2: '',
-        rules: {
-          required: value => !!value || 'Required.',
-          min: v => v.length >= 8 || 'Min 8 characters',
-          passwordMatch: () => (this.password1 === this.password2) || 'Password must match'
-        },
+        rules: validator.rules
       }
     },
     methods:{
