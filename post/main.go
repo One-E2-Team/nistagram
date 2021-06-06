@@ -65,6 +65,8 @@ func handleFunc(handler *handler.Handler) {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", handler.GetAll).Methods("GET")
 	router.HandleFunc("/", handler.Create).Methods("POST")
+	router.HandleFunc("/user",handler.DeleteUserPosts).Methods("DELETE")
+	router.HandleFunc("/user/username",handler.ChangeUsername).Methods("PUT")
 	router.HandleFunc("/{postType}/{id}",handler.GetPost).Methods("GET")
 	router.HandleFunc("/{postType}/{id}",handler.DeletePost).Methods("DELETE")
 	router.HandleFunc("/{postType}/{id}",handler.UpdatePost).Methods("PUT")

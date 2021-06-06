@@ -71,7 +71,7 @@ func (repo *PostRepository) Delete(id primitive.ObjectID, postType model.PostTyp
 	filter := bson.D{{"_id", id}}
 	update := bson.D{
 		{"$set", bson.D{
-			{"isDeleted", true},
+			{"isdeleted", true},
 		}},
 	}
 	result, _ := collection.UpdateOne(context.TODO(), filter,update)
@@ -87,8 +87,8 @@ func (repo *PostRepository) Update(id primitive.ObjectID,postType model.PostType
 	filter := bson.D{{"_id", id}}
 	update := bson.D{
 		{"$set", bson.D{
-			{"isHighlighted",post.IsHighlighted},
-			{"isCloseFriendsOnly", post.IsHighlighted},
+			{"ishighlighted",post.IsHighlighted},
+			{"isclosefriendsonly", post.IsHighlighted},
 		}},
 	}
 
@@ -104,6 +104,43 @@ func (repo *PostRepository) getCollection(postType model.PostType) (*mongo.Colle
 		return repo.Client.Database("postdb").Collection("stories"), nil
 	}
 	return nil, errors.New("collection doesn't exist!")
+}
+
+func (repo *PostRepository) DeleteUserPosts(id uint) error {
+	filter := bson.D{{"publisherid",id}}
+	update := bson.D{
+		{"$set", bson.D{
+			{"isdeleted",true},
+		}},
+	}
+
+	return repo.updateManyInPostAndStoryCollections(filter,update)
+
+}
+
+func (repo *PostRepository) ChangeUsername(id uint, username string) error {
+	filter := bson.D{{"publisherid",id}}
+	update := bson.D{
+		{"$set", bson.D{
+			{"publisherusername",username},
+		}},
+	}
+
+	return repo.updateManyInPostAndStoryCollections(filter,update)
+}
+
+
+func (repo *PostRepository) updateManyInPostAndStoryCollections(filter bson.D, update bson.D) error {
+	collPosts,_ := repo.getCollection(model.POST)
+	collStories,_ := repo.getCollection(model.STORY)
+
+	result1, _ := collPosts.UpdateMany(context.TODO(),filter,update)
+	result2, _ := collStories.UpdateMany(context.TODO(),filter,update)
+
+	if result1.MatchedCount == 0 && result2.MatchedCount == 0 {
+		return mongo.ErrNoDocuments
+	}
+	return nil
 }
 
 

@@ -40,6 +40,14 @@ func (service *PostService) DeletePost(id primitive.ObjectID, postType model.Pos
 	return service.PostRepository.Delete(id,postType)
 }
 
-func (service *PostService) UpadtePost(id primitive.ObjectID,postType model.PostType,post dto.PostDto) error {
+func (service *PostService) UpdatePost(id primitive.ObjectID,postType model.PostType,post dto.PostDto) error {
 	return service.PostRepository.Update(id,postType,post)
+}
+
+func (service *PostService) DeleteUserPosts(profileId uint) error {
+	return service.PostRepository.DeleteUserPosts(profileId)
+}
+
+func (service *PostService) ChangeUsername(profileId uint, username string) error {
+	return service.PostRepository.ChangeUsername(profileId,username)
 }

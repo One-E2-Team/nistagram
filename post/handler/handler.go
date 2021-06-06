@@ -13,6 +13,7 @@ import (
 	"nistagram/post/dto"
 	"nistagram/post/model"
 	"nistagram/post/service"
+	"nistagram/util"
 	"os"
 	"strconv"
 	"strings"
@@ -22,7 +23,7 @@ type Handler struct {
 	PostService *service.PostService
 }
 
-func (handler Handler) GetAll(w http.ResponseWriter, r *http.Request){
+func (handler *Handler) GetAll(w http.ResponseWriter, r *http.Request){
 	result := handler.PostService.GetAll()
 	//json.NewEncoder(w).Encode(&result)
 
@@ -117,7 +118,7 @@ func (handler *Handler) Create(w http.ResponseWriter, r *http.Request){
 
 }
 
-func (handler Handler) GetPost(w http.ResponseWriter, r *http.Request){
+func (handler *Handler) GetPost(w http.ResponseWriter, r *http.Request){
 	params := mux.Vars(r)
 	postType := model.GetPostType(params["postType"])
 
@@ -141,7 +142,7 @@ func (handler Handler) GetPost(w http.ResponseWriter, r *http.Request){
 	json.NewEncoder(w).Encode(&result)
 }
 
-func (handler Handler) DeletePost(w http.ResponseWriter, r *http.Request){
+func (handler *Handler) DeletePost(w http.ResponseWriter, r *http.Request){
 	params := mux.Vars(r)
 	postType := model.GetPostType(params["postType"])
 	id, err := primitive.ObjectIDFromHex(params["id"])
@@ -163,7 +164,7 @@ func (handler Handler) DeletePost(w http.ResponseWriter, r *http.Request){
 	w.Write([]byte("{\"success\":\"ok\"}"))
 }
 
-func (handler Handler) UpdatePost(w http.ResponseWriter, r *http.Request){
+func (handler *Handler) UpdatePost(w http.ResponseWriter, r *http.Request){
 	params := mux.Vars(r)
 	postType := model.GetPostType(params["postType"])
 	id, err := primitive.ObjectIDFromHex(params["id"])
@@ -173,7 +174,7 @@ func (handler Handler) UpdatePost(w http.ResponseWriter, r *http.Request){
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	err = handler.PostService.UpadtePost(id,postType,postDto)
+	err = handler.PostService.UpdatePost(id,postType,postDto)
 	if  err == mongo.ErrNoDocuments  {
 		w.WriteHeader(http.StatusNotFound)
 		return
@@ -185,6 +186,36 @@ func (handler Handler) UpdatePost(w http.ResponseWriter, r *http.Request){
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte("{\"success\":\"ok\"}"))
+}
+
+func (handler *Handler) DeleteUserPosts (w http.ResponseWriter, r *http.Request){
+	switch err := handler.PostService.DeleteUserPosts(util.GetLoggedUserIDFromToken(r)) ; err{
+	case mongo.ErrNoDocuments:
+		w.WriteHeader(http.StatusNotFound)
+	case nil :
+		w.WriteHeader(http.StatusOK)
+	default:
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
+func (handler *Handler) ChangeUsername(w http.ResponseWriter, r *http.Request) {
+	type data struct { Username string `json:"username"` }
+	var input data
+	err := json.NewDecoder(r.Body).Decode(&input)
+
+	if err != nil{
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	switch err =  handler.PostService.ChangeUsername(util.GetLoggedUserIDFromToken(r),input.Username) ; err{
+	case mongo.ErrNoDocuments:
+		w.WriteHeader(http.StatusNotFound)
+	case nil :
+		w.WriteHeader(http.StatusOK)
+	default:
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }
 
 
