@@ -71,6 +71,9 @@ services:
             dockerfile: Build.dockerfile
             args:
                 ARG_TARGET_MS_GO: post
+        volumes:
+            - "../nistagramstaticdata:/nistagramstaticdata"
+
         networks:
             - net_apigateway
             - net_mongo

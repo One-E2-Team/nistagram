@@ -118,7 +118,7 @@
       isHighlighted: false,
       isCampaign: false,
       isCloseFriendsOnly: false,
-      files : null,
+      files : [],
     }),
 
     methods: {
@@ -135,15 +135,16 @@
         "isCloseFriendsOnly": this.isCloseFriendsOnly, "location" : this.selectedLocation, 
         "hashTags" : [], "taggedUsers" : [], "postType" : this.selectedPostType}
         let json = JSON.stringify(dto);
-        console.log(json);
         const data = new FormData();
-         data.append("files", this.files);
+         for(let i = 0;i < this.files.length;i++){
+            data.append("file" + i, this.files[i], this.files[i].name);
+          }
          data.append("data", json);
         axios({
           method: "post",
-          url: "http://localhost:81/api/post",
+          url: "http://localhost:81/api/post/",
           data: data,
-          config: { headers: {'Content-Type': 'multipart/form-data' }}
+          config: { headers: {...data.headers}}
         }).then(function (response) {
           console.log(response);
         })

@@ -63,12 +63,11 @@
 </template>
 
 <script>
-  import axios from 'axios'
+import axios from 'axios'
   export default {
+    name: 'Explore',
 
-    name: 'CreatePost',
-
-    mounted(){
+     mounted(){
         axios.get("http://localhost:81/api/post/").then((response) => {
             let res = response.data.collection;
             res.forEach((post) => {
