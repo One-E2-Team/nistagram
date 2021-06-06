@@ -47,6 +47,7 @@
 
 <script>
     import axios from 'axios'
+    import * as comm from '../configuration/communication.js'
   export default {
     data: () => ({
       show: false,
@@ -72,9 +73,14 @@
             }
             axios({
                 method: "post",
-                url: "http://localhost:81/api/auth/login",
+                url: 'http://' + comm.server + '/api/auth/login',
                 data: JSON.stringify(credentials)
-            }).then(response => console.log(response.data)) //TODO: redirect
+            }).then(response => {
+              if(response.status==200){
+                comm.setJWTToken(response.data)
+                 axios.defaults.headers.common['Authorization'] = 'Bearer ' + comm.getJWTToken().accessToken;
+              }
+            }) //TODO: redirect
         }
       },
       

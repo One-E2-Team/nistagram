@@ -271,6 +271,7 @@
 
 <script>
 import axios from 'axios'
+import * as comm from '../configuration/communication.js'
 
   export default {
     data: () => ({
@@ -309,7 +310,7 @@ import axios from 'axios'
     created(){
       axios({
           method: "get",
-          url: "http://localhost:81/api/profile/interests",
+          url: "http://" + comm.server +"/api/profile/interests",
         }).then(function (response) {
           if (response.status == 200) {
             this.interests = response.data
@@ -354,7 +355,7 @@ import axios from 'axios'
         }
         axios({
           method: "post",
-          url: "http://localhost:81/api/profile/",
+          url: "http://" + comm.server +"/api/profile/",
           data: JSON.stringify(data),
         }).then(function (response) {
           if (response.status == 200) {
