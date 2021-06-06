@@ -1,8 +1,14 @@
 package service
 
 import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/http"
 	"nistagram/connection/model"
 	"nistagram/connection/repository"
+	model2 "nistagram/profile/model"
+	"nistagram/util"
 )
 
 type ConnectionService struct {
@@ -20,10 +26,44 @@ func (service *ConnectionService) GetConnection(followerId, profileId uint) *mod
 	return connection
 }
 
+func getProfile(id uint) *model2.Profile{
+	var p model2.Profile
+	profileHost, profilePort := util.GetProfileHostAndPort()
+	resp, err := http.Get("http://" + profileHost+":" + profilePort + "/get-by-id/" + util.Uint2String(id))
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	defer resp.Body.Close()
+	body, err1 := ioutil.ReadAll(resp.Body)
+	if err1 != nil {
+		fmt.Println(err1)
+		return nil
+	}
+	err = json.Unmarshal(body, &p)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	return &p
+}
+
 func (service *ConnectionService) FollowRequest(followerId, profileId uint) (*model.Connection, bool) {
 	connection := service.ConnectionRepository.SelectOrCreateConnection(followerId, profileId)
-	// TODO: private not private
-	connection.ConnectionRequest = true
+	conn2, ok2 := service.ConnectionRepository.SelectConnection(followerId, profileId, false)
+	profile1 := getProfile(followerId)
+	profile2 := getProfile(profileId)
+	if !ok2 || profile1 == nil || profile2 == nil {
+		return nil, false
+	}
+	if connection.Block == true || (conn2 != nil && conn2.Block == true) {
+		return nil, false
+	}
+	if profile1.ProfileSettings.IsPrivate == false && profile2.ProfileSettings.IsPrivate == false {
+		connection.Approved = true
+	} else {
+		connection.ConnectionRequest = true
+	}
 	resConnection, ok := service.ConnectionRepository.UpdateConnection(connection)
 	if ok {
 		return resConnection, true
@@ -44,22 +84,39 @@ func (service *ConnectionService) Block(followerId, profileId uint) (*model.Conn
 }
 
 func (service *ConnectionService) MessageConnect(followerId, profileId uint) (*model.Connection, bool){
-	connection := service.ConnectionRepository.SelectOrCreateConnection(followerId, profileId)
-	// TODO: obostrano
-	connection.ConnectionRequest = false
+	connection, ok := service.ConnectionRepository.SelectConnection(followerId, profileId, false)
+	conn2, ok2 := service.ConnectionRepository.SelectConnection(profileId, followerId, false)
+	if !connection.MessageRequest || (!ok || !ok2){
+		return nil, false
+	}
+	connection.MessageRequest = false
 	connection.MessageConnected = true
-	resConnection, ok := service.ConnectionRepository.UpdateConnection(connection)
-	if ok {
+	conn2.MessageRequest = false
+	conn2.MessageConnected = true
+	service.ConnectionRepository.UpdateConnection(connection)
+	resConnection, ok1 := service.ConnectionRepository.UpdateConnection(conn2)
+	if ok1 {
 		return resConnection, true
 	} else {
-		return connection, false
+		return conn2, false
 	}
 }
 
 func (service *ConnectionService) MessageRequest(followerId, profileId uint) (*model.Connection, bool){
 	connection := service.ConnectionRepository.SelectOrCreateConnection(followerId, profileId)
+	if connection.MessageConnected {
+		return nil, false
+	}
 	connection.MessageRequest = true
+	conn2 := service.ConnectionRepository.SelectOrCreateConnection(profileId, followerId)
+	if conn2.MessageConnected {
+		return nil, false
+	}
+	if !conn2.Approved {
+		conn2.MessageRequest = false
+	}
 	resConnection, ok := service.ConnectionRepository.UpdateConnection(connection)
+	service.ConnectionRepository.UpdateConnection(conn2)
 	if ok {
 		return resConnection, true
 	} else {
@@ -72,14 +129,32 @@ func (service *ConnectionService) ApproveConnection(followerId, profileId uint) 
 	if okSelect && connection == nil {
 		return connection, false
 	}
-	// TODO: private not private
+	conn2, ok2 := service.ConnectionRepository.SelectConnection(profileId, followerId, false)
+	profile1 := getProfile(followerId)
+	profile2 := getProfile(profileId)
+	if !ok2 || profile1 == nil || profile2 == nil {
+		return nil, false
+	}
+	if connection.Block == true || (conn2 != nil && conn2.Block == true) {
+		return nil, false
+	}
+	if conn2 == nil {
+		conn2 = service.ConnectionRepository.SelectOrCreateConnection(profileId, followerId)
+	}
+	if !connection.ConnectionRequest {
+		return nil, false
+	}
 	connection.ConnectionRequest = false
 	connection.Approved = true
-	resConnection, ok := service.ConnectionRepository.UpdateConnection(connection)
+	conn2.ConnectionRequest = false
+	conn2.Approved = true
+	service.ConnectionRepository.UpdateConnection(connection)
+	var ok bool
+	conn2, ok = service.ConnectionRepository.UpdateConnection(conn2)
 	if ok {
-		return resConnection, true
+		return conn2, true
 	} else {
-		return connection, false
+		return conn2, false
 	}
 }
 

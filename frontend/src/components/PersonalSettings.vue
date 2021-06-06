@@ -98,6 +98,8 @@
 
 <script>
 import * as validator from '../plugins/validator.js'
+import axios from 'axios'
+  import * as comm from '../configuration/communication.js'
 export default {
     data(){
         return{

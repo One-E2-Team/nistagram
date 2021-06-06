@@ -37,6 +37,19 @@ func (handler *Handler) GetAll(w http.ResponseWriter, r *http.Request){
 	w.Header().Set("Content-Type", "application/json")
 }
 
+func (handler Handler) GetPublic(w http.ResponseWriter, r *http.Request){
+	result := handler.PostService.GetPublic()
+
+	js, err := json.Marshal(result)
+	if err != nil{
+		w.Write([]byte("{\"success\":\"error\"}"))
+	}
+	w.Write(js)
+
+	//w.Write([]byte("{\"success\":\"ok\"}"))
+	w.Header().Set("Content-Type", "application/json")
+}
+
 func (handler *Handler) Create(w http.ResponseWriter, r *http.Request){
 
 	fmt.Println("In function create..")

@@ -151,6 +151,13 @@ func (handler *AuthHandler) ValidateUser(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write([]byte("{\"success\":\"validated\"}"))
-	w.Header().Set("Content-Type", "application/json")
+	//TODO: parametrize host
+	_, err = fmt.Fprintf(w, "<html><head><script>window.location.href = \"http://localhost:3000/#/log-in\";</script></head><body></body></html>")
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
+		return
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 }
