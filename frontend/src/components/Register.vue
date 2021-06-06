@@ -292,7 +292,7 @@ import axios from 'axios'
         webSite: '',
         interests: []
       } ,  
-      interests: ['plavuse','cokoladne','brinete','maloletne'],
+      interests: [],
       isPrivate: false,
 
       rules: {
@@ -305,6 +305,20 @@ import axios from 'axios'
 
         menu: false
     }),
+
+    created(){
+      axios({
+          method: "get",
+          url: "http://localhost:81/api/profile/interests",
+        }).then(function (response) {
+          if (response.status == 200) {
+            this.interests = response.data
+          }
+        })
+        .catch(function (response) {
+          console.log(response);
+        });
+    },
 
     methods: {
       continueTo2 () {
@@ -336,13 +350,12 @@ import axios from 'axios'
           isPrivate: this.isPrivate,
           biography: this.person.biography,
           webSite: this.person.webSite,
-          interests: []
+          interests: this.person.interests
         }
         axios({
           method: "post",
           url: "http://localhost:81/api/profile/",
           data: JSON.stringify(data),
-          config: { headers: {'Content-Type': 'multipart/form-data' }}
         }).then(function (response) {
           if (response.status == 200) {
             alert('Check your email!');
