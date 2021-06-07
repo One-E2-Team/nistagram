@@ -65,7 +65,7 @@ func (handler Handler) GetPostsForHomePage(w http.ResponseWriter, r *http.Reques
 	if err != nil{
 		fmt.Println(err)
 	}
-	var followingProfiles []dto.ProfileDto
+	var followingProfiles []uint
 	body, err := io.ReadAll(resp.Body)
 	if err != nil{
 		fmt.Println(err)

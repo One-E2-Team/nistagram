@@ -20,8 +20,8 @@ func (service *PostService) GetPublic() ([]model.Post){
 	return service.PostRepository.GetPublic()
 }
 
-func (service *PostService) GetPostsForHomePage([]dto.ProfileDto) []model.Post{
-	return service.PostRepository.GetPostsForHomePage([]dto.ProfileDto)
+func (service *PostService) GetPostsForHomePage(followingProfiles []uint) []model.Post{
+	return service.PostRepository.GetPostsForHomePage(followingProfiles)
 }
 
 func (service *PostService) CreatePost(postType model.PostType,post dto.PostDto, mediaNames []string, profile dto.ProfileDto) error {
