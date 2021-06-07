@@ -50,6 +50,27 @@ func (handler Handler) GetPublic(w http.ResponseWriter, r *http.Request){
 	w.Header().Set("Content-Type", "application/json")
 }
 
+func (handler Handler) GetMyPosts(w http.ResponseWriter, r *http.Request){
+
+	loggedUserId := util.GetLoggedUserIDFromToken(r)
+	if loggedUserId == 0{
+		fmt.Println("User is not logged in..")
+		w.Write([]byte("{\"success\":\"error\"}"))
+		return
+	}
+
+	result := handler.PostService.GetMyPosts(loggedUserId)
+
+	js, err := json.Marshal(result)
+	if err != nil{
+		w.Write([]byte("{\"success\":\"error\"}"))
+	}
+	w.Write(js)
+
+	//w.Write([]byte("{\"success\":\"ok\"}"))
+	w.Header().Set("Content-Type", "application/json")
+}
+
 func (handler Handler) GetPostsForHomePage(w http.ResponseWriter, r *http.Request){
 
 	loggedUserId := util.GetLoggedUserIDFromToken(r)

@@ -87,6 +87,45 @@ func (repo *PostRepository) GetPublic() []model.Post {
 	return posts
 }
 
+func (repo *PostRepository) GetMyPosts(loggedUserId uint) []model.Post {
+	postCollection, err := repo.getCollection(model.GetPostType("post"))
+	if err != nil{
+		fmt.Println("Error: can't get post collection!")
+	}
+	storyCollection, err := repo.getCollection(model.GetPostType("story"))
+	if err != nil{
+		fmt.Println("Error: can't get story collection!")
+	}
+	postCursor, err := postCollection.Find(context.TODO(), bson.D{})
+	if err != nil{
+		fmt.Println("Error: can't find posts!")
+	}
+	storyCursor, err := storyCollection.Find(context.TODO(), bson.D{})
+	if err != nil{
+		fmt.Println("Error: can't find stories!")
+	}
+	var posts []model.Post
+
+	for postCursor.Next(context.TODO()){
+		var result model.Post
+		err = postCursor.Decode(&result)
+		if result.PublisherId == loggedUserId {
+			posts = append(posts, result)
+		}
+	}
+
+	for storyCursor.Next(context.TODO()){
+		var result model.Post
+		err = storyCursor.Decode(&result)
+		if result.PublisherId == loggedUserId {
+			posts = append(posts, result)
+		}
+	}
+
+	return posts
+}
+
+
 func (repo *PostRepository) GetPostsForHomePage(followingProfiles []uint) []model.Post {
 	postCollection, err := repo.getCollection(model.GetPostType("post"))
 	if err != nil{
