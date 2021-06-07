@@ -51,15 +51,17 @@
             align="center"
             justify="center"
           >
-           <v-carousel>
-                      <v-carousel-item
-                      v-for="(item,i) in p.medias"
-                      :key="i"
-                      :src= "item.filePath"
+          <v-carousel>
+                      <v-carousel-item v-for="item in p.medias" :key="item.filePath"
                       reverse-transition="fade-transition"
-                      transition="fade-transition"
-                      ></v-carousel-item>
-          </v-carousel>
+                      transition="fade-transition">
+                        <video autoplay v-if="item.filePath.includes('mp4')">
+                          <source src="item.filePath">
+                        Your browser does not support the video tag.
+                        </video>
+                        <img v-if="!item.filePath.includes('mp4')" src="item.filePath">
+                      </v-carousel-item>
+                </v-carousel>
           </v-row>
         </v-card>
       </v-slide-item>
@@ -76,15 +78,19 @@
                 >
                 <v-card-title>{{p.publisherUsername}}</v-card-title>
                 <v-carousel>
-                    <v-carousel-item
-                    v-for="(item,i) in p.medias"
-                    :key="i"
-                    :src= "item.filePath"
-                    reverse-transition="fade-transition"
-                    transition="fade-transition"
-                    ></v-carousel-item>
-                </v-carousel>
-                <v-card-text>{{p.description}}</v-card-text>
+             <v-template v-for="item in p.medias" :key="item.filePath">
+                      <v-carousel-item
+                      reverse-transition="fade-transition"
+                      transition="fade-transition">
+                      <video autoplay  width="600" height="500" :src="item.filePath" v-if="item.filePath.includes('mp4')">
+                        Your browser does not support the video tag.
+                      </video>
+                      <img width="600" height="500" :src="item.filePath" v-if="!item.filePath.includes('mp4')">
+
+                      </v-carousel-item>
+             </v-template>
+          </v-carousel>
+                <v-card-text>{{p.description}} {{p.hashTags}} {{p.location}}</v-card-text>
                 <v-card-text>{{p.publishDate}}</v-card-text>
                 </v-card>
              </v-col>
@@ -104,6 +110,7 @@ import * as comm from '../configuration/communication.js'
             res.forEach((post) => {
                 if(post.medias != null){
                   post.medias.forEach((media) =>{
+                    console.log(media)
                    media.filePath = "http://" + comm.server +"/static/data/" + media.filePath;
                   });
                 }
