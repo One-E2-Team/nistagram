@@ -20,6 +20,14 @@ func (service *PostService) GetPublic() ([]model.Post){
 	return service.PostRepository.GetPublic()
 }
 
+func (service *PostService) GetPublicPostByLocation(location string) ([]model.Post){
+	return service.PostRepository.GetPublicPostByLocation(location)
+}
+
+func (service *PostService) GetPublicPostByHashTag(hashTag string) ([]model.Post){
+	return service.PostRepository.GetPublicPostByHashTag(hashTag)
+}
+
 func (service *PostService) GetMyPosts(loggedUserId uint) ([]model.Post){
 	return service.PostRepository.GetMyPosts(loggedUserId)
 }
