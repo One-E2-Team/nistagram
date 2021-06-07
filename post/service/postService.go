@@ -20,18 +20,18 @@ func (service *PostService) GetPublic() ([]model.Post){
 	return service.PostRepository.GetPublic()
 }
 
-func (service *PostService) CreatePost(postType model.PostType,post dto.PostDto, mediaNames []string) error {
+func (service *PostService) CreatePost(postType model.PostType,post dto.PostDto, mediaNames []string, profile dto.ProfileDto) error {
 	var medias []model.Media
 	for i:=0;i<len(mediaNames);i++ {
 		m := model.Media{FilePath: mediaNames[i], WebSite: ""}
 		medias = append(medias, m)
 	}
 
-	newPost := model.Post{PublisherId: 123, PublisherUsername: "andrej",
+	newPost := model.Post{PublisherId: profile.ProfileId, PublisherUsername: profile.Username,
 		PostType: postType, Medias: medias, PublishDate: time.Now(),
-		Description: post.Description, IsHighlighted: post.IsHighlighted, IsCampaign: post.IsCampaign,
-		IsCloseFriendsOnly: post.IsCloseFriendsOnly,
-		HashTags: nil, TaggedUsers: post.TaggedUsers, IsPrivate: false, IsDeleted: false}
+		Description: post.Description, IsHighlighted: post.IsHighlighted, IsCampaign: false,
+		IsCloseFriendsOnly: post.IsCloseFriendsOnly, Location: post.Location,
+		HashTags: post.HashTags, TaggedUsers: post.TaggedUsers, IsPrivate: profile.ProfileSettings.IsPrivate, IsDeleted: false}
 
 	return service.PostRepository.Create(&newPost)
 }

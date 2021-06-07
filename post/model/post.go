@@ -14,8 +14,8 @@ type Post struct {
 	IsHighlighted bool `json:"isHighlighted"`
 	IsCampaign bool `json:"isCampaign"`
 	IsCloseFriendsOnly bool `json:"isCloseFriendsOnly"`
-	Location Location `json:"location"`
-	HashTags []HashTag `json:"hashTags"`
+	Location string `json:"location"`
+	HashTags string `json:"hashTags"`
 	TaggedUsers []string `json:"taggedUsers"`
 	IsPrivate bool `json:"isPrivate"`
 	IsDeleted bool `json:"isDeleted"`

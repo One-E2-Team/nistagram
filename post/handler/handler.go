@@ -54,6 +54,13 @@ func (handler *Handler) Create(w http.ResponseWriter, r *http.Request){
 
 	fmt.Println("In function create..")
 
+	profileId := util.GetLoggedUserIDFromToken(r)
+	if profileId == 0{
+		fmt.Println("User is not logged in..")
+		w.Write([]byte("{\"success\":\"error\"}"))
+		return
+	}
+
 	err := r.ParseMultipartForm(0)
 
 	if err != nil{
@@ -116,7 +123,29 @@ func (handler *Handler) Create(w http.ResponseWriter, r *http.Request){
 		return
 	}
 
-	err = handler.PostService.CreatePost(postType,postDto, mediaNames)
+
+	profileHost, profilePort := util.GetProfileHostAndPort()
+
+	resp, err := http.Get("http://"+profileHost+":"+profilePort+"/get-by-id/" + strconv.Itoa(int(profileId)))
+	if err != nil{
+		fmt.Println(err)
+	}
+	var profile dto.ProfileDto
+	body, err := io.ReadAll(resp.Body)
+	if err != nil{
+		fmt.Println(err)
+	}
+	fmt.Println("Body: ", body)
+	defer resp.Body.Close()
+	err = json.Unmarshal(body, &profile)
+
+	if err != nil{
+		fmt.Println(err)
+	}
+	profile.ProfileId = profileId
+	fmt.Println("Profile dto: ", profile)
+
+	err = handler.PostService.CreatePost(postType,postDto, mediaNames, profile)
 
 	if err != nil{
 		fmt.Println(err)
