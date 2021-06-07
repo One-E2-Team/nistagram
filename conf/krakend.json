@@ -21,7 +21,7 @@
       ]
     },
     "github_com/devopsfaith/krakend-logstash": {
-      "enabled": true
+      "enabled": false
     }
   },
   "timeout": "3000ms",
@@ -151,12 +151,12 @@
     {
       "endpoint": "/api/auth/request-recovery",
       "method": "POST",
-      "output_encoding": "json",
+      "output_encoding": "string",
       "extra_config": {},
       "backend": [
         {
           "url_pattern": "/request-recovery",
-          "encoding": "json",
+          "encoding": "string",
           "sd": "static",
           "method": "POST",
           "extra_config": {},
@@ -170,12 +170,12 @@
     {
       "endpoint": "/api/auth/recover",
       "method": "POST",
-      "output_encoding": "json",
+      "output_encoding": "string",
       "extra_config": {},
       "backend": [
         {
           "url_pattern": "/recover",
-          "encoding": "json",
+          "encoding": "string",
           "sd": "static",
           "method": "POST",
           "extra_config": {},
@@ -369,6 +369,140 @@
           "extra_config": {},
           "host": [
             "profile:8080"
+          ],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/connection/following/my-properties/{profileId}",
+      "method": "GET",
+      "output_encoding": "json",
+      "extra_config": {},
+      "headers_to_pass": [
+        "Authorization"
+      ],
+      "backend": [
+        {
+          "url_pattern": "/connection/following/my-properties/{profileId}",
+          "encoding": "json",
+          "sd": "static",
+          "method": "GET",
+          "extra_config": {},
+          "host": [
+            "connection:8080"
+          ],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/connection/following/approve/{profileId}",
+      "method": "POST",
+      "output_encoding": "json",
+      "extra_config": {},
+      "headers_to_pass": [
+        "Authorization"
+      ],
+      "backend": [
+        {
+          "url_pattern": "/connection/following/approve/{profileId}",
+          "encoding": "json",
+          "sd": "static",
+          "method": "POST",
+          "extra_config": {},
+          "host": [
+            "connection:8080"
+          ],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/connection/following/request/{profileId}",
+      "method": "POST",
+      "output_encoding": "json",
+      "extra_config": {},
+      "headers_to_pass": [
+        "Authorization"
+      ],
+      "backend": [
+        {
+          "url_pattern": "/connection/following/request/{profileId}",
+          "encoding": "json",
+          "sd": "static",
+          "method": "POST",
+          "extra_config": {},
+          "host": [
+            "connection:8080"
+          ],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/connection/following/update",
+      "method": "PUT",
+      "output_encoding": "json",
+      "extra_config": {},
+      "headers_to_pass": [
+        "Authorization"
+      ],
+      "backend": [
+        {
+          "url_pattern": "/connection/following/update",
+          "encoding": "json",
+          "sd": "static",
+          "method": "PUT",
+          "extra_config": {},
+          "host": [
+            "connection:8080"
+          ],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/connection/following/request",
+      "method": "GET",
+      "output_encoding": "json",
+      "extra_config": {},
+      "headers_to_pass": [
+        "Authorization"
+      ],
+      "backend": [
+        {
+          "url_pattern": "/connection/following/request",
+          "encoding": "json",
+          "sd": "static",
+          "method": "GET",
+          "extra_config": {},
+          "host": [
+            "connection:8080"
+          ],
+          "disable_host_sanitize": false,
+          "is_collection": true,
+          "target": ""
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/connection/following/request/{profileId}",
+      "method": "DELETE",
+      "output_encoding": "json",
+      "extra_config": {},
+      "headers_to_pass": [
+        "Authorization"
+      ],
+      "backend": [
+        {
+          "url_pattern": "/connection/following/request/{profileId}",
+          "encoding": "json",
+          "sd": "static",
+          "method": "DELETE",
+          "extra_config": {},
+          "host": [
+            "connection:8080"
           ],
           "disable_host_sanitize": false
         }

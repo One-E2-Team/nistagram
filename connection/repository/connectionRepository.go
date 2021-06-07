@@ -41,7 +41,7 @@ func (repo *ConnectionRepository) CreateProfile(profile model.Profile) *model.Pr
 	return &ret
 }
 
-func (repo *ConnectionRepository) GetConnectedProfiles(conn model.Connection, excludeMuted bool) *[]model.Profile {
+func (repo *ConnectionRepository) GetConnectedProfiles(conn model.Connection, excludeMuted bool) *[]uint {
 	var additionalSelector string = ""
 	if conn.MessageConnected == true {
 		additionalSelector += "AND a.messageConnected = $messageConnected "
@@ -76,15 +76,14 @@ func (repo *ConnectionRepository) GetConnectedProfiles(conn model.Connection, ex
 				"WHERE a.profileID = $primary AND e.block = FALSE " + additionalSelector + "\n" +
 				"RETURN b",
 			conn.ToMap())
-		var ret []model.Profile
+		var ret []uint
 		if err != nil {
 			fmt.Println(err.Error())
 			return ret, err
 		}
 
 		for ; result.Next(); {
-			ret = append(ret,
-				model.Profile{ProfileID: uint(result.Record().Values[0].(dbtype.Node).Props["profileID"].(float64))})
+			ret = append(ret, uint(result.Record().Values[0].(dbtype.Node).Props["profileID"].(float64)))
 		}
 
 		return ret, err
@@ -92,7 +91,7 @@ func (repo *ConnectionRepository) GetConnectedProfiles(conn model.Connection, ex
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-	ret := profileIDs.([]model.Profile)
+	ret := profileIDs.([]uint)
 	return &ret
 }
 
@@ -216,4 +215,23 @@ func (repo *ConnectionRepository) UpdateConnection(conn *model.Connection) (*mod
 	fmt.Println(resultingConn)
 	var ret = resultingConn.(model.Connection)
 	return &ret, true
+}
+
+func (repo *ConnectionRepository) DeleteConnection(followerId, profileId uint) (*model.Connection, bool) {
+	conn, ok := repo.SelectConnection(followerId, profileId, false)
+	if !ok {
+		return nil, false
+	}
+	session := (*repo.DatabaseDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer session.Close()
+	_, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
+		return transaction.Run(
+			"MATCH (a:Profile)-[e:FOLLOWS]->(b:Profile) \n" +
+				"WHERE a.profileID = $primary AND b.profileID = $secondary \n" +
+				"DELETE e",
+			conn.ToMap())})
+	if err != nil {
+		return nil, false
+	}
+	return conn, true
 }

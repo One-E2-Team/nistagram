@@ -72,14 +72,14 @@ func (service *AuthService) RequestPassRecovery(email string) error {
 		return err
 	}
 	//TODO: change host, port
-	var message = "Visit this link in the next 20 minutes to change your password: http://localhost:3000/reset-password?id=" +
+	var message = "Visit this link in the next 20 minutes to change your password: http://localhost:3000/#/reset-password?id=" +
 		util.Uint2String(user.ProfileId) + "&str=" + user.ValidationUid
 	go util.SendMail(user.Email, "Recovery password", message)
 	return nil
 }
 
 func (service *AuthService) ChangePassword(dto dto.RecoveryDTO) error {
-	user, err := service.AuthRepository.GetUserByProfileID(dto.Id)
+	user, err := service.AuthRepository.GetUserByProfileID(util.String2Uint(dto.Id))
 	if err != nil {
 		return err
 	}
