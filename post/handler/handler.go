@@ -116,7 +116,7 @@ func (handler *Handler) Create(w http.ResponseWriter, r *http.Request){
 		return
 	}
 
-	err = handler.PostService.CreatePost(postType,postDto, mediaNames)
+	err = handler.PostService.CreatePost(postType,postDto, mediaNames )
 
 	if err != nil{
 		fmt.Println(err)
@@ -222,6 +222,26 @@ func (handler *Handler) ChangeUsername(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	switch err =  handler.PostService.ChangeUsername(util.GetLoggedUserIDFromToken(r),input.Username) ; err{
+	case mongo.ErrNoDocuments:
+		w.WriteHeader(http.StatusNotFound)
+	case nil :
+		w.WriteHeader(http.StatusOK)
+	default:
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
+func (handler *Handler) ChangePrivacy (w http.ResponseWriter, r *http.Request) {
+	type data struct { IsPrivate bool `json:"IsPrivate"` }
+	var input data
+	err := json.NewDecoder(r.Body).Decode(&input)
+
+	if err != nil{
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	switch err := handler.PostService.ChangePrivacy(123, input.IsPrivate) ; err {
 	case mongo.ErrNoDocuments:
 		w.WriteHeader(http.StatusNotFound)
 	case nil :

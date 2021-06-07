@@ -109,7 +109,7 @@ func (repo *PostRepository) Delete(id primitive.ObjectID, postType model.PostTyp
 	filter := bson.D{{"_id", id}}
 	update := bson.D{
 		{"$set", bson.D{
-			{"isdeleted", true},
+			{"isDeleted", true},
 		}},
 	}
 	result, _ := collection.UpdateOne(context.TODO(), filter,update)
@@ -135,15 +135,6 @@ func (repo *PostRepository) Update(id primitive.ObjectID,postType model.PostType
 	return nil
 }
 
-func (repo *PostRepository) getCollection(postType model.PostType) (*mongo.Collection,error) {
-	if postType == model.POST {
-		return repo.Client.Database("postdb").Collection("posts") , nil
-	}else if postType == model.STORY{
-		return repo.Client.Database("postdb").Collection("stories"), nil
-	}
-	return nil, errors.New("collection doesn't exist!")
-}
-
 func (repo *PostRepository) DeleteUserPosts(id uint) error {
 	filter := bson.D{{"publisherid",id}}
 	update := bson.D{
@@ -167,6 +158,17 @@ func (repo *PostRepository) ChangeUsername(id uint, username string) error {
 	return repo.updateManyInPostAndStoryCollections(filter,update)
 }
 
+func (repo *PostRepository) ChangePrivacy(id uint, isPrivate bool) error {
+	filter := bson.D{{"publisherid", id}}
+	update := bson.D{
+		{"$set", bson.D{
+			{"isprivate",isPrivate },
+		}},
+	}
+
+	return repo.updateManyInPostAndStoryCollections(filter,update)
+}
+
 
 func (repo *PostRepository) updateManyInPostAndStoryCollections(filter bson.D, update bson.D) error {
 	collPosts,_ := repo.getCollection(model.POST)
@@ -180,6 +182,18 @@ func (repo *PostRepository) updateManyInPostAndStoryCollections(filter bson.D, u
 	}
 	return nil
 }
+
+func (repo *PostRepository) getCollection(postType model.PostType) (*mongo.Collection,error) {
+	if postType == model.POST {
+		return repo.Client.Database("postdb").Collection("posts") , nil
+	}else if postType == model.STORY{
+		return repo.Client.Database("postdb").Collection("stories"), nil
+	}
+	return nil, errors.New("collection doesn't exist!")
+}
+
+
+
 
 
 
