@@ -60,24 +60,40 @@ export default {
             }
         },
         searchLocation(){
-          //TODO: do axios
-          let ret = [];
-          this.allPosts.forEach((post) => {
-                  if((post.location.toLowerCase()).includes(this.location.toLowerCase())){
-                    ret.push(post);
-                  }
-              });
-          this.$emit('searched-result', ret);
-      },
-      searchHashTags(){
-        //TODO: do axios
-        let ret = [];
-        this.allPosts.forEach((post) => {
-                if((post.hashTags.toLowerCase()).includes(this.hashTags.toLowerCase())){
-                  ret.push(post);
+           axios({
+            method: "get",
+            url: 'http://' + comm.server + '/api/post/public/location/' + this.searchParams,
+            }).then(response => {
+            if(response.status==200){
+              let res = response.data.collection;
+               res.forEach((post) => {
+                if(post.medias != null){
+                  post.medias.forEach((media) =>{
+                   media.filePath = "http://" + comm.server +"/static/data/" + media.filePath;
+                  });
                 }
             });
-        this.$emit('searched-result', ret);
+              this.$emit('searched-result', res);
+          }
+        })
+      },
+      searchHashTags(){
+        axios({
+            method: "get",
+            url: 'http://' + comm.server + '/api/post/public/hashtag/' + this.searchParams,
+            }).then(response => {
+            if(response.status==200){
+              let res = response.data.collection;
+               res.forEach((post) => {
+                if(post.medias != null){
+                  post.medias.forEach((media) =>{
+                   media.filePath = "http://" + comm.server +"/static/data/" + media.filePath;
+                  });
+                }
+            });
+              this.$emit('searched-result', res);
+          }
+        })
       },
       searchAccounts(){
         axios({
