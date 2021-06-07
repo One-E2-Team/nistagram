@@ -153,3 +153,21 @@ func (handler *Handler) GetFollowedProfiles(w http.ResponseWriter, r *http.Reque
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(*profiles)
 }
+
+func (handler *Handler) UpdateConnection(w http.ResponseWriter, r *http.Request) {
+	var dto model.Connection
+	err := json.NewDecoder(r.Body).Decode(&dto)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	} else {
+		id := util.GetLoggedUserIDFromToken(r)
+		ret, ok := handler.ConnectionService.UpdateConnection(id, dto)
+		if !ok {
+			w.WriteHeader(http.StatusInternalServerError)
+		} else {
+			w.WriteHeader(http.StatusOK)
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(*ret)
+		}
+	}
+}
