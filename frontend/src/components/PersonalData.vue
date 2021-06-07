@@ -36,11 +36,11 @@
               <v-list-item-title class="text-h6 text-left">
                 {{profile.username}}
               </v-list-item-title>
-              <v-list-item-subtitle  class="text-h6 text-left ">Name : {{profile.name}}</v-list-item-subtitle>
-              <v-list-item-subtitle class="text-h6 text-left">Surname : {{profile.surname}}</v-list-item-subtitle>
-              <v-list-item-subtitle  class="text-h6 text-left">Birth date: {{profile.birthDate}}</v-list-item-subtitle>
-              <v-list-item-subtitle  class="text-h6 text-left">web site: {{profile.webSite}}</v-list-item-subtitle>
-              <v-list-item-subtitle  class="text-h6 text-left">Biography:{{profile.biography}}</v-list-item-subtitle>
+              <v-list-item-subtitle class="text-h6 text-left">Name : {{profile.personalData.name}}</v-list-item-subtitle>
+              <v-list-item-subtitle class="text-h6 text-left">Surname : {{profile.personalData.surname}}</v-list-item-subtitle>
+              <v-list-item-subtitle class="text-h6 text-left">Birth date: {{profile.personalData.birthDate}}</v-list-item-subtitle>
+              <v-list-item-subtitle class="text-h6 text-left">web site: {{profile.webSite}}</v-list-item-subtitle>
+              <v-list-item-subtitle class="text-h6 text-left">Biography : {{profile.biography}}</v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
         </v-col>
