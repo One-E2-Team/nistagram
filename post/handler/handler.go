@@ -213,6 +213,9 @@ func (handler *Handler) DeleteUserPosts (w http.ResponseWriter, r *http.Request)
 }
 
 func (handler *Handler) ChangeUsername(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	publisherId := util.String2Uint(params["loggedUserId"])
+
 	type data struct { Username string `json:"username"` }
 	var input data
 	err := json.NewDecoder(r.Body).Decode(&input)
@@ -221,7 +224,8 @@ func (handler *Handler) ChangeUsername(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	switch err =  handler.PostService.ChangeUsername(util.GetLoggedUserIDFromToken(r),input.Username) ; err{
+
+	switch err =  handler.PostService.ChangeUsername(publisherId ,input.Username) ; err{
 	case mongo.ErrNoDocuments:
 		w.WriteHeader(http.StatusNotFound)
 	case nil :

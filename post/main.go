@@ -68,7 +68,7 @@ func handleFunc(handler *handler.Handler) {
 	router.HandleFunc("/", handler.Create).Methods("POST")
 	router.HandleFunc("/user/{loggedUserId}/privacy", handler.ChangePrivacy).Methods("PUT")
 	router.HandleFunc("/user",handler.DeleteUserPosts).Methods("DELETE")
-	router.HandleFunc("/user/username",handler.ChangeUsername).Methods("PUT")
+	router.HandleFunc("/user/{loggedUserId}/username",handler.ChangeUsername).Methods("PUT")
 	router.HandleFunc("/{postType}/{id}",handler.GetPost).Methods("GET")
 	router.HandleFunc("/{postType}/{id}",handler.DeletePost).Methods("DELETE")
 	router.HandleFunc("/{postType}/{id}",handler.UpdatePost).Methods("PUT")
