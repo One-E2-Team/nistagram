@@ -1,7 +1,11 @@
 export let server = 'localhost:81'
 
 export function getJWTToken() {
-  return JSON.parse(sessionStorage.getItem("JWT"))
+  return JSON.parse(sessionStorage.getItem("JWT"));
+}
+
+export function getLoggedUserID() {
+  return getJWTToken().profileId;
 }
 
 export function logOut() {

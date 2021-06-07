@@ -43,6 +43,7 @@ func (handler *AuthHandler) LogIn(w http.ResponseWriter, r *http.Request) {
 	resp := dto.TokenResponseDTO{
 		Token: token,
 		Email: user.Email,
+		ProfileId: user.ProfileId,
 		Roles: user.Roles,
 	}
 	respJson, err := json.Marshal(resp)
