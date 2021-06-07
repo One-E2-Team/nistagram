@@ -24,7 +24,7 @@
             size="150"
             tile
           >
-            <v-img src="https://cdn.vuetifyjs.com/images/profiles/marcus.jpg" ></v-img>
+            <v-img style="border-radius: 45%;" src="../assets/profilepicture.jpg" ></v-img>
           </v-avatar>
         </v-col>
         <v-col class="py-0" cols="4">

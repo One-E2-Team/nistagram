@@ -1,9 +1,17 @@
 <template>
     <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/explore">Explore</router-link>
-
-      <v-menu
+      <v-container>
+        <v-row align="center" justify="center">
+          <v-col cols="12" sm="4">
+          <v-spacer/>
+          </v-col>
+          <v-col cols="12" sm="4">
+          <router-link to="/">Home</router-link> |
+          <router-link to="/explore">Explore</router-link>
+          </v-col>
+          <v-spacer/>
+          <v-col cols="12" sm="3">
+          <v-menu
             bottom
             left
           >
@@ -14,7 +22,7 @@
                 v-bind="attrs"
                 v-on="on"
               >
-                <v-icon color="blue">mdi-dots-vertical</v-icon>
+                <v-icon color="blue">mdi-cog-outline</v-icon>
               </v-btn>
             </template>
 
@@ -27,6 +35,9 @@
               </v-list-item>
             </v-list>
           </v-menu>
+          </v-col>
+        </v-row>
+      </v-container>
     </div>
 </template>
 
