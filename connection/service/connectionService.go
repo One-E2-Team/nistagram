@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"nistagram/connection/dto"
 	"nistagram/connection/model"
 	"nistagram/connection/repository"
 	model2 "nistagram/profile/model"
@@ -261,4 +262,9 @@ func (service *ConnectionService) UpdateConnection(id uint, conn model.Connectio
 
 func (service *ConnectionService) DeleteConnection(followerId, profileId uint) (*model.Connection, bool) {
 	return service.ConnectionRepository.DeleteConnection(followerId, profileId)
+}
+
+func (service *ConnectionService) GetAllFollowRequests(id uint) *[]dto.UserDTO {
+	var ret *[]dto.UserDTO
+	return ret
 }

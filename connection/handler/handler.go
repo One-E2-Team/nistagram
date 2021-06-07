@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"net/http"
+	"nistagram/connection/dto"
 	"nistagram/connection/model"
 	"nistagram/connection/service"
 	"nistagram/util"
@@ -187,5 +188,13 @@ func (handler *Handler) DeclineFollowRequest(writer http.ResponseWriter, request
 }
 
 func (handler *Handler) GetAllFollowRequests(writer http.ResponseWriter, request *http.Request) {
-	
+	id := util.GetLoggedUserIDFromToken(request)
+	if id == 0 {
+		writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	var userDtos *[]dto.UserDTO = handler.ConnectionService.GetAllFollowRequests(id)
+	writer.WriteHeader(http.StatusOK)
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(*userDtos)
 }
