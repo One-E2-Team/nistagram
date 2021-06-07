@@ -33,12 +33,12 @@
             label="Location"
           ></v-text-field>
 
-          <v-checkbox
+          <v-checkbox v-if="selectedPostType === 'Story'"
             v-model="isHighlighted"
             label="Is highlighted?"
           ></v-checkbox>
 
-          <v-checkbox
+          <v-checkbox v-if="selectedPostType === 'Story'"
             v-model="isCloseFriendsOnly"
             label="Is close friends only?"
           ></v-checkbox>
