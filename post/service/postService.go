@@ -20,6 +20,10 @@ func (service *PostService) GetPublic() ([]model.Post){
 	return service.PostRepository.GetPublic()
 }
 
+func (service *PostService) GetMyPosts(loggedUserId uint) ([]model.Post){
+	return service.PostRepository.GetMyPosts(loggedUserId)
+}
+
 func (service *PostService) GetPostsForHomePage(followingProfiles []uint) []model.Post{
 	return service.PostRepository.GetPostsForHomePage(followingProfiles)
 }
