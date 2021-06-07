@@ -55,3 +55,7 @@ func (service *PostService) DeleteUserPosts(profileId uint) error {
 func (service *PostService) ChangeUsername(profileId uint, username string) error {
 	return service.PostRepository.ChangeUsername(profileId,username)
 }
+
+func (service *PostService) ChangePrivacy(profileId uint, isPrivate bool) error {
+	return service.PostRepository.ChangePrivacy(profileId, isPrivate);
+}

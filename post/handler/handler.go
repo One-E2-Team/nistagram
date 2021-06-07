@@ -123,7 +123,6 @@ func (handler *Handler) Create(w http.ResponseWriter, r *http.Request){
 		return
 	}
 
-
 	profileHost, profilePort := util.GetProfileHostAndPort()
 
 	resp, err := http.Get("http://"+profileHost+":"+profilePort+"/get-by-id/" + strconv.Itoa(int(profileId)))
@@ -242,6 +241,9 @@ func (handler *Handler) DeleteUserPosts (w http.ResponseWriter, r *http.Request)
 }
 
 func (handler *Handler) ChangeUsername(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	publisherId := util.String2Uint(params["loggedUserId"])
+
 	type data struct { Username string `json:"username"` }
 	var input data
 	err := json.NewDecoder(r.Body).Decode(&input)
@@ -250,7 +252,31 @@ func (handler *Handler) ChangeUsername(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	switch err =  handler.PostService.ChangeUsername(util.GetLoggedUserIDFromToken(r),input.Username) ; err{
+
+	switch err =  handler.PostService.ChangeUsername(publisherId ,input.Username) ; err{
+	case mongo.ErrNoDocuments:
+		w.WriteHeader(http.StatusNotFound)
+	case nil :
+		w.WriteHeader(http.StatusOK)
+	default:
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
+func (handler *Handler) ChangePrivacy (w http.ResponseWriter, r *http.Request) {
+	type data struct { IsPrivate bool `json:"IsPrivate"` }
+	params := mux.Vars(r)
+	publisherId := util.String2Uint(params["loggedUserId"])
+
+	var input data
+	err := json.NewDecoder(r.Body).Decode(&input)
+
+	if err != nil{
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	switch err := handler.PostService.ChangePrivacy(publisherId, input.IsPrivate) ; err {
 	case mongo.ErrNoDocuments:
 		w.WriteHeader(http.StatusNotFound)
 	case nil :
