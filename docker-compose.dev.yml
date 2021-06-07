@@ -19,7 +19,7 @@ services:
         networks: 
             - net_apigateway
         volumes: 
-            - "../nistagramstaticdata:/usr/share/nginx/html:ro"
+            - "../nistagramstaticdata/data:/usr/share/nginx/html/data:ro"
 
     profile:
         container_name: profile_ms

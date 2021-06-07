@@ -507,10 +507,30 @@
           "disable_host_sanitize": false
         }
       ]
+    },
+    {
+      "endpoint": "/web/{content}",
+      "method": "GET",
+      "output_encoding": "no-op",
+      "extra_config": {},
+      "backend": [
+        {
+          "url_pattern": "/dist/{content}",
+          "encoding": "no-op",
+          "sd": "static",
+          "method": "GET",
+          "extra_config": {},
+          "host": [
+            "static:80"
+          ],
+          "disable_host_sanitize": false
+        }
+      ]
     }
   ],
   "read_timeout": "0s",
   "write_timeout": "0s",
   "idle_timeout": "0s",
-  "read_header_timeout": "0s"
+  "read_header_timeout": "0s",
+  "disable_rest": false
 }
