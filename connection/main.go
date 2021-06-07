@@ -69,7 +69,9 @@ func handleFunc(handler *handler.Handler) {
 	router.HandleFunc("/connection/following/my-properties/{profileId}", handler.GetConnectionPublic).Methods("GET") // frontend func
 	router.HandleFunc("/connection/following/approve/{profileId}", handler.FollowApprove).Methods("POST") // frontend func
 	router.HandleFunc("/connection/following/request/{profileId}", handler.FollowRequest).Methods("POST") //frontend func
-	router.HandleFunc("/connection/following/update", handler.UpdateConnection).Methods("POST") //frontend func
+	router.HandleFunc("/connection/following/update", handler.UpdateConnection).Methods("PUT") //frontend func
+	router.HandleFunc("/connection/following/request", handler.GetAllFollowRequests).Methods("GET") //frontend func
+	router.HandleFunc("/connection/following/request/{profileId}", handler.DeclineFollowRequest).Methods("DELETE") //frontend func
 	fmt.Printf("Starting server..")
 	_, port := util.GetConnectionHostAndPort()
 	http.ListenAndServe(":" + port, router)

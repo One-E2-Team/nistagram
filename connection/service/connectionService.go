@@ -242,10 +242,10 @@ func (service *ConnectionService) ToggleMuted(followerId, profileId uint) (*mode
 	}
 }
 
-func (service *ConnectionService) GetConnectedProfiles(conn model.Connection, excludeMuted bool) *[]model.Profile {
+func (service *ConnectionService) GetConnectedProfiles(conn model.Connection, excludeMuted bool) *[]uint {
 	ret := service.ConnectionRepository.GetConnectedProfiles(conn, excludeMuted)
 	if ret == nil {
-		temp := make([]model.Profile, 0)
+		temp := make([]uint, 0)
 		return &temp
 	}
 	return ret
@@ -257,4 +257,8 @@ func (service *ConnectionService) UpdateConnection(id uint, conn model.Connectio
 	} else {
 		return nil, false
 	}
+}
+
+func (service *ConnectionService) DeleteConnection(followerId, profileId uint) (*model.Connection, bool) {
+	return service.ConnectionRepository.DeleteConnection(followerId, profileId)
 }

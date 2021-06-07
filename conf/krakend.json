@@ -442,7 +442,7 @@
     },
     {
       "endpoint": "/api/connection/following/update",
-      "method": "POST",
+      "method": "PUT",
       "output_encoding": "json",
       "extra_config": {},
       "headers_to_pass": [
@@ -453,7 +453,53 @@
           "url_pattern": "/connection/following/update",
           "encoding": "json",
           "sd": "static",
-          "method": "POST",
+          "method": "PUT",
+          "extra_config": {},
+          "host": [
+            "connection:8080"
+          ],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/connection/following/request",
+      "method": "GET",
+      "output_encoding": "json",
+      "extra_config": {},
+      "headers_to_pass": [
+        "Authorization"
+      ],
+      "backend": [
+        {
+          "url_pattern": "/connection/following/request",
+          "encoding": "json",
+          "sd": "static",
+          "method": "GET",
+          "extra_config": {},
+          "host": [
+            "connection:8080"
+          ],
+          "disable_host_sanitize": false,
+          "is_collection": true,
+          "target": ""
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/connection/following/request/{profileId}",
+      "method": "DELETE",
+      "output_encoding": "json",
+      "extra_config": {},
+      "headers_to_pass": [
+        "Authorization"
+      ],
+      "backend": [
+        {
+          "url_pattern": "/connection/following/request/{profileId}",
+          "encoding": "json",
+          "sd": "static",
+          "method": "DELETE",
           "extra_config": {},
           "host": [
             "connection:8080"
