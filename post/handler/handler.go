@@ -111,6 +111,30 @@ func (handler Handler) GetPostsForHomePage(w http.ResponseWriter, r *http.Reques
 	w.Header().Set("Content-Type", "application/json")
 }
 
+func (handler *Handler) SearchPublicByLocation(w http.ResponseWriter, r *http.Request){
+	params := mux.Vars(r)
+	location := params["value"]
+
+	var result []model.Post
+	result = handler.PostService.GetPublicPostByLocation(location)
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(&result)
+}
+
+func (handler *Handler) SearchPublicByHashTag(w http.ResponseWriter, r *http.Request){
+	params := mux.Vars(r)
+	hashTag := params["value"]
+
+	var result []model.Post
+	result = handler.PostService.GetPublicPostByHashTag(hashTag)
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(&result)
+}
+
 func (handler *Handler) Create(w http.ResponseWriter, r *http.Request){
 
 	fmt.Println("In function create..")

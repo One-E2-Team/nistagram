@@ -65,6 +65,8 @@ func handleFunc(handler *handler.Handler) {
 	router.HandleFunc("/", handler.GetAll).Methods("GET")
 	router.HandleFunc("/public", handler.GetPublic).Methods("GET")
 	router.HandleFunc("/my", handler.GetMyPosts).Methods("GET")
+	router.HandleFunc("/public/location/{value}", handler.SearchPublicByLocation).Methods("GET")
+	router.HandleFunc("/public/hashtag/{value}", handler.SearchPublicByHashTag).Methods("GET")
 	router.HandleFunc("/homePage", handler.GetPostsForHomePage).Methods("GET")
 	router.HandleFunc("/", handler.Create).Methods("POST")
 	router.HandleFunc("/user/{loggedUserId}/privacy", handler.ChangePrivacy).Methods("PUT")
