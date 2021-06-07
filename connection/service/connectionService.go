@@ -251,3 +251,10 @@ func (service *ConnectionService) GetConnectedProfiles(conn model.Connection, ex
 	return ret
 }
 
+func (service *ConnectionService) UpdateConnection(id uint, conn model.Connection) (*model.Connection, bool) {
+	if id == conn.PrimaryProfile {
+		return service.ConnectionRepository.UpdateConnection(&conn)
+	} else {
+		return nil, false
+	}
+}

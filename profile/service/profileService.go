@@ -53,8 +53,12 @@ func (service *ProfileService) Search(username string) []string {
 	return service.ProfileRepository.FindUsernameContains(username)
 }
 
-func (service *ProfileService) GetProfileByUsername(username string) *model.Profile {
-	return service.ProfileRepository.FindProfileByUsername(username)
+func (service *ProfileService) GetProfileByUsername(username string) (*model.Profile, error) {
+	profile, err := service.ProfileRepository.FindProfileByUsername(username)
+	if err != nil {
+		return nil, err
+	}
+	return profile, nil
 }
 
 func (service *ProfileService) ChangeProfileSettings(dto dto.ProfileSettingsDTO, loggedUserId uint) error {

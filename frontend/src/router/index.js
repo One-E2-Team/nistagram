@@ -56,6 +56,12 @@ const routes = [{
     name: 'PersonalSettings',
     component: () =>
       import ('./../components/PersonalSettings.vue')
+  },
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: () =>
+      import ('./../views/Profile.vue')
   }
 ]
 

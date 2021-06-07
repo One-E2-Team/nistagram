@@ -57,7 +57,12 @@ func (handler *Handler) Search(w http.ResponseWriter, r *http.Request) {
 
 func (handler *Handler) GetProfileByUsername(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	result := handler.ProfileService.GetProfileByUsername(vars["username"])
+	result, err := handler.ProfileService.GetProfileByUsername(vars["username"])
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(&result)
