@@ -10,6 +10,7 @@
                 >
                 Follow
                 </v-btn>
+                <follow-requests v-if="isMyProfile"/>
             </v-col>
         </v-row>
     </v-container>
@@ -17,14 +18,16 @@
 
 <script>
 import PersonalData from '../components/PersonalData.vue'
+import FollowRequests from '../components/FollowRequests.vue'
 import axios from 'axios'
 import * as comm from '../configuration/communication.js'
 export default {
     components: {
-        PersonalData
+        PersonalData,
+        FollowRequests,
     },
     data: () => ({
-      isMyProfile: true,
+      isMyProfile: false,
       profileId: 1,
     }),
     methods: {
@@ -42,6 +45,9 @@ export default {
             this.profileId = loadedProfileID;
             this.isMyProfile = comm.getLoggedUserID() == this.profileId;
         },
+        getProfileRequests(){
+
+        }
     }
 }
 </script>
