@@ -194,6 +194,10 @@ func (handler *Handler) GetAllFollowRequests(writer http.ResponseWriter, request
 		return
 	}
 	var userDtos *[]dto.UserDTO = handler.ConnectionService.GetAllFollowRequests(id)
+	if userDtos == nil {
+		writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	writer.WriteHeader(http.StatusOK)
 	writer.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(writer).Encode(*userDtos)
