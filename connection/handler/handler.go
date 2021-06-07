@@ -43,18 +43,17 @@ func (handler *Handler) GetConnection(w http.ResponseWriter, r *http.Request){
 
 func (handler *Handler) GetConnectionPublic(w http.ResponseWriter, r *http.Request){
 	vars := mux.Vars(r)
-	id1, e1 := strconv.ParseUint(vars["followerId"],10,32)
-	id2, e2 := strconv.ParseUint(vars["profileId"],10,32)
-	if e1!=nil || e2!=nil {
+	id1, e1 := strconv.ParseUint(vars["profileId"],10,32)
+	if e1!=nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	id := util.GetLoggedUserIDFromToken(r)
-	if id != uint(id1) {
+	if id == 0 {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	connection := handler.ConnectionService.GetConnection(uint(id1), uint(id2))
+	connection := handler.ConnectionService.GetConnection(uint(id1), id)
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(connection)
@@ -62,18 +61,17 @@ func (handler *Handler) GetConnectionPublic(w http.ResponseWriter, r *http.Reque
 
 func (handler *Handler) FollowRequest(w http.ResponseWriter, r *http.Request){
 	vars := mux.Vars(r)
-	id1, e1 := strconv.ParseUint(vars["followerId"],10,32)
 	id2, e2 := strconv.ParseUint(vars["profileId"],10,32)
-	if e1!=nil || e2!=nil {
+	if e2!=nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	id := util.GetLoggedUserIDFromToken(r)
-	if id != uint(id1) {
+	if id == 0 {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	connection, ok := handler.ConnectionService.FollowRequest(uint(id1), uint(id2))
+	connection, ok := handler.ConnectionService.FollowRequest(id, uint(id2))
 	if ok {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
@@ -85,18 +83,17 @@ func (handler *Handler) FollowRequest(w http.ResponseWriter, r *http.Request){
 
 func (handler *Handler) FollowApprove(w http.ResponseWriter, r *http.Request){
 	vars := mux.Vars(r)
-	id1, e1 := strconv.ParseUint(vars["followerId"],10,32)
-	id2, e2 := strconv.ParseUint(vars["profileId"],10,32)
-	if e1!=nil || e2!=nil {
+	id1, e1 := strconv.ParseUint(vars["profileId"],10,32)
+	if e1!=nil{
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	id := util.GetLoggedUserIDFromToken(r)
-	if id != uint(id2) {
+	if id == 0 {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	connection, ok := handler.ConnectionService.ApproveConnection(uint(id1), uint(id2))
+	connection, ok := handler.ConnectionService.ApproveConnection(uint(id1), id)
 	if ok {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
