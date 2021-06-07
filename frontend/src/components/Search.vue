@@ -40,6 +40,8 @@
 </template>
 
 <script>
+import axios from 'axios'
+import * as comm from '../configuration/communication.js'
 export default {
     name: "Search",
     data(){
@@ -50,29 +52,43 @@ export default {
     methods:{
         search(){
             if (this.searchType == 'locations'){
-                this.$emit('searched-result', this.searchLocation())
-            }else if (this.searchType == 'hashtags'){
-                this.$emit('searched-result', this.searchHashTags())
+                this.searchLocation()
+            } else if (this.searchType == 'hashtags'){
+                this.searchHashTags()
+            } else if (this.searchType == 'accounts'){
+                this.searchAccounts();
             }
         },
         searchLocation(){
-        let ret = [];
-        this.allPosts.forEach((post) => {
-                if((post.location.toLowerCase()).includes(this.location.toLowerCase())){
-                  ret.push(post);
-                }
-            });
-        return ret;
+          //TODO: do axios
+          let ret = [];
+          this.allPosts.forEach((post) => {
+                  if((post.location.toLowerCase()).includes(this.location.toLowerCase())){
+                    ret.push(post);
+                  }
+              });
+          this.$emit('searched-result', ret);
       },
       searchHashTags(){
+        //TODO: do axios
         let ret = [];
         this.allPosts.forEach((post) => {
                 if((post.hashTags.toLowerCase()).includes(this.hashTags.toLowerCase())){
                   ret.push(post);
                 }
             });
-        return ret;
-      }
+        this.$emit('searched-result', ret);
+      },
+      searchAccounts(){
+        axios({
+          method: "get",
+          url: 'http://' + comm.server + '/api/profile/search/' + this.searchParams,
+        }).then(response => {
+          if(response.status==200){
+            this.$emit('searched-result', response.data.collection);
+          }
+        })
+      },
     }
 }
 </script>
