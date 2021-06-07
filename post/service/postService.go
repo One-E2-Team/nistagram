@@ -20,6 +20,10 @@ func (service *PostService) GetPublic() ([]model.Post){
 	return service.PostRepository.GetPublic()
 }
 
+func (service *PostService) GetPostsForHomePage([]dto.ProfileDto) []model.Post{
+	return service.PostRepository.GetPostsForHomePage([]dto.ProfileDto)
+}
+
 func (service *PostService) CreatePost(postType model.PostType,post dto.PostDto, mediaNames []string, profile dto.ProfileDto) error {
 	var medias []model.Media
 	for i:=0;i<len(mediaNames);i++ {

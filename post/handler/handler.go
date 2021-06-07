@@ -50,6 +50,46 @@ func (handler Handler) GetPublic(w http.ResponseWriter, r *http.Request){
 	w.Header().Set("Content-Type", "application/json")
 }
 
+func (handler Handler) GetPostsForHomePage(w http.ResponseWriter, r *http.Request){
+
+	loggedUserId := util.GetLoggedUserIDFromToken(r)
+	if loggedUserId == 0{
+		fmt.Println("User is not logged in..")
+		w.Write([]byte("{\"success\":\"error\"}"))
+		return
+	}
+
+	connHost, connPort := util.GetConnectionHostAndPort()
+	resp, err := http.Get("http://"+connHost+":"+connPort+"/connection/following/show/" + strconv.Itoa(int(loggedUserId)))
+
+	if err != nil{
+		fmt.Println(err)
+	}
+	var followingProfiles []dto.ProfileDto
+	body, err := io.ReadAll(resp.Body)
+	if err != nil{
+		fmt.Println(err)
+	}
+	fmt.Println("Body: ", body)
+	defer resp.Body.Close()
+	err = json.Unmarshal(body, followingProfiles)
+
+	if err != nil{
+		fmt.Println(err)
+	}
+
+	result := handler.PostService.GetPostsForHomePage(followingProfiles)
+
+	js, err := json.Marshal(result)
+	if err != nil{
+		w.Write([]byte("{\"success\":\"error\"}"))
+	}
+	w.Write(js)
+
+	//w.Write([]byte("{\"success\":\"ok\"}"))
+	w.Header().Set("Content-Type", "application/json")
+}
+
 func (handler *Handler) Create(w http.ResponseWriter, r *http.Request){
 
 	fmt.Println("In function create..")

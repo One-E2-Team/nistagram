@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -65,6 +64,7 @@ func handleFunc(handler *handler.Handler) {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", handler.GetAll).Methods("GET")
 	router.HandleFunc("/public", handler.GetPublic).Methods("GET")
+	router.HandleFunc("/homePage", handle.GetPostsForHomePage).Methods("GET")
 	router.HandleFunc("/", handler.Create).Methods("POST")
 	router.HandleFunc("/user/{loggedUserId}/privacy", handler.ChangePrivacy).Methods("PUT")
 	router.HandleFunc("/user",handler.DeleteUserPosts).Methods("DELETE")
@@ -74,9 +74,7 @@ func handleFunc(handler *handler.Handler) {
 	router.HandleFunc("/{postType}/{id}",handler.UpdatePost).Methods("PUT")
 	fmt.Printf("Starting server..")
 	_, port := util.GetPostHostAndPort()
-	http.ListenAndServe(":" + port, handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type",
-		"Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}),
-		handlers.AllowedOrigins([]string{"*"}))(router))
+	http.ListenAndServe(":"+port, router)
 
 }
 
