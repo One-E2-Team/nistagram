@@ -151,12 +151,12 @@
     {
       "endpoint": "/api/auth/request-recovery",
       "method": "POST",
-      "output_encoding": "json",
+      "output_encoding": "string",
       "extra_config": {},
       "backend": [
         {
           "url_pattern": "/request-recovery",
-          "encoding": "json",
+          "encoding": "string",
           "sd": "static",
           "method": "POST",
           "extra_config": {},
@@ -170,12 +170,12 @@
     {
       "endpoint": "/api/auth/recover",
       "method": "POST",
-      "output_encoding": "json",
+      "output_encoding": "string",
       "extra_config": {},
       "backend": [
         {
           "url_pattern": "/recover",
-          "encoding": "json",
+          "encoding": "string",
           "sd": "static",
           "method": "POST",
           "extra_config": {},
