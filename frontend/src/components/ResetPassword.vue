@@ -15,7 +15,7 @@
             :append-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
             :rules="[rules.required, rules.min]"
             :type="show ? 'text' : 'password'"
-            label="Not visible"
+            label="Enter password"
             hint="At least 8 characters"
             class="input-group--focused"
             @click:append="show = !show"
@@ -59,6 +59,8 @@
 <script>
 
 import * as validator from '../plugins/validator.js'
+import * as comm from '../configuration/communication.js'
+import axios from 'axios'
   export default {
     data () {
       return {
@@ -76,8 +78,26 @@ import * as validator from '../plugins/validator.js'
     methods:{
       resetPassword(){
         if (this.$refs.form.validate()){
-            //TODO: send axios
-            console.log("validation pass!")
+          let id = comm.getUrlVars()['id'];
+          let str = comm.getUrlVars()['str'];
+          if (!id || !str){
+            alert('Bad url!');
+            return;
+          }
+          let data = {
+            id: id,
+            uuid: str,
+            password: this.password1,
+          }
+          axios({
+            method: "post",
+            url: 'http://' + comm.server + '/api/auth/recover',
+            data: JSON.stringify(data)
+          }).then(response => {
+            if(response.status==200){
+              window.location.href = '#/log-in';
+            }
+          })
         }
       }
     }

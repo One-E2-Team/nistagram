@@ -96,7 +96,7 @@ func (handler *AuthHandler) RequestPassRecovery(w http.ResponseWriter, r *http.R
 	}
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write([]byte("Check your email!"))
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "text/plain")
 }
 
 func (handler *AuthHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
@@ -117,7 +117,7 @@ func (handler *AuthHandler) ChangePassword(w http.ResponseWriter, r *http.Reques
 	}
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write([]byte("Password successfully changed!"))
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "text/plain")
 }
 
 func (handler *AuthHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {

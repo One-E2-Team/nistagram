@@ -39,6 +39,13 @@
                 >
                 Log in
                 </v-btn>
+                <v-btn
+                color="warning"
+                elevation="8"
+                @click="requestRecovery"
+                >
+                Forgot password
+                </v-btn>
             </v-col>
         </v-row>
     </v-container>
@@ -78,7 +85,22 @@
             }) //TODO: redirect
         }
       },
-      
+      requestRecovery() {
+        let mail = this.email;
+        if(mail === ''){
+          alert('You must enter email!');
+          return;
+        }
+        axios({
+          method: "post",
+          url: 'http://' + comm.server + '/api/auth/request-recovery',
+          data: JSON.stringify(mail)
+        }).then(response => {
+          if(response.status==200){
+            alert(response.data);
+          }
+        })
+      },
     },
   }
 </script>
