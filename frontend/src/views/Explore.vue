@@ -75,7 +75,7 @@
 <script>
 import axios from 'axios'
 import * as comm from '../configuration/communication.js'
-import Search from './Search.vue'
+import Search from '../components/Search.vue'
   export default {
     name: 'Explore',
     components:{

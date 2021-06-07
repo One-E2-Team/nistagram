@@ -19,7 +19,7 @@ const routes = [{
     path: '/explore',
     name: 'Explore',
     component: () =>
-      import ('../components/Explore.vue')
+      import ('../views/Explore.vue')
   },
   {
     path: '/post',
