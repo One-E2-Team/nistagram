@@ -1,34 +1,6 @@
 <template>
     <v-container fluid>
-      <v-form>
-    <v-container>
-      <v-row>
-        <v-col
-          cols="12"
-          sm="6"
-          md="3"
-        >
-          <v-text-field
-            v-model="location"
-            label="Search location.."
-            @change="searchLocation()"
-          ></v-text-field>
-        </v-col>
-
-        <v-col
-          cols="12"
-          sm="6"
-          md="3"
-        >
-          <v-text-field
-            v-model="hashTags"
-            label="Search hash tag.."
-            @change="searchHashTags()"
-          ></v-text-field>
-        </v-col>
-      </v-row>
-    </v-container>
-  </v-form>
+      <search  v-on:searched-result='posts = $event' />
 
       <v-sheet
         class="mx-auto"
@@ -103,9 +75,12 @@
 <script>
 import axios from 'axios'
 import * as comm from '../configuration/communication.js'
+import Search from '../components/Search.vue'
   export default {
     name: 'Explore',
-
+    components:{
+      Search
+    },
      mounted(){
         axios.get("http://" + comm.server +"/api/post/public").then((response) => {
             let res = response.data.collection;
@@ -131,24 +106,8 @@ import * as comm from '../configuration/communication.js'
     }),
 
     methods: {
-      searchLocation(){
-        let ret = [];
-        this.allPosts.forEach((post) => {
-                if((post.location.toLowerCase()).includes(this.location.toLowerCase())){
-                  ret.push(post);
-                }
-            });
-        this.posts = ret;
-      },
-      searchHashTags(){
-        let ret = [];
-        this.allPosts.forEach((post) => {
-                if((post.hashTags.toLowerCase()).includes(this.hashTags.toLowerCase())){
-                  ret.push(post);
-                }
-            });
-        this.posts = ret;
-      }
+      
+      
     }
   }
 </script>

@@ -69,6 +69,7 @@ created(){
     }).then(response => {
         if(response.status==200){
             this.profile = response.data;
+            this.$emit('loaded-user', this.profile.ID)
         }
     }).catch(reason => {
         console.log(reason);
