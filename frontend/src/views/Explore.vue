@@ -87,7 +87,6 @@ import Search from '../components/Search.vue'
             res.forEach((post) => {
                 if(post.medias != null){
                   post.medias.forEach((media) =>{
-                    console.log(media)
                    media.filePath = "http://" + comm.server +"/static/data/" + media.filePath;
                   });
                 }
