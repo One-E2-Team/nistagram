@@ -51,17 +51,19 @@
             align="center"
             justify="center"
           >
-          <v-carousel>
-                      <v-carousel-item v-for="item in p.medias" :key="item.filePath"
+         <v-carousel>
+             <v-template v-for="item in p.medias" :key="item.filePath">
+                      <v-carousel-item
                       reverse-transition="fade-transition"
                       transition="fade-transition">
-                        <video autoplay v-if="item.filePath.includes('mp4')">
-                          <source src="item.filePath">
+                      <video autoplay  width="600" height="500" :src="item.filePath" v-if="item.filePath.includes('mp4')">
                         Your browser does not support the video tag.
-                        </video>
-                        <img v-if="!item.filePath.includes('mp4')" src="item.filePath">
+                      </video>
+                      <img width="600" height="500" :src="item.filePath" v-if="!item.filePath.includes('mp4')">
+
                       </v-carousel-item>
-                </v-carousel>
+             </v-template>
+          </v-carousel>
           </v-row>
         </v-card>
       </v-slide-item>
