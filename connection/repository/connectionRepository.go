@@ -235,3 +235,46 @@ func (repo *ConnectionRepository) DeleteConnection(followerId, profileId uint) (
 	}
 	return conn, true
 }
+
+func (repo *ConnectionRepository) GetAllFollowRequests(id uint) *[]uint {
+	conn := model.Connection{
+		PrimaryProfile:    0,
+		SecondaryProfile:  id,
+		Muted:             false,
+		CloseFriend:       false,
+		NotifyPost:        false,
+		NotifyStory:       false,
+		NotifyMessage:     false,
+		NotifyComment:     false,
+		ConnectionRequest: true,
+		Approved:          false,
+		MessageRequest:    false,
+		MessageConnected:  false,
+		Block:             false,
+	}
+	session := (*repo.DatabaseDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	defer session.Close()
+	profileIDs, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
+		result, err := transaction.Run(
+			"MATCH (a:Profile)-[e:FOLLOWS]->(b:Profile) \n" +
+				"WHERE b.profileID = $secondary AND e.connectionRequest = $connectionRequest AND e.approved = $approved \n" +
+				"RETURN a",
+			conn.ToMap())
+		var ret []uint = make([]uint, 0)
+		if err != nil {
+			fmt.Println(err.Error())
+			return ret, err
+		}
+
+		for ; result.Next(); {
+			ret = append(ret, uint(result.Record().Values[0].(dbtype.Node).Props["profileID"].(float64)))
+		}
+
+		return ret, err
+	})
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	ret := profileIDs.([]uint)
+	return &ret
+}
