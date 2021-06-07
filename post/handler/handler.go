@@ -54,6 +54,13 @@ func (handler *Handler) Create(w http.ResponseWriter, r *http.Request){
 
 	fmt.Println("In function create..")
 
+	profileId := util.GetLoggedUserIDFromToken(r)
+	if profileId == 0{
+		fmt.Println("User is not logged in..")
+		w.Write([]byte("{\"success\":\"error\"}"))
+		return
+	}
+
 	err := r.ParseMultipartForm(0)
 
 	if err != nil{
@@ -116,7 +123,28 @@ func (handler *Handler) Create(w http.ResponseWriter, r *http.Request){
 		return
 	}
 
-	err = handler.PostService.CreatePost(postType,postDto, mediaNames)
+	profileHost, profilePort := util.GetProfileHostAndPort()
+
+	resp, err := http.Get("http://"+profileHost+":"+profilePort+"/get-by-id/" + strconv.Itoa(int(profileId)))
+	if err != nil{
+		fmt.Println(err)
+	}
+	var profile dto.ProfileDto
+	body, err := io.ReadAll(resp.Body)
+	if err != nil{
+		fmt.Println(err)
+	}
+	fmt.Println("Body: ", body)
+	defer resp.Body.Close()
+	err = json.Unmarshal(body, &profile)
+
+	if err != nil{
+		fmt.Println(err)
+	}
+	profile.ProfileId = profileId
+	fmt.Println("Profile dto: ", profile)
+
+	err = handler.PostService.CreatePost(postType,postDto, mediaNames, profile)
 
 	if err != nil{
 		fmt.Println(err)
@@ -213,6 +241,9 @@ func (handler *Handler) DeleteUserPosts (w http.ResponseWriter, r *http.Request)
 }
 
 func (handler *Handler) ChangeUsername(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	publisherId := util.String2Uint(params["loggedUserId"])
+
 	type data struct { Username string `json:"username"` }
 	var input data
 	err := json.NewDecoder(r.Body).Decode(&input)
@@ -221,7 +252,31 @@ func (handler *Handler) ChangeUsername(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	switch err =  handler.PostService.ChangeUsername(util.GetLoggedUserIDFromToken(r),input.Username) ; err{
+
+	switch err =  handler.PostService.ChangeUsername(publisherId ,input.Username) ; err{
+	case mongo.ErrNoDocuments:
+		w.WriteHeader(http.StatusNotFound)
+	case nil :
+		w.WriteHeader(http.StatusOK)
+	default:
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
+func (handler *Handler) ChangePrivacy (w http.ResponseWriter, r *http.Request) {
+	type data struct { IsPrivate bool `json:"IsPrivate"` }
+	params := mux.Vars(r)
+	publisherId := util.String2Uint(params["loggedUserId"])
+
+	var input data
+	err := json.NewDecoder(r.Body).Decode(&input)
+
+	if err != nil{
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	switch err := handler.PostService.ChangePrivacy(publisherId, input.IsPrivate) ; err {
 	case mongo.ErrNoDocuments:
 		w.WriteHeader(http.StatusNotFound)
 	case nil :

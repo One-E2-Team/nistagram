@@ -13,3 +13,11 @@ export function logOut() {
 export function setJWTToken(jwt) {
   sessionStorage.setItem("JWT", JSON.stringify(jwt));
 }
+
+export function getUrlVars() {
+  var vars = {};
+  window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m, key, value) {
+    vars[key] = value;
+  });
+  return vars;
+}

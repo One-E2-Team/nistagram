@@ -53,8 +53,12 @@ func (service *ProfileService) Search(username string) []string {
 	return service.ProfileRepository.FindUsernameContains(username)
 }
 
-func (service *ProfileService) GetProfileByUsername(username string) *model.Profile {
-	return service.ProfileRepository.FindProfileByUsername(username)
+func (service *ProfileService) GetProfileByUsername(username string) (*model.Profile, error) {
+	profile, err := service.ProfileRepository.FindProfileByUsername(username)
+	if err != nil {
+		return nil, err
+	}
+	return profile, nil
 }
 
 func (service *ProfileService) ChangeProfileSettings(dto dto.ProfileSettingsDTO, loggedUserId uint) error {
@@ -64,7 +68,8 @@ func (service *ProfileService) ChangeProfileSettings(dto dto.ProfileSettingsDTO,
 	}
 	profileSettings := profile.ProfileSettings
 	if profileSettings.IsPrivate != dto.IsPrivate {
-		//TODO: change data in post ms
+		err = service.changePrivacyInPostService(dto.IsPrivate, loggedUserId)
+		if err != nil { return err}
 	}
 	profileSettings.IsPrivate = dto.IsPrivate
 	profileSettings.CanBeTagged = dto.CanBeTagged
@@ -84,6 +89,8 @@ func (service *ProfileService) ChangePersonalData(dto dto.PersonalDataDTO, logge
 	}
 	if profile.Username != dto.Username {
 		//TODO: change data in other ms
+		err = service.changeUsernameInPostService(loggedUserId, dto.Username)
+		if err != nil { return err }
 	}
 	profile.Username = dto.Username
 	profile.Website = dto.Website
@@ -154,4 +161,42 @@ func (service *ProfileService) GetProfileByID(id uint) (*model.Profile, error) {
 
 func (service *ProfileService) Test(key string) error {
 	return service.ProfileRepository.InsertInRedis(key, "test")
+}
+
+func (service *ProfileService) changePrivacyInPostService(isPrivate bool, loggedUserId uint) error {
+	postHost, postPort := util.GetPostHostAndPort()
+	type Privacy struct {
+		IsPrivate bool `json:"isPrivate"`
+	}
+	input := Privacy{IsPrivate: isPrivate}
+	json, _ := json.Marshal(input)
+	client := &http.Client{}
+	req, err := http.NewRequest(http.MethodPut, "http://"+postHost+":"+postPort+"/user/"+util.Uint2String(loggedUserId)+"/privacy", bytes.NewBuffer(json))
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json;")
+	_, err = client.Do(req)
+
+	return err
+}
+
+func (service *ProfileService) changeUsernameInPostService(loggedUserId uint, username string) error {
+	postHost, postPort := util.GetPostHostAndPort()
+	type UsernameDto struct {
+		Username string `json:"username"`
+	}
+	input := UsernameDto{Username: username}
+	json, _ := json.Marshal(input)
+	client := &http.Client{}
+	req, err := http.NewRequest(http.MethodPut, "http://"+postHost+":"+postPort+"/user/"+util.Uint2String(loggedUserId)+"/username", bytes.NewBuffer(json))
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json;")
+	_, err = client.Do(req)
+
+	return err
 }

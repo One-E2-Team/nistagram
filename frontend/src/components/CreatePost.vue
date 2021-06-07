@@ -27,26 +27,27 @@
             required
           ></v-autocomplete>
 
-          <v-select
-            v-model="selectedLocation"
-            :items="locations"
+          <v-text-field
+            v-model="location"
+            :counter="255"
             label="Location"
-          ></v-select>
+          ></v-text-field>
 
-          <v-checkbox
+          <v-checkbox v-if="selectedPostType === 'Story'"
             v-model="isHighlighted"
             label="Is highlighted?"
           ></v-checkbox>
 
-          <v-checkbox
-            v-model="isCampaign"
-            label="Is campaign?"
-          ></v-checkbox>
-
-          <v-checkbox
+          <v-checkbox v-if="selectedPostType === 'Story'"
             v-model="isCloseFriendsOnly"
             label="Is close friends only?"
           ></v-checkbox>
+
+          <v-text-field
+            v-model="hashTags"
+            :counter="255"
+            label="Hash tags"
+          ></v-text-field>
 
           <v-file-input
             v-model="files"
@@ -107,17 +108,13 @@
         v => (v && v.length <= 255) || 'description must be less than 255 characters',
       ],
       selectedPostType: null,
-      selectedLocation: null,
+      location: '',
+      hashTags: '',
       postTypes: [
         'Post',
         'Story'
       ],
-      locations: [
-        'Novi Sad',
-        'Belgrade'
-      ],
       isHighlighted: false,
-      isCampaign: false,
       isCloseFriendsOnly: false,
       files : [],
     }),
@@ -129,9 +126,9 @@
         })
       },
       submit () {
-        let dto = {"description" : this.description, "isHighlighted" : this.isHighlighted, "isCampaign" : this.isCampaign,
-        "isCloseFriendsOnly": this.isCloseFriendsOnly, "location" : this.selectedLocation, 
-        "hashTags" : [], "taggedUsers" : [], "postType" : this.selectedPostType}
+        let dto = {"description" : this.description, "isHighlighted" : this.isHighlighted,
+        "isCloseFriendsOnly": this.isCloseFriendsOnly, "location" : this.location, 
+        "hashTags" : this.hashTags, "taggedUsers" : [], "postType" : this.selectedPostType}
         let json = JSON.stringify(dto);
         const data = new FormData();
          for(let i = 0;i < this.files.length;i++){
