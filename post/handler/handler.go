@@ -233,6 +233,9 @@ func (handler *Handler) ChangeUsername(w http.ResponseWriter, r *http.Request) {
 
 func (handler *Handler) ChangePrivacy (w http.ResponseWriter, r *http.Request) {
 	type data struct { IsPrivate bool `json:"IsPrivate"` }
+	params := mux.Vars(r)
+	publisherId := util.String2Uint(params["loggedUserId"])
+
 	var input data
 	err := json.NewDecoder(r.Body).Decode(&input)
 
@@ -241,7 +244,7 @@ func (handler *Handler) ChangePrivacy (w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	switch err := handler.PostService.ChangePrivacy(123, input.IsPrivate) ; err {
+	switch err := handler.PostService.ChangePrivacy(publisherId, input.IsPrivate) ; err {
 	case mongo.ErrNoDocuments:
 		w.WriteHeader(http.StatusNotFound)
 	case nil :

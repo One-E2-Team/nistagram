@@ -64,7 +64,20 @@ func (service *ProfileService) ChangeProfileSettings(dto dto.ProfileSettingsDTO,
 	}
 	profileSettings := profile.ProfileSettings
 	if profileSettings.IsPrivate != dto.IsPrivate {
-		//TODO: change data in post ms
+		postHost, postPort := util.GetPostHostAndPort()
+		type Privacy struct { IsPrivate bool `json:"isPrivate"`}
+		input := Privacy{IsPrivate: dto.IsPrivate}
+		json, _ := json.Marshal(input)
+		client := &http.Client{}
+		req, err := http.NewRequest(http.MethodPut, "http://"+postHost+":"+postPort+"/user/" + util.Uint2String(loggedUserId) + "/privacy", bytes.NewBuffer(json))
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+		req.Header.Set("Content-Type", "application/json;")
+		_, err = client.Do(req)
+
+		return err
 	}
 	profileSettings.IsPrivate = dto.IsPrivate
 	profileSettings.CanBeTagged = dto.CanBeTagged
