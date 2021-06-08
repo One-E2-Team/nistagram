@@ -5,7 +5,10 @@ export function getJWTToken() {
 }
 
 export function getLoggedUserID() {
-  return getJWTToken().profileId;
+  if (getJWTToken() != null){
+      return getJWTToken().profileId;
+  }
+  return 0;
 }
 
 export function logOut() {

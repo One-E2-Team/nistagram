@@ -313,6 +313,30 @@
       ]
     },
     {
+      "endpoint": "/api/post/my",
+      "method": "GET",
+      "output_encoding": "json",
+      "extra_config": {},
+      "headers_to_pass": [
+        "Authorization"
+      ],
+      "backend": [
+        {
+          "url_pattern": "/my",
+          "encoding": "json",
+          "sd": "static",
+          "method": "GET",
+          "extra_config": {},
+          "host": [
+            "post:8080"
+          ],
+          "disable_host_sanitize": false,
+          "is_collection": true,
+          "target": ""
+        }
+      ]
+    },
+    {
       "endpoint": "/api/profile/my-personal-data",
       "method": "PUT",
       "output_encoding": "json",
