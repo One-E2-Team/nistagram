@@ -51,6 +51,9 @@ func getProfile(id uint) *model2.Profile{
 
 func (service *ConnectionService) FollowRequest(followerId, profileId uint) (*model.Connection, bool) {
 	connection := service.ConnectionRepository.SelectOrCreateConnection(followerId, profileId)
+	if connection.Approved{
+		return nil, false
+	}
 	//conn2, ok2 := service.ConnectionRepository.SelectConnection(followerId, profileId, false)
 	//profile1 := getProfile(followerId)
 	profile2 := getProfile(profileId)
