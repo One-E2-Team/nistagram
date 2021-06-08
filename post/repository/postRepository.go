@@ -10,6 +10,7 @@ import (
 	"nistagram/post/dto"
 	"nistagram/post/model"
 	"strings"
+	"time"
 )
 
 type PostRepository struct {
@@ -50,6 +51,50 @@ func (repo *PostRepository) GetAll() []model.Post {
 	return posts
 }
 
+func (repo *PostRepository) GetProfilesPosts(followingProfiles []uint, targetUsername string) []model.Post {
+	postCollection, err := repo.getCollection(model.GetPostType("post"))
+	if err != nil{
+		fmt.Println("Error: can't get post collection!")
+	}
+	storyCollection, err := repo.getCollection(model.GetPostType("story"))
+	if err != nil{
+		fmt.Println("Error: can't get story collection!")
+	}
+	postCursor, err := postCollection.Find(context.TODO(), bson.D{})
+	if err != nil{
+		fmt.Println("Error: can't find posts!")
+	}
+	storyCursor, err := storyCollection.Find(context.TODO(), bson.D{})
+	if err != nil{
+		fmt.Println("Error: can't find stories!")
+	}
+	var posts []model.Post
+
+	for postCursor.Next(context.TODO()){
+		var result model.Post
+		err = postCursor.Decode(&result)
+		if result.PublisherUsername == targetUsername && (result.IsPrivate == false || contains(followingProfiles, result.PublisherId)) {
+			posts = append(posts, result)
+		}
+	}
+
+	for storyCursor.Next(context.TODO()){
+		var result model.Post
+		err = storyCursor.Decode(&result)
+		if result.PublisherUsername == targetUsername && (result.IsPrivate == false || contains(followingProfiles, result.PublisherId)) {
+			duration, err := time.ParseDuration("24h")
+			if err != nil{
+				fmt.Println(err)
+			}
+			if result.IsHighlighted || time.Now().Before(result.PublishDate.Add(duration)){
+				posts = append(posts, result)
+			}
+		}
+	}
+
+	return posts
+}
+
 func (repo *PostRepository) GetPublic() []model.Post {
 	postCollection, err := repo.getCollection(model.GetPostType("post"))
 	if err != nil{
@@ -81,7 +126,13 @@ func (repo *PostRepository) GetPublic() []model.Post {
 		var result model.Post
 		err = storyCursor.Decode(&result)
 		if result.IsPrivate == false {
-			posts = append(posts, result)
+			duration, err := time.ParseDuration("24h")
+			if err != nil{
+				fmt.Println(err)
+			}
+			if time.Now().Before(result.PublishDate.Add(duration)){
+				posts = append(posts, result)
+			}
 		}
 	}
 
@@ -119,7 +170,13 @@ func (repo *PostRepository) GetPublicPostByLocation(location string) []model.Pos
 		var result model.Post
 		err = storyCursor.Decode(&result)
 		if result.IsPrivate == false && strings.Contains(result.Location, location) {
-			posts = append(posts, result)
+			duration, err := time.ParseDuration("24h")
+			if err != nil{
+				fmt.Println(err)
+			}
+			if time.Now().Before(result.PublishDate.Add(duration)){
+				posts = append(posts, result)
+			}
 		}
 	}
 
@@ -157,7 +214,13 @@ func (repo *PostRepository) GetPublicPostByHashTag(hashTag string) []model.Post 
 		var result model.Post
 		err = storyCursor.Decode(&result)
 		if result.IsPrivate == false && strings.Contains(result.HashTags, hashTag) {
-			posts = append(posts, result)
+			duration, err := time.ParseDuration("24h")
+			if err != nil{
+				fmt.Println(err)
+			}
+			if time.Now().Before(result.PublishDate.Add(duration)){
+				posts = append(posts, result)
+			}
 		}
 	}
 
@@ -234,7 +297,13 @@ func (repo *PostRepository) GetPostsForHomePage(followingProfiles []uint) []mode
 		var result model.Post
 		err = storyCursor.Decode(&result)
 		if contains(followingProfiles,result.PublisherId)  {
-			posts = append(posts, result)
+			duration, err := time.ParseDuration("24h")
+			if err != nil{
+				fmt.Println(err)
+			}
+			if time.Now().Before(result.PublishDate.Add(duration)){
+				posts = append(posts, result)
+			}
 		}
 	}
 

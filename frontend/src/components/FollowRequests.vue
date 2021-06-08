@@ -18,9 +18,19 @@
             <v-toolbar
               color="primary"
               dark
-            >Opening from the bottom</v-toolbar>
+            >All requests</v-toolbar>
             <v-card-text>
-              <div class="text-h2 pa-12">Hello world!</div>
+              <div v-for="req in requests" :key="req.profileID">
+                {{req.username}}
+                <v-btn
+                  text
+                  @click="approve(req.profileID)">Approve
+                </v-btn>
+                <v-btn
+                  text
+                  @click="decline(req.profileID)">Decline
+                </v-btn>
+              </div>
             </v-card-text>
             <v-card-actions class="justify-end">
               <v-btn
@@ -53,6 +63,26 @@ export default {
             }).then(response => {
               if(response.status==200){
                   this.requests = response.data.collection;
+              }
+            })
+        },
+        approve(id){
+          axios({
+                method: "post",
+                url: 'http://' + comm.server + '/api/connection/following/approve/' + id,
+            }).then(response => {
+              if(response.status==200){
+                 alert('Success');
+              }
+            })
+        },
+        decline(id){
+          axios({
+                method: "delete",
+                url: 'http://' + comm.server + '/api/connection/following/request/' + id,
+            }).then(response => {
+              if(response.status==200){
+                  alert('Success');
               }
             })
         }
