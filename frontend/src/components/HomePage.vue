@@ -22,14 +22,19 @@
             justify="center"
           >
            <v-carousel>
+                
+                <v-template v-for="item in p.medias" :key="item.filePath">
                       <v-carousel-item
-                      v-for="(item,i) in p.medias"
-                      :key="i"
-                      :src= "item.filePath"
                       reverse-transition="fade-transition"
-                      transition="fade-transition"
-                      ></v-carousel-item>
-          </v-carousel>
+                      transition="fade-transition">
+                      <video autoplay loop style="object-fit:contain;" :src="'http://' + server + '/static/data/' + item.filePath" v-if="item.filePath.includes('mp4')">
+                        Your browser does not support the video tag.
+                      </video>
+                      <img style="object-fit:contain;" :src="'http://' + server + '/static/data/' + item.filePath" v-if="!item.filePath.includes('mp4')">
+
+                      </v-carousel-item>
+             </v-template>
+             </v-carousel>
           </v-row>
         </v-card>
       </v-slide-item>
@@ -46,14 +51,19 @@
                 >
                 <v-card-title>{{p.publisherUsername}}</v-card-title>
                 <v-carousel>
-                    <v-carousel-item
-                    v-for="(item,i) in p.medias"
-                    :key="i"
-                    :src= "item.filePath"
-                    reverse-transition="fade-transition"
-                    transition="fade-transition"
-                    ></v-carousel-item>
-                </v-carousel>
+                
+                <v-template v-for="item in p.medias" :key="item.filePath">
+                      <v-carousel-item
+                      reverse-transition="fade-transition"
+                      transition="fade-transition">
+                      <video autoplay loop style="object-fit:contain;" :src="'http://' + server + '/static/data/' + item.filePath" v-if="item.filePath.includes('mp4')">
+                        Your browser does not support the video tag.
+                      </video>
+                      <img style="object-fit:contain;" :src="'http://' + server + '/static/data/' + item.filePath" v-if="!item.filePath.includes('mp4')">
+
+                      </v-carousel-item>
+             </v-template>
+             </v-carousel>
                 <v-card-text>{{p.description}}</v-card-text>
                 <v-card-text>{{p.publishDate}}</v-card-text>
                 </v-card>
@@ -76,14 +86,6 @@
                 headers: comm.getHeader(),
             }).then((response) => {
             let res = response.data.collection;
-            res.forEach((post) => {
-                if(post.medias != null){
-                  post.medias.forEach((media) =>{
-                    media.filePath = "http://" + comm.server +"/static/data/" + media.filePath;
-                  });
-
-                }
-            });
             this.posts = res;
     })
     .catch((error) => {

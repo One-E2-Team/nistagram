@@ -21,7 +21,7 @@
                 >
                 <v-carousel>
                 
-                <v-template v-for="item in p.medias" :key="item.filePath">
+                <v-template v-for="item in p.medias" :key="item.filePath" name="temp">
                       <v-carousel-item
                       reverse-transition="fade-transition"
                       transition="fade-transition">
@@ -31,7 +31,7 @@
                       <img style="object-fit:contain;" :src="'http://' + server + '/static/data/' + item.filePath" v-if="!item.filePath.includes('mp4')">
 
                       </v-carousel-item>
-             </v-template>
+                </v-template>
              </v-carousel>
                 </v-card>
             </v-col>

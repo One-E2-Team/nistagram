@@ -20,7 +20,7 @@
         >
           <v-avatar
             class="profile "
-            color="grey"
+            color="transparent"
             size="150"
             tile
           >
