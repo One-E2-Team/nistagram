@@ -1,7 +1,7 @@
 <template>
     <v-container>
         <v-row align="left" >
-            <v-col cols="12" sm="12" >
+            <v-col cols="12" sm="11" >
                 <personal-data v-on:loaded-user='profileLoaded($event)' style="height:200px"   />
                 <v-btn v-if="!isMyProfile"
                 color="warning"
@@ -11,6 +11,16 @@
                 Follow
                 </v-btn>
                 <follow-requests v-if="isMyProfile"/>
+                <v-btn 
+                color="normal"
+                elevation="8"
+                @click="redirectToCreatePost()"
+                >
+                Create post
+                </v-btn>
+            </v-col>
+            <v-col cols="12" sm="1">
+                <settings v-if="isMyProfile"></settings>
             </v-col>
         </v-row>
         <v-row align="center" justify="center">
@@ -25,10 +35,10 @@
                       <v-carousel-item
                       reverse-transition="fade-transition"
                       transition="fade-transition">
-                      <video autoplay loop style="object-fit:contain;" :src="'http://' + server + '/static/data/' + item.filePath" v-if="item.filePath.includes('mp4')">
+                      <video autoplay loop width="600" height="500" :src="'http://' + server + '/static/data/' + item.filePath" v-if="item.filePath.includes('mp4')">
                         Your browser does not support the video tag.
                       </video>
-                      <img style="object-fit:contain;" :src="'http://' + server + '/static/data/' + item.filePath" v-if="!item.filePath.includes('mp4')">
+                      <img width="600" height="500" :src="'http://' + server + '/static/data/' + item.filePath" v-if="!item.filePath.includes('mp4')">
 
                       </v-carousel-item>
                 </v-template>
@@ -44,10 +54,12 @@ import PersonalData from '../components/PersonalData.vue'
 import FollowRequests from '../components/FollowRequests.vue'
 import axios from 'axios'
 import * as comm from '../configuration/communication.js'
+import Settings from '../components/Settings.vue'
 export default {
     components: {
         PersonalData,
         FollowRequests,
+        Settings
     },
     data: () => ({
       isMyProfile: false,
@@ -70,7 +82,7 @@ export default {
         },
         profileLoaded(loadedProfileID){
             this.profileId = loadedProfileID;
-            this.isMyProfile = comm.getLoggedUserID() == this.profileId;
+            this.isMyProfile = comm.getLoggedUserID() == loadedProfileID;
             this.username = comm.getUrlVars()['username'];
             if(this.isMyProfile){
                 axios({
@@ -96,6 +108,9 @@ export default {
         },
         getProfileRequests(){
 
+        },
+        redirectToCreatePost(){
+            this.$router.push({name:'Post'});
         }
     },
     mounted(){

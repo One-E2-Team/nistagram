@@ -22,6 +22,12 @@ const routes = [{
       import ('../views/Explore.vue')
   },
   {
+    path: '/not-found',
+    name: 'NotFound',
+    component: () =>
+      import ('../views/PageNotFound.vue')
+  },
+  {
     path: '/post',
     name: 'Post',
     component: () =>

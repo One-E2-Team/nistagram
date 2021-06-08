@@ -399,6 +399,25 @@
       ]
     },
     {
+      "endpoint": "/api/profile/get-by-id/{id}",
+      "method": "GET",
+      "output_encoding": "json",
+      "extra_config": {},
+      "backend": [
+        {
+          "url_pattern": "/get-by-id/{id}",
+          "encoding": "json",
+          "sd": "static",
+          "method": "GET",
+          "extra_config": {},
+          "host": [
+            "profile:8080"
+          ],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
       "endpoint": "/api/connection/following/my-properties/{profileId}",
       "method": "GET",
       "output_encoding": "json",

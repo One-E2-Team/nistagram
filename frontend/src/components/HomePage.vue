@@ -27,10 +27,10 @@
                       <v-carousel-item
                       reverse-transition="fade-transition"
                       transition="fade-transition">
-                      <video autoplay loop style="object-fit:contain;" :src="'http://' + server + '/static/data/' + item.filePath" v-if="item.filePath.includes('mp4')">
+                      <video autoplay loop width="600" height="500" :src="'http://' + server + '/static/data/' + item.filePath" v-if="item.filePath.includes('mp4')">
                         Your browser does not support the video tag.
                       </video>
-                      <img style="object-fit:contain;" :src="'http://' + server + '/static/data/' + item.filePath" v-if="!item.filePath.includes('mp4')">
+                      <img width="600" height="500" :src="'http://' + server + '/static/data/' + item.filePath" v-if="!item.filePath.includes('mp4')">
 
                       </v-carousel-item>
              </v-template>
@@ -56,10 +56,10 @@
                       <v-carousel-item
                       reverse-transition="fade-transition"
                       transition="fade-transition">
-                      <video autoplay loop style="object-fit:contain;" :src="'http://' + server + '/static/data/' + item.filePath" v-if="item.filePath.includes('mp4')">
+                      <video autoplay loop width="600" height="500" :src="'http://' + server + '/static/data/' + item.filePath" v-if="item.filePath.includes('mp4')">
                         Your browser does not support the video tag.
                       </video>
-                      <img style="object-fit:contain;" :src="'http://' + server + '/static/data/' + item.filePath" v-if="!item.filePath.includes('mp4')">
+                      <img width="600" height="500" :src="'http://' + server + '/static/data/' + item.filePath" v-if="!item.filePath.includes('mp4')">
 
                       </v-carousel-item>
              </v-template>

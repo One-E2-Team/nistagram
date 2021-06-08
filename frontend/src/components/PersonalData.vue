@@ -70,10 +70,12 @@ created(){
         if(response.status==200){
             this.profile = response.data;
             this.$emit('loaded-user', this.profile.ID)
+        }else{
+          this.$router.push({name: 'NotFound'})
         }
     }).catch(reason => {
         console.log(reason);
-        alert("User with username '" + username + "' does not exist!");
+        this.$router.push({name: 'NotFound'})
     });
 }
 
