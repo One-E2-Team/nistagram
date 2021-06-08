@@ -72,7 +72,7 @@ func handleFunc(handler *handler.Handler) {
 	router.HandleFunc("/connection/following/update", handler.UpdateConnection).Methods("PUT") //frontend func
 	router.HandleFunc("/connection/following/request", handler.GetAllFollowRequests).Methods("GET") //frontend func
 	router.HandleFunc("/connection/following/request/{profileId}", handler.DeclineFollowRequest).Methods("DELETE") //frontend func
-	fmt.Printf("Starting server..")
+	fmt.Println("Starting server..")
 	_, port := util.GetConnectionHostAndPort()
 	http.ListenAndServe(":" + port, router)
 }

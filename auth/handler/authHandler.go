@@ -153,7 +153,7 @@ func (handler *AuthHandler) ValidateUser(w http.ResponseWriter, r *http.Request)
 	}
 	w.WriteHeader(http.StatusOK)
 	//TODO: parametrize host
-	_, err = fmt.Fprintf(w, "<html><head><script>window.location.href = \"http://localhost:3000/#/log-in\";</script></head><body></body></html>")
+	_, err = fmt.Fprintf(w, "<html><head><script>window.location.href = \"http://localhost:81/web#/log-in\";</script></head><body></body></html>")
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)

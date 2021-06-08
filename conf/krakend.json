@@ -25,7 +25,7 @@
     }
   },
   "timeout": "3000ms",
-  "cache_ttl": "300s",
+  "cache_ttl": "0s",
   "output_encoding": "json",
   "name": "test",
   "port": 80,
@@ -693,7 +693,7 @@
       "method": "GET",
       "output_encoding": "json",
       "extra_config": {},
-	  "headers_to_pass": [
+      "headers_to_pass": [
         "Authorization"
       ],
       "backend": [
