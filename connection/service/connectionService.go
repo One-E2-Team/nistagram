@@ -281,13 +281,13 @@ func (service *ConnectionService) GetAllFollowRequests(id uint) *[]dto.UserDTO {
 			return nil
 		}
 		err = json.Unmarshal(body, &p)
-		if p.ID == 0 {
-			resp.Body.Close()
-			continue
-		}
 		if err != nil {
 			fmt.Println(err)
 			return nil
+		}
+		if p.ID == 0 {
+			resp.Body.Close()
+			continue
 		}
 		ret = append(ret, dto.UserDTO{
 			Username:  p.Username,

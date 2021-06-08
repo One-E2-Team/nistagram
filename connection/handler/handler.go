@@ -172,11 +172,14 @@ func (handler *Handler) UpdateConnection(w http.ResponseWriter, r *http.Request)
 
 func (handler *Handler) DeclineFollowRequest(writer http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
-	followerId, e1 := strconv.ParseUint(vars["followerId"],10,32)
+	followerId, e1 := strconv.ParseUint(vars["profileId"],10,32)
 	if e1 != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
 	}
 	id := util.GetLoggedUserIDFromToken(request)
+	if id == 0 {
+		writer.WriteHeader(http.StatusUnauthorized)
+	}
 	_, ok := handler.ConnectionService.DeleteConnection(uint(followerId), id)
 	if !ok {
 		writer.WriteHeader(http.StatusInternalServerError)
