@@ -51,16 +51,19 @@ func getProfile(id uint) *model2.Profile{
 
 func (service *ConnectionService) FollowRequest(followerId, profileId uint) (*model.Connection, bool) {
 	connection := service.ConnectionRepository.SelectOrCreateConnection(followerId, profileId)
-	conn2, ok2 := service.ConnectionRepository.SelectConnection(followerId, profileId, false)
-	profile1 := getProfile(followerId)
+	//conn2, ok2 := service.ConnectionRepository.SelectConnection(followerId, profileId, false)
+	//profile1 := getProfile(followerId)
 	profile2 := getProfile(profileId)
-	if !ok2 || profile1 == nil || profile2 == nil {
+	if /*profile1 == nil ||*/ profile2 == nil {
 		return nil, false
 	}
-	if connection.Block == true || (conn2 != nil && conn2.Block == true) {
+	/*if !ok2 || profile1 == nil || profile2 == nil {
 		return nil, false
-	}
-	if profile1.ProfileSettings.IsPrivate == false && profile2.ProfileSettings.IsPrivate == false {
+	}*/
+	/*if connection.Block == true || (conn2 != nil && conn2.Block == true) {
+		return nil, false
+	}*/
+	if /*profile1.ProfileSettings.IsPrivate == false &&*/ profile2.ProfileSettings.IsPrivate == false {
 		connection.Approved = true
 	} else {
 		connection.ConnectionRequest = true
