@@ -93,7 +93,7 @@ func (handler Handler) GetPostsForHomePage(w http.ResponseWriter, r *http.Reques
 	}
 	fmt.Println("Body: ", body)
 	defer resp.Body.Close()
-	err = json.Unmarshal(body, followingProfiles)
+	err = json.Unmarshal(body, &followingProfiles)
 
 	if err != nil{
 		fmt.Println(err)
