@@ -35,7 +35,7 @@ func (service *AuthService) LogIn(dto dto.LogInDTO) (*model.User, error) {
 
 func (service *AuthService) Register(dto dto.RegisterDTO) error {
 	pass := hashAndSalt(dto.Password)
-	user := model.User{ProfileId: util.String2Uint(dto.ProfileIdString), Password: pass, Email: dto.Email,
+	user := model.User{ProfileId: util.String2Uint(dto.ProfileIdString), Password: pass, Email: dto.Email, Username: dto.Username,
 		ValidationUid: uuid.NewString(), Roles: nil, IsDeleted: false, IsValidated: false, ValidationExpire: time.Now().Add(1 * time.Hour)}
 	err := service.AuthRepository.CreateUser(&user)
 	if err != nil {
@@ -99,6 +99,7 @@ func (service *AuthService) UpdateUser(dto dto.UpdateUserDTO) error {
 		return err
 	}
 	user.Email = dto.Email
+	user.Username = dto.Username
 	err = service.AuthRepository.UpdateUser(*user)
 	return err
 }

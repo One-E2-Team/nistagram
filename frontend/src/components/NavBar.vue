@@ -5,7 +5,7 @@
           <v-col cols="12" sm="4">
                 <router-link to="/">Home</router-link> |
                 <router-link to="/explore">Explore</router-link> |
-                <v-btn @click="redirectToProfile()">My profile</v-btn>
+                <v-btn @click="redirectToProfile()" v-if="username">My profile</v-btn>
           </v-col>
         </v-row>
       </v-container>
@@ -14,22 +14,16 @@
 
 <script>
 import * as comm from '../configuration/communication.js'
-import axios from 'axios'
 export default {
     name: "NavBar",
-
+    data: () => ({
+      username: comm.getLoggedUserUsername()
+    }),
     methods : {
       redirectToProfile(){
-        if(comm.getLoggedUserID != 0){
-             axios({
-                method: "get",
-                url: 'http://' + comm.server + '/api/profile/get-by-id/' + comm.getLoggedUserID()
-            }).then(response => {
-              if(response.status==200){
-                this.$router.push('/profile?username=' + response.data.username);
-                
-              }
-            })
+        this.username = comm.getLoggedUserUsername();
+        if(this.username){
+          this.$router.push('/profile?username=' + this.username);
         }
       }
     }

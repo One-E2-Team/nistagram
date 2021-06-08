@@ -45,6 +45,7 @@ func (handler *AuthHandler) LogIn(w http.ResponseWriter, r *http.Request) {
 		Email: user.Email,
 		ProfileId: user.ProfileId,
 		Roles: user.Roles,
+		Username: user.Username,
 	}
 	respJson, err := json.Marshal(resp)
 	if err != nil {

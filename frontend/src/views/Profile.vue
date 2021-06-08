@@ -11,7 +11,7 @@
                 Follow
                 </v-btn>
                 <follow-requests v-if="isMyProfile"/>
-                <v-btn 
+                <v-btn v-if="isMyProfile"
                 color="normal"
                 elevation="8"
                 @click="redirectToCreatePost()"

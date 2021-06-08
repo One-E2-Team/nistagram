@@ -14,6 +14,7 @@ type User struct {
 	IsValidated      bool      `json:"isValidated" gorm:"not null"`
 	Roles            []Role    `json:"roles" gorm:"many2many:user_roles;"`
 	Email            string    `json:"email" gorm:"not null;unique"`
+	Username         string    `json:"username" gorm:"not null;unique"`
 	ValidationUid    string    `json:"validationUid"`
 	ValidationExpire time.Time `json:"validationExpire"`
 }

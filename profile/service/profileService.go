@@ -32,6 +32,7 @@ func (service *ProfileService) Register(dto dto.RegistrationDto) error {
 		"profileId": util.Uint2String(profile.ID),
 		"password":  dto.Password,
 		"email":     profile.Email,
+		"username":  profile.Username,
 	})
 	responseBody := bytes.NewBuffer(postBody)
 	authHost, authPort := util.GetAuthHostAndPort()
@@ -41,7 +42,7 @@ func (service *ProfileService) Register(dto dto.RegistrationDto) error {
 		return err
 	}
 	connHost, connPort := util.GetConnectionHostAndPort()
-	_, err = http.Post("http://"+connHost+":"+connPort+"/profile/" + util.Uint2String(profile.ID), "application/json", responseBody)
+	_, err = http.Post("http://"+connHost+":"+connPort+"/profile/"+util.Uint2String(profile.ID), "application/json", responseBody)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -69,13 +70,15 @@ func (service *ProfileService) ChangeProfileSettings(dto dto.ProfileSettingsDTO,
 	profileSettings := profile.ProfileSettings
 	if profileSettings.IsPrivate != dto.IsPrivate {
 		err = service.changePrivacyInPostService(dto.IsPrivate, loggedUserId)
-		if err != nil { return err}
+		if err != nil {
+			return err
+		}
 	}
 	profileSettings.IsPrivate = dto.IsPrivate
 	profileSettings.CanBeTagged = dto.CanBeTagged
 	profileSettings.CanReceiveMessageFromUnknown = dto.CanReceiveMessageFromUnknown
-	service.ProfileRepository.UpdateProfileSettings(profileSettings)
-	return nil
+	err = service.ProfileRepository.UpdateProfileSettings(profileSettings)
+	return err
 }
 
 func (service *ProfileService) ChangePersonalData(dto dto.PersonalDataDTO, loggedUserId uint) error {
@@ -83,14 +86,15 @@ func (service *ProfileService) ChangePersonalData(dto dto.PersonalDataDTO, logge
 	if err != nil {
 		return err
 	}
-	callAuth := bool(false)
-	if profile.Email != dto.Email {
+	callAuth := false
+	callPost := false
+	if profile.Email != dto.Email{
 		callAuth = true
 	}
 	if profile.Username != dto.Username {
 		//TODO: change data in other ms
-		err = service.changeUsernameInPostService(loggedUserId, dto.Username)
-		if err != nil { return err }
+		callAuth = true
+		callPost = true
 	}
 	profile.Username = dto.Username
 	profile.Website = dto.Website
@@ -109,12 +113,19 @@ func (service *ProfileService) ChangePersonalData(dto dto.PersonalDataDTO, logge
 		postBody, _ := json.Marshal(map[string]string{
 			"profileId": util.Uint2String(profile.ID),
 			"email":     profile.Email,
+			"username":  profile.Username,
 		})
 		responseBody := bytes.NewBuffer(postBody)
 		authHost, authPort := util.GetAuthHostAndPort()
 		_, err = http.Post("http://"+authHost+":"+authPort+"/update-user", "application/json", responseBody)
 		if err != nil {
 			fmt.Println(err)
+			return err
+		}
+	}
+	if callPost {
+		err = service.changeUsernameInPostService(loggedUserId, dto.Username)
+		if err != nil {
 			return err
 		}
 	}

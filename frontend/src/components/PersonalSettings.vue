@@ -99,7 +99,7 @@
 <script>
 import * as validator from '../plugins/validator.js'
 import axios from 'axios'
-  import * as comm from '../configuration/communication.js'
+import * as comm from '../configuration/communication.js'
 export default {
     data(){
         return{
@@ -138,7 +138,7 @@ export default {
             data: JSON.stringify(this.person)
             }).then(response => {
                 if(response.status == 200){
-                console.log(response.data)
+                    comm.setLoggedUserUsername(this.person.username);
                 }
             });
         }
