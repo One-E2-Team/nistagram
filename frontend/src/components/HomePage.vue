@@ -77,11 +77,11 @@
   import * as comm from '../configuration/communication.js'
   export default {
 
-    name: 'CreatePost',
+    name: 'HomePage',
 
     mounted(){
         axios({
-                method: "post",
+                method: "get",
                 url: "http://" + comm.server +"/api/post/homePage",
                 headers: comm.getHeader(),
             }).then((response) => {
