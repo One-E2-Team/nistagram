@@ -568,6 +568,27 @@
           "target": ""
         }
       ]
+    },
+    {
+      "endpoint": "/api/post/homePage",
+      "method": "GET",
+      "output_encoding": "json",
+      "extra_config": {},
+      "backend": [
+        {
+          "url_pattern": "/homePage",
+          "encoding": "json",
+          "sd": "static",
+          "method": "GET",
+          "extra_config": {},
+          "host": [
+            "post:8080"
+          ],
+          "disable_host_sanitize": false,
+          "is_collection": true,
+          "target": ""
+        }
+      ]
     }
   ],
   "read_timeout": "0s",
