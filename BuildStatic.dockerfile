@@ -6,7 +6,7 @@ RUN npm install && npm run build
 
 
 FROM nginx as final
-COPY --from=build /app/dist /usr/share/nginx/html/dist
+COPY --from=build /app/dist /usr/share/nginx/html/dist/web
 EXPOSE 80
 STOPSIGNAL SIGTERM
 CMD ["nginx", "-g", "daemon off;"]
