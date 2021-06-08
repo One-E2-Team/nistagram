@@ -69,11 +69,11 @@ func (handler *Handler) FollowRequest(w http.ResponseWriter, r *http.Request){
 	}
 	id := util.GetLoggedUserIDFromToken(r)
 	if id == 0 {
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 	connection, ok := handler.ConnectionService.FollowRequest(id, uint(id2))
-	if ok {
+	if ok && connection != nil {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(connection)
@@ -91,14 +91,14 @@ func (handler *Handler) FollowApprove(w http.ResponseWriter, r *http.Request){
 	}
 	id := util.GetLoggedUserIDFromToken(r)
 	if id == 0 {
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	connection, ok := handler.ConnectionService.ApproveConnection(uint(id1), id)
+	_, ok := handler.ConnectionService.ApproveConnection(uint(id1), id)
 	if ok {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(connection)
+		w.Write([]byte("{\"status\":\"ok\"}"))
 	} else {
 		w.WriteHeader(http.StatusInternalServerError)
 	}

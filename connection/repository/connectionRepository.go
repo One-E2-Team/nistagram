@@ -125,7 +125,8 @@ func (repo *ConnectionRepository) SelectConnection(id1, id2 uint, doCreate bool)
 				"WHERE a.profileID = $primary AND b.profileID = $secondary \n" +
 				"RETURN e",
 			conn.ToMap())
-		if doCreate != false || err != nil {
+		record, rerr := result.Single()
+		if (doCreate != false && rerr != nil) || err != nil {
 			connection, err1 := transaction.Run(
 				"MATCH (a:Profile), (b:Profile) \n"+
 					"WHERE a.profileID = $primary AND b.profileID = $secondary \n"+
@@ -137,12 +138,11 @@ func (repo *ConnectionRepository) SelectConnection(id1, id2 uint, doCreate bool)
 			if err1 != nil {
 				return conn, err1
 			} else {
-				result = connection
+				record, rerr = connection.Single()
+				if rerr != nil {
+					return nil, rerr
+				}
 			}
-		}
-		record, rerr := result.Single()
-		if rerr != nil {
-			return nil, rerr
 		}
 		res := record.Values[0].(dbtype.Relationship).Props
 		fmt.Println(res)
