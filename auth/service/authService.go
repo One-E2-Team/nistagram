@@ -72,7 +72,7 @@ func (service *AuthService) RequestPassRecovery(email string) error {
 		return err
 	}
 	//TODO: change host, port
-	var message = "Visit this link in the next 20 minutes to change your password: http://localhost:3000/#/reset-password?id=" +
+	var message = "Visit this link in the next 20 minutes to change your password: http://localhost:81/web#/reset-password?id=" +
 		util.Uint2String(user.ProfileId) + "&str=" + user.ValidationUid
 	go util.SendMail(user.Email, "Recovery password", message)
 	return nil
