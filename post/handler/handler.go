@@ -111,6 +111,45 @@ func (handler Handler) GetPostsForHomePage(w http.ResponseWriter, r *http.Reques
 	w.Header().Set("Content-Type", "application/json")
 }
 
+func (handler Handler) GetProfilesPosts(w http.ResponseWriter, r *http.Request){
+
+	params := mux.Vars(r)
+	targetUsername := params["username"]
+
+	var followingProfiles []uint
+
+	loggedUserId := util.GetLoggedUserIDFromToken(r)
+	if loggedUserId != 0{
+		connHost, connPort := util.GetConnectionHostAndPort()
+		resp, err := http.Get("http://"+connHost+":"+connPort+"/connection/following/show/" + strconv.Itoa(int(loggedUserId)))
+
+		if err != nil{
+			fmt.Println(err)
+		}
+
+		body, err := io.ReadAll(resp.Body)
+		if err != nil{
+			fmt.Println(err)
+		}
+		fmt.Println("Body: ", body)
+		defer resp.Body.Close()
+		err = json.Unmarshal(body, followingProfiles)
+
+		if err != nil{
+			fmt.Println(err)
+		}
+	}
+
+	result := handler.PostService.GetProfilesPosts(followingProfiles, targetUsername)
+
+	js, err := json.Marshal(result)
+	if err != nil{
+		w.Write([]byte("{\"success\":\"error\"}"))
+	}
+	w.Write(js)
+	w.Header().Set("Content-Type", "application/json")
+}
+
 func (handler *Handler) SearchPublicByLocation(w http.ResponseWriter, r *http.Request){
 	params := mux.Vars(r)
 	location := params["value"]

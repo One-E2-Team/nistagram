@@ -20,6 +20,10 @@ func (service *PostService) GetPublic() ([]model.Post){
 	return service.PostRepository.GetPublic()
 }
 
+func (service *PostService) GetProfilesPosts(followingProfiles []uint, targetUsername string) []model.Post{
+	return service.PostRepository.GetProfilesPosts(followingProfiles, targetUsername)
+}
+
 func (service *PostService) GetPublicPostByLocation(location string) ([]model.Post){
 	return service.PostRepository.GetPublicPostByLocation(location)
 }

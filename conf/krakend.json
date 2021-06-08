@@ -129,13 +129,13 @@
       ]
     },
     {
-      "endpoint": "/api/post/",
+      "endpoint": "/api/post/{username}",
       "method": "GET",
       "output_encoding": "json",
       "extra_config": {},
       "backend": [
         {
-          "url_pattern": "/",
+          "url_pattern": "/{username}",
           "encoding": "json",
           "sd": "static",
           "method": "GET",
