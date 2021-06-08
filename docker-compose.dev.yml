@@ -81,8 +81,8 @@ services:
         container_name: post_ms
         restart: always
         environment:
-            MONGO_INITDB_ROOT_USERNAME: root
-            MONGO_INITDB_ROOT_PASSWORD: root
+            DB_USERNAME: root
+            DB_PASSWORD: root
             DOCKER_ENV_SET_DEV: ""
         build:
             context: .

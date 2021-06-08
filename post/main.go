@@ -21,15 +21,15 @@ func initDB() *mongo.Client {
 	if ok {
 		dbhost = "mongo1"
 		dbport = "27017"
-		dbusername = os.Getenv("MONGO_INITDB_ROOT_USERNAME")
-		dbpassword = os.Getenv("MONGO_INITDB_ROOT_PASSWORD")
+		dbusername = os.Getenv("DB_USERNAME")
+		dbpassword = os.Getenv("DB_PASSWORD")
 	} else {
 		_, ok := os.LookupEnv("DOCKER_ENV_SET_DEV") // dev front environment
 		if ok {
 			dbhost = "mongo1"
 			dbport = "27017"
-			dbusername = os.Getenv("MONGO_INITDB_ROOT_USERNAME")
-			dbpassword = os.Getenv("MONGO_INITDB_ROOT_PASSWORD")
+			dbusername = "root"
+			dbpassword = "root"
 		}
 	}
 

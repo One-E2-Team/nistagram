@@ -46,7 +46,7 @@ services:
         image: mysql
         restart: always
         environment: 
-            MYSQL_ROOT_PASSWORD: ${DB_PROFILE_USERNAME}
+            MYSQL_ROOT_PASSWORD: ${DB_PROFILE_PASSWORD}
             MYSQL_DATABASE: profile
         networks: 
             - net_profile
@@ -82,7 +82,7 @@ services:
         image: mysql
         restart: always
         environment: 
-            MYSQL_ROOT_PASSWORD: root
+            MYSQL_ROOT_PASSWORD: ${DB_AUTH_PASSWORD}
             MYSQL_DATABASE: auth
         networks: 
             - net_auth
@@ -105,8 +105,6 @@ services:
         container_name: connection_ms
         restart: always
         environment: 
-            DB_USERNAME: root
-            DB_PASSWORD: root
             DOCKER_ENV_SET_PROD: ""
         build:
             context: .
@@ -138,9 +136,9 @@ services:
         container_name: post_ms
         restart: always
         environment:
-            MONGO_INITDB_ROOT_USERNAME: root
-            MONGO_INITDB_ROOT_PASSWORD: root
-            DOCKER_ENV_SET_DEV: ""
+            DB_USERNAME: ${DB_POST_USERNAME}
+            DB_PASSWORD: ${DB_POST_PASSWORD}
+            DOCKER_ENV_SET_PROD: ""
         build:
             context: .
             dockerfile: Build.dockerfile
@@ -159,8 +157,8 @@ services:
         image: mongo
         restart: always
         environment:
-            MONGO_INITDB_ROOT_USERNAME: root
-            MONGO_INITDB_ROOT_PASSWORD: root
+            MONGO_INITDB_ROOT_USERNAME: ${DB_AUTH_USERNAME}
+            MONGO_INITDB_ROOT_PASSWORD: ${DB_AUTH_PASSWORD}
         networks: 
             - net_post
         volumes: 
