@@ -81,7 +81,7 @@ func (handler Handler) GetPostsForHomePage(w http.ResponseWriter, r *http.Reques
 	}
 
 	connHost, connPort := util.GetConnectionHostAndPort()
-	resp, err := http.Get("http://"+connHost+":"+connPort+"/connection/following/show/" + strconv.Itoa(int(loggedUserId)))
+	resp, err := http.Get("http://"+connHost+":"+connPort+"/connection/following/show/" + util.Uint2String(loggedUserId))
 
 	if err != nil{
 		fmt.Println(err)

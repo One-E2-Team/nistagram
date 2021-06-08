@@ -135,6 +135,7 @@
             data.append("file" + i, this.files[i], this.files[i].name);
           }
          data.append("data", json);
+        axios.defaults.headers.common['Authorization'] = 'Bearer ' + comm.getJWTToken().token;
         axios({
           method: "post",
           url: "http://" + comm.server + "/api/post",
