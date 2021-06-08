@@ -130,10 +130,13 @@ func (service *ConnectionService) ApproveConnection(followerId, profileId uint) 
 	if okSelect && connection == nil {
 		return connection, false
 	}
-	conn2, ok2 := service.ConnectionRepository.SelectConnection(profileId, followerId, false)
+	//conn2, ok2 := service.ConnectionRepository.SelectConnection(profileId, followerId, false)
 	profile1 := getProfile(followerId)
 	profile2 := getProfile(profileId)
-	if !ok2 || profile1 == nil || profile2 == nil {
+	if profile1 == nil || profile2 == nil {
+		return nil, false
+	}
+	/*if !ok2 || profile1 == nil || profile2 == nil {
 		return nil, false
 	}
 	if connection.Block == true || (conn2 != nil && conn2.Block == true) {
@@ -141,22 +144,22 @@ func (service *ConnectionService) ApproveConnection(followerId, profileId uint) 
 	}
 	if conn2 == nil {
 		conn2 = service.ConnectionRepository.SelectOrCreateConnection(profileId, followerId)
-	}
+	}*/
 	if !connection.ConnectionRequest {
 		return nil, false
 	}
 	connection.ConnectionRequest = false
 	connection.Approved = true
-	conn2.ConnectionRequest = false
-	conn2.Approved = true
-	service.ConnectionRepository.UpdateConnection(connection)
-	var ok bool
+	//conn2.ConnectionRequest = false
+	//conn2.Approved = true
+	return service.ConnectionRepository.UpdateConnection(connection)
+	/*var ok bool
 	conn2, ok = service.ConnectionRepository.UpdateConnection(conn2)
 	if ok {
 		return conn2, true
 	} else {
 		return conn2, false
-	}
+	}*/
 }
 
 func (service *ConnectionService) ToggleNotifyComment(followerId, profileId uint) (*model.Connection, bool){
