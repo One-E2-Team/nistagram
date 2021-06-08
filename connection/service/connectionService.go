@@ -266,7 +266,7 @@ func (service *ConnectionService) DeleteConnection(followerId, profileId uint) (
 
 func (service *ConnectionService) GetAllFollowRequests(id uint) *[]dto.UserDTO {
 	var result *[]uint = service.ConnectionRepository.GetAllFollowRequests(id)
-	var ret []dto.UserDTO = make([]dto.UserDTO, len(*result))
+	var ret []dto.UserDTO = make([]dto.UserDTO, 0) // 0, :)
 	for _, profileId := range *result {
 		var p model2.Profile
 		profileHost, profilePort := util.GetProfileHostAndPort()
@@ -284,6 +284,10 @@ func (service *ConnectionService) GetAllFollowRequests(id uint) *[]dto.UserDTO {
 		if err != nil {
 			fmt.Println(err)
 			return nil
+		}
+		if p.ID == 0 {
+			resp.Body.Close()
+			continue
 		}
 		ret = append(ret, dto.UserDTO{
 			Username:  p.Username,
