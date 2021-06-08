@@ -94,7 +94,8 @@
     },
 
     data: () => ({
-      posts : null
+      posts : null,
+      server: comm.server
     }),
 
     methods: {
