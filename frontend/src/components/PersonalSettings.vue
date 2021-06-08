@@ -122,6 +122,7 @@ export default {
         axios({
             method: 'get',
             url: "http://" + comm.server + "/api/profile/my-personal-data",
+            headers: comm.getHeader(),
             }).then(response => {
                 if(response.status == 200){
                     this.person = response.data
@@ -133,6 +134,7 @@ export default {
             axios({
             method: 'put',
             url: "http://" + comm.server + "/api/profile/my-personal-data",
+            headers: comm.getHeader(),
             data: JSON.stringify(this.person)
             }).then(response => {
                 if(response.status == 200){
