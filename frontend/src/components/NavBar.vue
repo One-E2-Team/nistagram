@@ -26,7 +26,6 @@ export default {
                 url: 'http://' + comm.server + '/api/profile/get-by-id/' + comm.getLoggedUserID()
             }).then(response => {
               if(response.status==200){
-                comm.setJWTToken(response.data);
                 this.$router.push('/profile?username=' + response.data.username);
                 
               }

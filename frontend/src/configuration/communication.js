@@ -30,7 +30,7 @@ export function getUrlVars() {
 }
 
 export function getHeader() {
-  if (getJWTToken() != null) {
+  if (getJWTToken()) {
     return {
       Authorization: "Bearer " + getJWTToken().token
     };
