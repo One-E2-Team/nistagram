@@ -44,29 +44,29 @@ func (repo *ConnectionRepository) CreateProfile(profile model.Profile) *model.Pr
 func (repo *ConnectionRepository) GetConnectedProfiles(conn model.Connection, excludeMuted bool) *[]uint {
 	var additionalSelector string = ""
 	if conn.MessageConnected == true {
-		additionalSelector += "AND a.messageConnected = $messageConnected "
+		additionalSelector += "AND e.messageConnected = $messageConnected "
 	} else if conn.Approved == true {
-		additionalSelector += "AND a.approved = $approved "
+		additionalSelector += "AND e.approved = $approved "
 		if conn.CloseFriend {
-			additionalSelector += "AND a.closeFriend = $closeFriend "
+			additionalSelector += "AND e.closeFriend = $closeFriend "
 		}
 		if conn.NotifyPost {
-			additionalSelector += "AND a.notifyPost = $notifyPost "
+			additionalSelector += "AND e.notifyPost = $notifyPost "
 		}
 		if conn.NotifyStory {
-			additionalSelector += "AND a.notifyStory = $notifyStory "
+			additionalSelector += "AND e.notifyStory = $notifyStory "
 		}
 		if conn.NotifyMessage {
-			additionalSelector += "AND a.notifyMessage = $notifyMessage "
+			additionalSelector += "AND e.notifyMessage = $notifyMessage "
 		}
 		if conn.NotifyComment {
-			additionalSelector += "AND a.notifyComment = $notifyComment "
+			additionalSelector += "AND e.notifyComment = $notifyComment "
 		}
 	} else {
 		return nil
 	}
 	if excludeMuted {
-		additionalSelector += "AND a.muted = FALSE "
+		additionalSelector += "AND e.muted = FALSE "
 	}
 	session := (*repo.DatabaseDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	defer session.Close()
