@@ -63,19 +63,15 @@ export default {
            axios({
             method: "get",
             url: 'http://' + comm.server + '/api/post/public/location/' + this.searchParams,
-            }).then(response => {
+            })
+            .then(response => {
             if(response.status==200){
-              let res = response.data.collection;
-               res.forEach((post) => {
-                if(post.medias != null){
-                  post.medias.forEach((media) =>{
-                   media.filePath = "http://" + comm.server +"/static/data/" + media.filePath;
-                  });
-                }
-            });
-              this.$emit('searched-result', res);
-          }
-        })
+              let data = {
+              collection : response.data.collection,
+              type : "posts"
+            }
+            this.$emit('searched-result', data);
+            }})
       },
       searchHashTags(){
         axios({
@@ -83,17 +79,12 @@ export default {
             url: 'http://' + comm.server + '/api/post/public/hashtag/' + this.searchParams,
             }).then(response => {
             if(response.status==200){
-              let res = response.data.collection;
-               res.forEach((post) => {
-                if(post.medias != null){
-                  post.medias.forEach((media) =>{
-                   media.filePath = "http://" + comm.server +"/static/data/" + media.filePath;
-                  });
-                }
-            });
-              this.$emit('searched-result', res);
-          }
-        })
+               let data = {
+              collection : response.data.collection,
+              type : "posts"
+            }
+            this.$emit('searched-result', data);
+        }});
       },
       searchAccounts(){
         axios({
@@ -101,7 +92,11 @@ export default {
           url: 'http://' + comm.server + '/api/profile/search/' + this.searchParams,
         }).then(response => {
           if(response.status==200){
-            this.$emit('searched-result', response.data.collection);
+            let data = {
+              collection : response.data.collection,
+              type : "accounts"
+            }
+            this.$emit('searched-result', data);
           }
         })
       },

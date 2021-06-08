@@ -1,13 +1,13 @@
 <template>
     <v-container fluid>
-      <search  v-on:searched-result='posts = $event' />
+      <search  v-on:searched-result='loadSearchResult($event)' />
 
       <v-sheet
         class="mx-auto"
         elevation="1"
         max-width="900"
       >
-    <v-slide-group
+    <v-slide-group v-if="searchType == 'posts'"
       class="pa-4"
     >
       <v-slide-item
@@ -28,10 +28,10 @@
                       <v-carousel-item
                       reverse-transition="fade-transition"
                       transition="fade-transition">
-                      <video autoplay  width="600" height="500" :src="item.filePath" v-if="item.filePath.includes('mp4')">
+                      <video autoplay  width="600" height="500" :src="'http://' + server + '/static/data/' + item.filePath" v-if="item.filePath.includes('mp4')">
                         Your browser does not support the video tag.
                       </video>
-                      <img width="600" height="500" :src="item.filePath" v-if="!item.filePath.includes('mp4')">
+                      <img width="600" height="500" :src="'http://' + server + '/static/data/' + item.filePath" v-if="!item.filePath.includes('mp4')">
 
                       </v-carousel-item>
              </v-template>
@@ -44,6 +44,7 @@
         <v-row>
           <v-col></v-col>
         </v-row>
+        <template v-if="searchType == 'posts'">
         <v-row justify="center" align="center" v-for="p in posts" :key="p._id">
             <v-col cols="12" sm="4" v-if="p.postType == 2">
                 <v-card justify="center" align="center"
@@ -56,10 +57,10 @@
                       <v-carousel-item
                       reverse-transition="fade-transition"
                       transition="fade-transition">
-                      <video autoplay loop width="600" height="500" :src="item.filePath" v-if="item.filePath.includes('mp4')">
+                      <video autoplay loop width="600" height="500" :src="'http://' + server + '/static/data/' + item.filePath" v-if="item.filePath.includes('mp4')">
                         Your browser does not support the video tag.
                       </video>
-                      <img width="600" height="500" :src="item.filePath" v-if="!item.filePath.includes('mp4')">
+                      <img width="600" height="500" :src="'http://' + server + '/static/data/' + item.filePath" v-if="!item.filePath.includes('mp4')">
 
                       </v-carousel-item>
              </v-template>
@@ -69,6 +70,34 @@
                 </v-card>
              </v-col>
         </v-row>
+        </template>
+
+        <template v-if="searchType=='accounts'">
+          <v-card
+            class="mx-auto"
+            max-width="300"
+            tile
+          >
+            <v-list rounded>
+              <v-subheader>Search result</v-subheader>
+              <v-list-item-group
+                color="primary"
+              >
+                <v-list-item @click="redirect(item)"
+                  v-for="(item, i) in usernames"
+                  :key="i"
+                >
+                  <v-list-item-icon>
+                     <v-icon>mdi-account</v-icon>
+                  </v-list-item-icon>
+                  <v-list-item-content>
+                    <v-list-item-title v-text="item"></v-list-item-title>
+                  </v-list-item-content>
+                </v-list-item>
+              </v-list-item-group>
+            </v-list>
+          </v-card>
+        </template>
   </v-container>
 </template>
 
@@ -83,16 +112,9 @@ import Search from '../components/Search.vue'
     },
      mounted(){
         axios.get("http://" + comm.server +"/api/post/public").then((response) => {
-            let res = response.data.collection;
-            res.forEach((post) => {
-                if(post.medias != null){
-                  post.medias.forEach((media) =>{
-                   media.filePath = "http://" + comm.server +"/static/data/" + media.filePath;
-                  });
-                }
-            });
-            this.posts = res;
-            this.allPosts = res;
+          if(response.status == 200){
+            this.posts = response.data.collection;
+          }
     })
     .catch((error) => {
       console.log(error);
@@ -100,13 +122,26 @@ import Search from '../components/Search.vue'
     },
 
     data: () => ({
-      posts : null,
-      allPosts: null
+      posts : [],
+      searchType: "posts", //possible values: {accounts, posts}
+      server: comm.server,
+      usernames:[]
     }),
 
     methods: {
-      
-      
+      loadSearchResult(searchResult){
+        this.searchType = searchResult.type;
+        if(this.searchType == "posts"){
+          this.posts = searchResult.collection;
+          this.usernames = [];
+        }else if(this.searchType == "accounts"){
+          this.usernames = searchResult.collection;
+          this.posts = [];
+        }
+      },
+      redirect(username){
+        this.$router.push("/profile?username=" + username);
+      }
     }
   }
 </script>
