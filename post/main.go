@@ -62,7 +62,7 @@ func initHandler(postService *service.PostService) *handler.Handler{
 
 func handleFunc(handler *handler.Handler) {
 	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/{username}", handler.GetProfilesPosts).Methods("GET")
+	router.HandleFunc("/profile/{username}", handler.GetProfilesPosts).Methods("GET")
 	router.HandleFunc("/public", handler.GetPublic).Methods("GET")
 	router.HandleFunc("/my", handler.GetMyPosts).Methods("GET")
 	router.HandleFunc("/public/location/{value}", handler.SearchPublicByLocation).Methods("GET")

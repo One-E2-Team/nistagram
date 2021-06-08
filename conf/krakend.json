@@ -129,13 +129,13 @@
       ]
     },
     {
-      "endpoint": "/api/post/{username}",
+      "endpoint": "/api/post/profile/{username}",
       "method": "GET",
       "output_encoding": "json",
       "extra_config": {},
       "backend": [
         {
-          "url_pattern": "/{username}",
+          "url_pattern": "/profile/{username}",
           "encoding": "json",
           "sd": "static",
           "method": "GET",
@@ -574,6 +574,9 @@
       "method": "GET",
       "output_encoding": "json",
       "extra_config": {},
+	  "headers_to_pass": [
+        "Authorization"
+      ],
       "backend": [
         {
           "url_pattern": "/homePage",
