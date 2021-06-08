@@ -73,7 +73,7 @@ func (handler *Handler) FollowRequest(w http.ResponseWriter, r *http.Request){
 		return
 	}
 	connection, ok := handler.ConnectionService.FollowRequest(id, uint(id2))
-	if ok {
+	if ok && connection != nil {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(connection)
