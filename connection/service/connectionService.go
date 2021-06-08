@@ -285,10 +285,6 @@ func (service *ConnectionService) GetAllFollowRequests(id uint) *[]dto.UserDTO {
 			fmt.Println(err)
 			return nil
 		}
-		if p.ID == 0 {
-			resp.Body.Close()
-			continue
-		}
 		ret = append(ret, dto.UserDTO{
 			Username:  p.Username,
 			ProfileID: p.ID,
