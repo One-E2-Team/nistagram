@@ -5,8 +5,8 @@ export function getJWTToken() {
 }
 
 export function getLoggedUserID() {
-  if (getJWTToken() != null){
-      return getJWTToken().profileId;
+  if (getJWTToken() != null) {
+    return getJWTToken().profileId;
   }
   return 0;
 }
@@ -27,4 +27,15 @@ export function getUrlVars() {
     vars[key] = value;
   });
   return vars;
+}
+
+export function getHeader() {
+  if (getJWTToken() != null) {
+    return {
+      Authorization: "Bearer " + getJWTToken().token
+    };
+  }
+  return {
+    Authorization: "Bearer "
+  };
 }

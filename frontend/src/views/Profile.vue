@@ -61,6 +61,7 @@ export default {
             axios({
                 method: "post",
                 url: 'http://' + comm.server + '/api/connection/following/request/' + this.profileId,
+                headers: comm.getHeader(),
             }).then(response => {
               if(response.status==200){
                   alert('Success');
@@ -74,7 +75,8 @@ export default {
             if(this.isMyProfile){
                 axios({
                 method: "get",
-                url: 'http://' + comm.server + '/api/post/my'
+                url: 'http://' + comm.server + '/api/post/my',
+                headers: comm.getHeader(),
             }).then(response => {
               if(response.status==200){
                   this.posts = response.data.collection;
@@ -82,7 +84,7 @@ export default {
             })
 
             }else{
-                 axios({
+                axios({
                 method: "get",
                 url: 'http://' + comm.server + '/api/post/profile/' + this.username,
             }).then(response => {
