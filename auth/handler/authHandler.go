@@ -45,6 +45,7 @@ func (handler *AuthHandler) LogIn(w http.ResponseWriter, r *http.Request) {
 		Email: user.Email,
 		ProfileId: user.ProfileId,
 		Roles: user.Roles,
+		Username: user.Username,
 	}
 	respJson, err := json.Marshal(resp)
 	if err != nil {
@@ -153,7 +154,7 @@ func (handler *AuthHandler) ValidateUser(w http.ResponseWriter, r *http.Request)
 	}
 	w.WriteHeader(http.StatusOK)
 	//TODO: parametrize host
-	_, err = fmt.Fprintf(w, "<html><head><script>window.location.href = \"http://localhost:3000/#/log-in\";</script></head><body></body></html>")
+	_, err = fmt.Fprintf(w, "<html><head><script>window.location.href = \"http://localhost:81/web#/log-in\";</script></head><body></body></html>")
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -161,4 +162,18 @@ func (handler *AuthHandler) ValidateUser(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+}
+
+func (handler *AuthHandler) GetPrivileges(writer http.ResponseWriter, request *http.Request) {
+	vars := mux.Vars(request)
+	id := util.String2Uint(vars["profileId"])
+	var privileges *[]string = handler.AuthService.GetPrivileges(id)
+	if privileges == nil  || len(*privileges) == 0 {
+		var temp []string = make([]string, 0)
+		writer.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(writer).Encode(temp)
+	} else {
+		writer.WriteHeader(http.StatusOK)
+		json.NewEncoder(writer).Encode(privileges)
+	}
 }

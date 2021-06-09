@@ -35,9 +35,13 @@ func (service *AuthService) LogIn(dto dto.LogInDTO) (*model.User, error) {
 
 func (service *AuthService) Register(dto dto.RegisterDTO) error {
 	pass := hashAndSalt(dto.Password)
-	user := model.User{ProfileId: util.String2Uint(dto.ProfileIdString), Password: pass, Email: dto.Email,
-		ValidationUid: uuid.NewString(), Roles: nil, IsDeleted: false, IsValidated: false, ValidationExpire: time.Now().Add(1 * time.Hour)}
-	err := service.AuthRepository.CreateUser(&user)
+	role, err := service.AuthRepository.GetRoleByName("REGULAR")
+	if err != nil {
+		return err
+	}
+	user := model.User{ProfileId: util.String2Uint(dto.ProfileIdString), Password: pass, Email: dto.Email, Username: dto.Username,
+		ValidationUid: uuid.NewString(), Roles: []model.Role{*role}, IsDeleted: false, IsValidated: false, ValidationExpire: time.Now().Add(1 * time.Hour)}
+	err = service.AuthRepository.CreateUser(&user)
 	if err != nil {
 		return err
 	}
@@ -72,7 +76,7 @@ func (service *AuthService) RequestPassRecovery(email string) error {
 		return err
 	}
 	//TODO: change host, port
-	var message = "Visit this link in the next 20 minutes to change your password: http://localhost:3000/#/reset-password?id=" +
+	var message = "Visit this link in the next 20 minutes to change your password: http://localhost:81/web#/reset-password?id=" +
 		util.Uint2String(user.ProfileId) + "&str=" + user.ValidationUid
 	go util.SendMail(user.Email, "Recovery password", message)
 	return nil
@@ -99,6 +103,7 @@ func (service *AuthService) UpdateUser(dto dto.UpdateUserDTO) error {
 		return err
 	}
 	user.Email = dto.Email
+	user.Username = dto.Username
 	err = service.AuthRepository.UpdateUser(*user)
 	return err
 }
@@ -116,6 +121,18 @@ func (service *AuthService) ValidateUser(id string, uuid string) error {
 	user.ValidationExpire = time.Now()
 	err = service.AuthRepository.UpdateUser(*user)
 	return err
+}
+
+func (service *AuthService) GetPrivileges(id uint) *[]string {
+	user, uerr := service.AuthRepository.GetUserByProfileID(id)
+	if uerr != nil {
+		return nil
+	}
+	privileges, err := service.AuthRepository.GetPrivilegesByUserID(user.ID)
+	if err != nil {
+		return nil
+	}
+	return privileges
 }
 
 func hashAndSalt(pass string) string {

@@ -55,6 +55,7 @@ export default {
     axios({
       method: 'get',
       url: "http://" + comm.server + "/api/profile/my-profile-settings",
+      headers: comm.getHeader(),
     }).then(response => {
         if(response.status == 200){
           this.settings.isPrivate = response.data.isPrivate
@@ -69,6 +70,7 @@ export default {
       axios({
       method: 'put',
       url: "http://" + comm.server + "/api/profile/my-profile-settings",
+      headers: comm.getHeader(),
       data: JSON.stringify(this.settings)
       }).then(response => {
         if(response.status == 200){

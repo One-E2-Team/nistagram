@@ -22,14 +22,19 @@
             justify="center"
           >
            <v-carousel>
+                
+                <v-template v-for="item in p.medias" :key="item.filePath">
                       <v-carousel-item
-                      v-for="(item,i) in p.medias"
-                      :key="i"
-                      :src= "item.filePath"
                       reverse-transition="fade-transition"
-                      transition="fade-transition"
-                      ></v-carousel-item>
-          </v-carousel>
+                      transition="fade-transition">
+                      <video autoplay loop width="600" height="500" :src="'http://' + server + '/static/data/' + item.filePath" v-if="item.filePath.includes('mp4')">
+                        Your browser does not support the video tag.
+                      </video>
+                      <img width="600" height="500" :src="'http://' + server + '/static/data/' + item.filePath" v-if="!item.filePath.includes('mp4')">
+
+                      </v-carousel-item>
+             </v-template>
+             </v-carousel>
           </v-row>
         </v-card>
       </v-slide-item>
@@ -46,14 +51,19 @@
                 >
                 <v-card-title>{{p.publisherUsername}}</v-card-title>
                 <v-carousel>
-                    <v-carousel-item
-                    v-for="(item,i) in p.medias"
-                    :key="i"
-                    :src= "item.filePath"
-                    reverse-transition="fade-transition"
-                    transition="fade-transition"
-                    ></v-carousel-item>
-                </v-carousel>
+                
+                <v-template v-for="item in p.medias" :key="item.filePath">
+                      <v-carousel-item
+                      reverse-transition="fade-transition"
+                      transition="fade-transition">
+                      <video autoplay loop width="600" height="500" :src="'http://' + server + '/static/data/' + item.filePath" v-if="item.filePath.includes('mp4')">
+                        Your browser does not support the video tag.
+                      </video>
+                      <img width="600" height="500" :src="'http://' + server + '/static/data/' + item.filePath" v-if="!item.filePath.includes('mp4')">
+
+                      </v-carousel-item>
+             </v-template>
+             </v-carousel>
                 <v-card-text>{{p.description}}</v-card-text>
                 <v-card-text>{{p.publishDate}}</v-card-text>
                 </v-card>
@@ -67,19 +77,15 @@
   import * as comm from '../configuration/communication.js'
   export default {
 
-    name: 'CreatePost',
+    name: 'HomePage',
 
     mounted(){
-        axios.get("http://" + comm.server +"/api/post/homePage").then((response) => {
+        axios({
+                method: "get",
+                url: "http://" + comm.server +"/api/post/homePage",
+                headers: comm.getHeader(),
+            }).then((response) => {
             let res = response.data.collection;
-            res.forEach((post) => {
-                if(post.medias != null){
-                  post.medias.forEach((media) =>{
-                    media.filePath = "http://" + comm.server +"/static/data/" + media.filePath;
-                  });
-
-                }
-            });
             this.posts = res;
     })
     .catch((error) => {
@@ -88,7 +94,8 @@
     },
 
     data: () => ({
-      posts : null
+      posts : null,
+      server: comm.server
     }),
 
     methods: {

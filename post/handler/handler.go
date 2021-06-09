@@ -81,7 +81,7 @@ func (handler Handler) GetPostsForHomePage(w http.ResponseWriter, r *http.Reques
 	}
 
 	connHost, connPort := util.GetConnectionHostAndPort()
-	resp, err := http.Get("http://"+connHost+":"+connPort+"/connection/following/show/" + strconv.Itoa(int(loggedUserId)))
+	resp, err := http.Get("http://"+connHost+":"+connPort+"/connection/following/show/" + util.Uint2String(loggedUserId))
 
 	if err != nil{
 		fmt.Println(err)
@@ -93,7 +93,7 @@ func (handler Handler) GetPostsForHomePage(w http.ResponseWriter, r *http.Reques
 	}
 	fmt.Println("Body: ", body)
 	defer resp.Body.Close()
-	err = json.Unmarshal(body, followingProfiles)
+	err = json.Unmarshal(body, &followingProfiles)
 
 	if err != nil{
 		fmt.Println(err)
@@ -121,7 +121,7 @@ func (handler Handler) GetProfilesPosts(w http.ResponseWriter, r *http.Request){
 	loggedUserId := util.GetLoggedUserIDFromToken(r)
 	if loggedUserId != 0{
 		connHost, connPort := util.GetConnectionHostAndPort()
-		resp, err := http.Get("http://"+connHost+":"+connPort+"/connection/following/show/" + strconv.Itoa(int(loggedUserId)))
+		resp, err := http.Get("http://"+connHost+":"+connPort+"/connection/following/show/" + util.Uint2String(loggedUserId))
 
 		if err != nil{
 			fmt.Println(err)
@@ -133,7 +133,7 @@ func (handler Handler) GetProfilesPosts(w http.ResponseWriter, r *http.Request){
 		}
 		fmt.Println("Body: ", body)
 		defer resp.Body.Close()
-		err = json.Unmarshal(body, followingProfiles)
+		err = json.Unmarshal(body, &followingProfiles)
 
 		if err != nil{
 			fmt.Println(err)

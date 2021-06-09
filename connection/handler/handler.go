@@ -69,11 +69,11 @@ func (handler *Handler) FollowRequest(w http.ResponseWriter, r *http.Request){
 	}
 	id := util.GetLoggedUserIDFromToken(r)
 	if id == 0 {
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 	connection, ok := handler.ConnectionService.FollowRequest(id, uint(id2))
-	if ok {
+	if ok && connection != nil {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(connection)
@@ -91,14 +91,14 @@ func (handler *Handler) FollowApprove(w http.ResponseWriter, r *http.Request){
 	}
 	id := util.GetLoggedUserIDFromToken(r)
 	if id == 0 {
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	connection, ok := handler.ConnectionService.ApproveConnection(uint(id1), id)
+	_, ok := handler.ConnectionService.ApproveConnection(uint(id1), id)
 	if ok {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(connection)
+		w.Write([]byte("{\"status\":\"ok\"}"))
 	} else {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
@@ -172,11 +172,14 @@ func (handler *Handler) UpdateConnection(w http.ResponseWriter, r *http.Request)
 
 func (handler *Handler) DeclineFollowRequest(writer http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
-	followerId, e1 := strconv.ParseUint(vars["followerId"],10,32)
+	followerId, e1 := strconv.ParseUint(vars["profileId"],10,32)
 	if e1 != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
 	}
 	id := util.GetLoggedUserIDFromToken(request)
+	if id == 0 {
+		writer.WriteHeader(http.StatusUnauthorized)
+	}
 	_, ok := handler.ConnectionService.DeleteConnection(uint(followerId), id)
 	if !ok {
 		writer.WriteHeader(http.StatusInternalServerError)
