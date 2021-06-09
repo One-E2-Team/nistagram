@@ -1,12 +1,8 @@
 package util
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"net/smtp"
-	"nistagram/auth/model"
 	"os"
 	"strconv"
 )
@@ -40,28 +36,4 @@ func String2Uint(input string) uint {
 	return uint(u64)
 }
 
-func userHasPermission(userId uint) func(string) bool {
-	return func(permission string) bool{
-		var user model.User
-		authHost, authPort := GetProfileHostAndPort()
-		resp, err := http.Get("http://"+authHost+":"+authPort+"/get-by-id/" + Uint2String(userId))
-		if err != nil {
-			fmt.Println(err)
-			return false
-		}
-		body, err := io.ReadAll(resp.Body)
-		if err != nil{
-			fmt.Println(err)
-		}
-		fmt.Println("Body: ", body)
-		defer resp.Body.Close()
-		err = json.Unmarshal(body, &user)
-		fmt.Println(user.Roles)
-		return false
-	}
-}
 
-func LoggedUserHasPermission(permission string, r *http.Request) bool{
-	loggedUserHasPermission:= userHasPermission(GetLoggedUserIDFromToken(r))
-	return loggedUserHasPermission(permission)
-}

@@ -28,7 +28,7 @@ func CreateToken(userId uint, issuer string) (string, error) {
 
 func GetToken(header http.Header) (string, error) {
 	reqToken := header.Get("Authorization")
-	splitToken := strings.Split(reqToken, "Bearer")
+	splitToken := strings.Split(reqToken, "Bearer ")
 	if len(splitToken) != 2 {
 		return "", fmt.Errorf("NO_TOKEN")
 	}
@@ -38,12 +38,16 @@ func GetToken(header http.Header) (string, error) {
 func GetLoggedUserIDFromToken(r *http.Request) uint {
 	tokenString, err := GetToken(r.Header)
 	if err != nil {
+		fmt.Println(err)
 		return 0
 	}
-
 	token, err := jwt.ParseWithClaims(tokenString, &TokenClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(TokenSecret), nil
 	})
+	if err != nil {
+		fmt.Println(err)
+		return 0
+	}
 	if claims, ok := token.Claims.(*TokenClaims); ok && token.Valid {
 		return claims.LoggedUserId
 	} else {
