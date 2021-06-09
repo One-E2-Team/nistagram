@@ -1,5 +1,13 @@
 <template>
 <v-container>
+  <v-alert
+    :value="alert"
+    color="red"
+    type="error"
+    dismissible
+    text
+    v-model="alertText"
+  ></v-alert>
   <v-row align="center" justify="center">
     <v-col cols="12" sm="9" >
   <v-stepper v-model="e1">
@@ -288,6 +296,8 @@ import * as validator from '../plugins/validator.js'
 
   export default {
     data: () => ({
+      alert: false,
+      alertText : '',
       e1: 1,
       show: false,
       valid: false,
@@ -362,15 +372,21 @@ import * as validator from '../plugins/validator.js'
           method: "post",
           url: "http://" + comm.server +"/api/profile/",
           data: JSON.stringify(data),
-        }).then(function (response) {
+        }).then((response) => {
           if (response.status == 200) {
             alert('Check your email!');
-            //TODO: redirect on home page
+            this.alert = false;
           }
         })
-        .catch(function (response) {
-          console.log(response);
-        });
+        .catch((response) => {
+          console.log(response.data);
+           if(response.data.message=="Invalid data."){
+              this.alert = true;
+              this.alertText = response.data.errors;
+           }else{
+             alert("Server error.")
+           }
+           });
       }
       
     },

@@ -32,7 +32,8 @@ func (handler *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	v := validator.New()
 
 	_ = v.RegisterValidation("common_pass", func(fl validator.FieldLevel) bool {
-		f, err := os.OpenFile("../common_pass.txt",os.O_RDONLY, 0755)
+		//f, err := os.OpenFile("../common_pass.txt",os.O_RDONLY, 0755)
+		f,err := os.Open("../common_pass.txt")
 		if err != nil {
 			fmt.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
