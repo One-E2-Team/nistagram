@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"net/http"
 	"nistagram/profile/dto"
 	"nistagram/profile/service"
@@ -23,6 +24,7 @@ type Handler struct {
 func (handler *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	var dto dto.RegistrationDto
 	err := json.NewDecoder(r.Body).Decode(&dto)
+	dto = safeRegistrationDto(dto)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -107,7 +109,7 @@ func (handler *Handler) Register(w http.ResponseWriter, r *http.Request) {
 
 func (handler *Handler) Search(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	result := handler.ProfileService.Search(vars["username"])
+	result := handler.ProfileService.Search(template.HTMLEscapeString(vars["username"]))
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result)
 	w.WriteHeader(http.StatusOK)
@@ -115,7 +117,7 @@ func (handler *Handler) Search(w http.ResponseWriter, r *http.Request) {
 
 func (handler *Handler) GetProfileByUsername(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	result, err := handler.ProfileService.GetProfileByUsername(vars["username"])
+	result, err := handler.ProfileService.GetProfileByUsername(template.HTMLEscapeString(vars["username"]))
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -149,6 +151,7 @@ func (handler *Handler) ChangeProfileSettings(w http.ResponseWriter, r *http.Req
 func (handler *Handler) ChangePersonalData(w http.ResponseWriter, r *http.Request) {
 	var dto dto.PersonalDataDTO
 	err := json.NewDecoder(r.Body).Decode(&dto)
+	dto = safePersonalDataDto(dto)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -165,6 +168,8 @@ func (handler *Handler) ChangePersonalData(w http.ResponseWriter, r *http.Reques
 	w.Write([]byte("{\"success\":\"ok\"}"))
 	w.Header().Set("Content-Type", "application/json")
 }
+
+
 
 func (handler *Handler) Test(w http.ResponseWriter, r *http.Request) {
 	var key string
@@ -233,4 +238,34 @@ func (handler *Handler) GetProfileByID(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(*profile)
+}
+
+func safeRegistrationDto(dto dto.RegistrationDto) dto.RegistrationDto {
+	dto.Username = template.HTMLEscapeString(dto.Username)
+	dto.Name = template.HTMLEscapeString(dto.Name)
+	dto.Surname = template.HTMLEscapeString(dto.Surname)
+	dto.Biography = template.HTMLEscapeString(dto.Biography)
+	dto.BirthDate = template.HTMLEscapeString(dto.BirthDate)
+	dto.Email = template.HTMLEscapeString(dto.Email)
+	dto.Gender = template.HTMLEscapeString(dto.Gender)
+	dto.Telephone = template.HTMLEscapeString(dto.Telephone)
+	dto.WebSite = template.HTMLEscapeString(dto.WebSite)
+	interests := dto.InterestedIn
+	for i:=0 ; i< len(dto.InterestedIn); i++ {
+		interests[i] = template.HTMLEscapeString(dto.InterestedIn[i])
+	}
+	return dto
+}
+
+func safePersonalDataDto(dto dto.PersonalDataDTO) dto.PersonalDataDTO {
+	dto.Username = template.HTMLEscapeString(dto.Username)
+	dto.Name = template.HTMLEscapeString(dto.Name)
+	dto.Surname = template.HTMLEscapeString(dto.Surname)
+	dto.Biography = template.HTMLEscapeString(dto.Biography)
+	dto.BirthDate = template.HTMLEscapeString(dto.BirthDate)
+	dto.Email = template.HTMLEscapeString(dto.Email)
+	dto.Gender = template.HTMLEscapeString(dto.Gender)
+	dto.Telephone = template.HTMLEscapeString(dto.Telephone)
+	dto.Website = template.HTMLEscapeString(dto.Website)
+	return dto
 }
