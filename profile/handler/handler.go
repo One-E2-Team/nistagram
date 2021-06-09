@@ -11,6 +11,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+
 	"github.com/gorilla/mux"
 	"gopkg.in/go-playground/validator.v9"
 )
@@ -32,8 +33,7 @@ func (handler *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	v := validator.New()
 
 	_ = v.RegisterValidation("common_pass", func(fl validator.FieldLevel) bool {
-		//f, err := os.OpenFile("../common_pass.txt",os.O_RDONLY, 0755)
-		f,err := os.Open("../common_pass.txt")
+		f, err := os.Open("../common_pass.txt")
 		if err != nil {
 			fmt.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -41,8 +41,8 @@ func (handler *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		}
 		defer f.Close()
 		scanner := bufio.NewScanner(f)
-		for scanner.Scan(){
-			if strings.Contains(fl.Field().String(), scanner.Text()){
+		for scanner.Scan() {
+			if strings.Contains(fl.Field().String(), scanner.Text()) {
 				return false
 			}
 		}
@@ -51,23 +51,23 @@ func (handler *Handler) Register(w http.ResponseWriter, r *http.Request) {
 
 	_ = v.RegisterValidation("weak_pass", func(fl validator.FieldLevel) bool {
 		//^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[*.!@#$%^&(){}\\[\\]:;<>,.?~_+-=|\\/])[A-Za-z0-9*.!@#$%^&(){}\\[\\]:;<>,.?~_+-=|\\/]{8,}$
-		if len(fl.Field().String()) < 8{
+		if len(fl.Field().String()) < 8 {
 			return false
 		}
 		ret, _ := regexp.MatchString("(.*[a-z].*)", fl.Field().String())
-		if ret == false{
+		if ret == false {
 			return false
 		}
 		ret, _ = regexp.MatchString("(.*[A-Z].*)", fl.Field().String())
-		if ret == false{
+		if ret == false {
 			return false
 		}
 		ret, _ = regexp.MatchString("(.*[0-9].*)", fl.Field().String())
-		if ret == false{
+		if ret == false {
 			return false
 		}
 		ret, _ = regexp.MatchString("(.*[*!@#$%^&(){}\\[:;\\]<>,.?~_+\\\\=|/].*)", fl.Field().String())
-		if err != nil{
+		if err != nil {
 			fmt.Println(err)
 			return false
 		}
@@ -81,7 +81,7 @@ func (handler *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("{\"message\":\"Invalid data.\",\n"))
 		w.Write([]byte("\"errors\":\""))
-		for _, e := range err.(validator.ValidationErrors){
+		for _, e := range err.(validator.ValidationErrors) {
 			w.Write([]byte(e.Field()))
 			w.Write([]byte(" "))
 		}

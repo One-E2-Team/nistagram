@@ -9,4 +9,4 @@ RUN cd src/nistagram && go mod download && go mod verify && go build -o exec ${A
 FROM alpine AS image
 COPY --from=build /go/src/nistagram/exec /nistagram/microservice/exec
 EXPOSE 8080
-ENTRYPOINT [ "nistagram/microservice/exec" ]
+ENTRYPOINT ["/bin/sh", "-c" , "cd nistagram/microservice && ./exec"]

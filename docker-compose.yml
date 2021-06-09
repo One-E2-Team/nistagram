@@ -36,7 +36,7 @@ services:
             args: 
                 ARG_TARGET_MS_GO: profile
         volumes:
-            - "./common_pass.txt:/nistagram/common_pass.txt"
+            - ./common_pass.txt:/nistagram/common_pass.txt:ro
         networks: 
             - net_apigateway
             - net_profile
