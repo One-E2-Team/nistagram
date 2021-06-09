@@ -1,13 +1,16 @@
 package handler
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"nistagram/profile/dto"
 	"nistagram/profile/service"
 	"nistagram/util"
-
+	"os"
+	"regexp"
+	"strings"
 	"github.com/gorilla/mux"
 	"gopkg.in/go-playground/validator.v9"
 )
@@ -20,30 +23,85 @@ func (handler *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	var dto dto.RegistrationDto
 	err := json.NewDecoder(r.Body).Decode(&dto)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("{\"message\":\"Server error while decoding.\"}"))
 		return
 	}
 
 	v := validator.New()
+
+	_ = v.RegisterValidation("common_pass", func(fl validator.FieldLevel) bool {
+		pwd,_ := os.Getwd()
+		fmt.Println(pwd)
+		f, err := os.Open(pwd + "/handler/common_pass.txt")
+		if err != nil {
+			fmt.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return false
+		}
+		defer f.Close()
+		scanner := bufio.NewScanner(f)
+		for scanner.Scan(){
+			if strings.Contains(fl.Field().String(), scanner.Text()){
+				return false
+			}
+		}
+		return true
+	})
+
+	_ = v.RegisterValidation("weak_pass", func(fl validator.FieldLevel) bool {
+		//^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[*.!@#$%^&(){}\\[\\]:;<>,.?~_+-=|\\/])[A-Za-z0-9*.!@#$%^&(){}\\[\\]:;<>,.?~_+-=|\\/]{8,}$
+		if len(fl.Field().String()) < 8{
+			return false
+		}
+		ret, _ := regexp.MatchString("(.*[a-z].*)", fl.Field().String())
+		if ret == false{
+			return false
+		}
+		ret, _ = regexp.MatchString("(.*[A-Z].*)", fl.Field().String())
+		if ret == false{
+			return false
+		}
+		ret, _ = regexp.MatchString("(.*[0-9].*)", fl.Field().String())
+		if ret == false{
+			return false
+		}
+		ret, _ = regexp.MatchString("(.*[*!@#$%^&(){}\\[:;\\]<>,.?~_+\\\\=|/].*)", fl.Field().String())
+		if err != nil{
+			fmt.Println(err)
+			return false
+		}
+		return ret
+	})
+
 	err = v.Struct(dto)
 
 	if err != nil {
-		for _, e := range err.(validator.ValidationErrors) {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("{\"message\":\"Invalid data.\",\n"))
+		w.Write([]byte("\"errors\":\""))
+		for _, e := range err.(validator.ValidationErrors){
 			w.Write([]byte(e.Field()))
 			w.Write([]byte(" "))
 		}
-		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("\"}"))
 		return
 	}
+
+	fmt.Println(dto)
 
 	err = handler.ProfileService.Register(dto)
 
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("{\"message\":\"Server error while registering.\"}"))
 	} else {
 		w.WriteHeader(http.StatusCreated)
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte("{\"success\":\"ok\"}"))
+		w.Write([]byte("{\"message\":\"ok\"}"))
 	}
 	return
 }
