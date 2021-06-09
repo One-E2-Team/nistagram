@@ -25,7 +25,7 @@
     }
   },
   "timeout": "3000ms",
-  "cache_ttl": "0s",
+  "cache_ttl": "300s",
   "output_encoding": "json",
   "name": "test",
   "port": 80,
@@ -34,7 +34,18 @@
       "endpoint": "/nedeljko.volidasejebe.txt",
       "method": "GET",
       "output_encoding": "string",
-      "extra_config": {},
+      "extra_config": {
+        "github.com/devopsfaith/krakend-httpsecure": {
+          "allowed_hosts": [
+            "localhost:81",
+            "localhost"
+          ],
+          "ssl_proxy_headers": {},
+          "ssl_redirect": true,
+          "ssl_certificate": "/certs/localhost.cert.pem",
+          "ssl_private_key": "/certs/localhost.key.pem"
+        }
+      },
       "backend": [
         {
           "url_pattern": "/nedeljko.volidasejebe.txt",
@@ -53,7 +64,18 @@
       "endpoint": "/api/profile/",
       "method": "POST",
       "output_encoding": "json",
-      "extra_config": {},
+      "extra_config": {
+        "github.com/devopsfaith/krakend-httpsecure": {
+          "allowed_hosts": [
+            "localhost:81",
+            "localhost"
+          ],
+          "ssl_proxy_headers": {},
+          "ssl_redirect": true,
+          "ssl_certificate": "/certs/localhost.cert.pem",
+          "ssl_private_key": "/certs/localhost.key.pem"
+        }
+      },
       "backend": [
         {
           "url_pattern": "/",
@@ -72,7 +94,18 @@
       "endpoint": "/api/post/",
       "method": "POST",
       "output_encoding": "no-op",
-      "extra_config": {},
+      "extra_config": {
+        "github.com/devopsfaith/krakend-httpsecure": {
+          "allowed_hosts": [
+            "localhost:81",
+            "localhost"
+          ],
+          "ssl_proxy_headers": {},
+          "ssl_redirect": true,
+          "ssl_certificate": "/certs/localhost.cert.pem",
+          "ssl_private_key": "/certs/localhost.key.pem"
+        }
+      },
       "headers_to_pass": [
         "*"
       ],
@@ -94,7 +127,18 @@
       "endpoint": "/api/auth/login",
       "method": "POST",
       "output_encoding": "json",
-      "extra_config": {},
+      "extra_config": {
+        "github.com/devopsfaith/krakend-httpsecure": {
+          "allowed_hosts": [
+            "localhost:81",
+            "localhost"
+          ],
+          "ssl_proxy_headers": {},
+          "ssl_redirect": true,
+          "ssl_certificate": "/certs/localhost.cert.pem",
+          "ssl_private_key": "/certs/localhost.key.pem"
+        }
+      },
       "backend": [
         {
           "url_pattern": "/login",
@@ -113,7 +157,18 @@
       "endpoint": "/static/data/{media}",
       "method": "GET",
       "output_encoding": "no-op",
-      "extra_config": {},
+      "extra_config": {
+        "github.com/devopsfaith/krakend-httpsecure": {
+          "allowed_hosts": [
+            "localhost:81",
+            "localhost"
+          ],
+          "ssl_proxy_headers": {},
+          "ssl_redirect": true,
+          "ssl_certificate": "/certs/localhost.cert.pem",
+          "ssl_private_key": "/certs/localhost.key.pem"
+        }
+      },
       "backend": [
         {
           "url_pattern": "/data/{media}",
@@ -132,7 +187,18 @@
       "endpoint": "/api/post/profile/{username}",
       "method": "GET",
       "output_encoding": "json",
-      "extra_config": {},
+      "extra_config": {
+        "github.com/devopsfaith/krakend-httpsecure": {
+          "allowed_hosts": [
+            "localhost:81",
+            "localhost"
+          ],
+          "ssl_proxy_headers": {},
+          "ssl_redirect": true,
+          "ssl_certificate": "/certs/localhost.cert.pem",
+          "ssl_private_key": "/certs/localhost.key.pem"
+        }
+      },
       "backend": [
         {
           "url_pattern": "/profile/{username}",
@@ -152,7 +218,18 @@
       "endpoint": "/api/auth/request-recovery",
       "method": "POST",
       "output_encoding": "string",
-      "extra_config": {},
+      "extra_config": {
+        "github.com/devopsfaith/krakend-httpsecure": {
+          "allowed_hosts": [
+            "localhost:81",
+            "localhost"
+          ],
+          "ssl_proxy_headers": {},
+          "ssl_redirect": true,
+          "ssl_certificate": "/certs/localhost.cert.pem",
+          "ssl_private_key": "/certs/localhost.key.pem"
+        }
+      },
       "backend": [
         {
           "url_pattern": "/request-recovery",
@@ -171,7 +248,18 @@
       "endpoint": "/api/auth/recover",
       "method": "POST",
       "output_encoding": "string",
-      "extra_config": {},
+      "extra_config": {
+        "github.com/devopsfaith/krakend-httpsecure": {
+          "allowed_hosts": [
+            "localhost:81",
+            "localhost"
+          ],
+          "ssl_proxy_headers": {},
+          "ssl_redirect": true,
+          "ssl_certificate": "/certs/localhost.cert.pem",
+          "ssl_private_key": "/certs/localhost.key.pem"
+        }
+      },
       "backend": [
         {
           "url_pattern": "/recover",
@@ -190,7 +278,18 @@
       "endpoint": "/api/auth/validate/{id}/{uuid}",
       "method": "GET",
       "output_encoding": "no-op",
-      "extra_config": {},
+      "extra_config": {
+        "github.com/devopsfaith/krakend-httpsecure": {
+          "allowed_hosts": [
+            "localhost:81",
+            "localhost"
+          ],
+          "ssl_proxy_headers": {},
+          "ssl_redirect": true,
+          "ssl_certificate": "/certs/localhost.cert.pem",
+          "ssl_private_key": "/certs/localhost.key.pem"
+        }
+      },
       "backend": [
         {
           "url_pattern": "/validate/{id}/{uuid}",
@@ -209,7 +308,18 @@
       "endpoint": "/api/profile/interests",
       "method": "GET",
       "output_encoding": "json",
-      "extra_config": {},
+      "extra_config": {
+        "github.com/devopsfaith/krakend-httpsecure": {
+          "allowed_hosts": [
+            "localhost:81",
+            "localhost"
+          ],
+          "ssl_proxy_headers": {},
+          "ssl_redirect": true,
+          "ssl_certificate": "/certs/localhost.cert.pem",
+          "ssl_private_key": "/certs/localhost.key.pem"
+        }
+      },
       "backend": [
         {
           "url_pattern": "/interests",
@@ -229,7 +339,18 @@
       "endpoint": "/api/profile/my-profile-settings",
       "method": "GET",
       "output_encoding": "json",
-      "extra_config": {},
+      "extra_config": {
+        "github.com/devopsfaith/krakend-httpsecure": {
+          "allowed_hosts": [
+            "localhost:81",
+            "localhost"
+          ],
+          "ssl_proxy_headers": {},
+          "ssl_redirect": true,
+          "ssl_certificate": "/certs/localhost.cert.pem",
+          "ssl_private_key": "/certs/localhost.key.pem"
+        }
+      },
       "backend": [
         {
           "url_pattern": "/my-profile-settings",
@@ -251,7 +372,18 @@
       "endpoint": "/api/profile/my-personal-data",
       "method": "GET",
       "output_encoding": "json",
-      "extra_config": {},
+      "extra_config": {
+        "github.com/devopsfaith/krakend-httpsecure": {
+          "allowed_hosts": [
+            "localhost:81",
+            "localhost"
+          ],
+          "ssl_proxy_headers": {},
+          "ssl_redirect": true,
+          "ssl_certificate": "/certs/localhost.cert.pem",
+          "ssl_private_key": "/certs/localhost.key.pem"
+        }
+      },
       "backend": [
         {
           "url_pattern": "/my-personal-data",
@@ -273,7 +405,18 @@
       "endpoint": "/api/profile/my-profile-settings",
       "method": "PUT",
       "output_encoding": "json",
-      "extra_config": {},
+      "extra_config": {
+        "github.com/devopsfaith/krakend-httpsecure": {
+          "allowed_hosts": [
+            "localhost:81",
+            "localhost"
+          ],
+          "ssl_proxy_headers": {},
+          "ssl_redirect": true,
+          "ssl_certificate": "/certs/localhost.cert.pem",
+          "ssl_private_key": "/certs/localhost.key.pem"
+        }
+      },
       "headers_to_pass": [
         "Authorization"
       ],
@@ -295,7 +438,18 @@
       "endpoint": "/api/post/public/",
       "method": "GET",
       "output_encoding": "json",
-      "extra_config": {},
+      "extra_config": {
+        "github.com/devopsfaith/krakend-httpsecure": {
+          "allowed_hosts": [
+            "localhost:81",
+            "localhost"
+          ],
+          "ssl_proxy_headers": {},
+          "ssl_redirect": true,
+          "ssl_certificate": "/certs/localhost.cert.pem",
+          "ssl_private_key": "/certs/localhost.key.pem"
+        }
+      },
       "backend": [
         {
           "url_pattern": "/public",
@@ -316,7 +470,18 @@
       "endpoint": "/api/post/my",
       "method": "GET",
       "output_encoding": "json",
-      "extra_config": {},
+      "extra_config": {
+        "github.com/devopsfaith/krakend-httpsecure": {
+          "allowed_hosts": [
+            "localhost:81",
+            "localhost"
+          ],
+          "ssl_proxy_headers": {},
+          "ssl_redirect": true,
+          "ssl_certificate": "/certs/localhost.cert.pem",
+          "ssl_private_key": "/certs/localhost.key.pem"
+        }
+      },
       "headers_to_pass": [
         "Authorization"
       ],
@@ -340,7 +505,18 @@
       "endpoint": "/api/profile/my-personal-data",
       "method": "PUT",
       "output_encoding": "json",
-      "extra_config": {},
+      "extra_config": {
+        "github.com/devopsfaith/krakend-httpsecure": {
+          "allowed_hosts": [
+            "localhost:81",
+            "localhost"
+          ],
+          "ssl_proxy_headers": {},
+          "ssl_redirect": true,
+          "ssl_certificate": "/certs/localhost.cert.pem",
+          "ssl_private_key": "/certs/localhost.key.pem"
+        }
+      },
       "headers_to_pass": [
         "Authorization"
       ],
@@ -362,7 +538,18 @@
       "endpoint": "/api/profile/search/{username}",
       "method": "GET",
       "output_encoding": "json",
-      "extra_config": {},
+      "extra_config": {
+        "github.com/devopsfaith/krakend-httpsecure": {
+          "allowed_hosts": [
+            "localhost:81",
+            "localhost"
+          ],
+          "ssl_proxy_headers": {},
+          "ssl_redirect": true,
+          "ssl_certificate": "/certs/localhost.cert.pem",
+          "ssl_private_key": "/certs/localhost.key.pem"
+        }
+      },
       "backend": [
         {
           "url_pattern": "/search/{username}",
@@ -383,7 +570,18 @@
       "endpoint": "/api/profile/get/{username}",
       "method": "GET",
       "output_encoding": "json",
-      "extra_config": {},
+      "extra_config": {
+        "github.com/devopsfaith/krakend-httpsecure": {
+          "allowed_hosts": [
+            "localhost:81",
+            "localhost"
+          ],
+          "ssl_proxy_headers": {},
+          "ssl_redirect": true,
+          "ssl_certificate": "/certs/localhost.cert.pem",
+          "ssl_private_key": "/certs/localhost.key.pem"
+        }
+      },
       "backend": [
         {
           "url_pattern": "/get/{username}",
@@ -402,7 +600,18 @@
       "endpoint": "/api/connection/following/my-properties/{profileId}",
       "method": "GET",
       "output_encoding": "json",
-      "extra_config": {},
+      "extra_config": {
+        "github.com/devopsfaith/krakend-httpsecure": {
+          "allowed_hosts": [
+            "localhost:81",
+            "localhost"
+          ],
+          "ssl_proxy_headers": {},
+          "ssl_redirect": true,
+          "ssl_certificate": "/certs/localhost.cert.pem",
+          "ssl_private_key": "/certs/localhost.key.pem"
+        }
+      },
       "headers_to_pass": [
         "Authorization"
       ],
@@ -424,7 +633,18 @@
       "endpoint": "/api/connection/following/approve/{profileId}",
       "method": "POST",
       "output_encoding": "json",
-      "extra_config": {},
+      "extra_config": {
+        "github.com/devopsfaith/krakend-httpsecure": {
+          "allowed_hosts": [
+            "localhost:81",
+            "localhost"
+          ],
+          "ssl_proxy_headers": {},
+          "ssl_redirect": true,
+          "ssl_certificate": "/certs/localhost.cert.pem",
+          "ssl_private_key": "/certs/localhost.key.pem"
+        }
+      },
       "headers_to_pass": [
         "Authorization"
       ],
@@ -446,7 +666,18 @@
       "endpoint": "/api/connection/following/request/{profileId}",
       "method": "POST",
       "output_encoding": "json",
-      "extra_config": {},
+      "extra_config": {
+        "github.com/devopsfaith/krakend-httpsecure": {
+          "allowed_hosts": [
+            "localhost:81",
+            "localhost"
+          ],
+          "ssl_proxy_headers": {},
+          "ssl_redirect": true,
+          "ssl_certificate": "/certs/localhost.cert.pem",
+          "ssl_private_key": "/certs/localhost.key.pem"
+        }
+      },
       "headers_to_pass": [
         "Authorization"
       ],
@@ -468,7 +699,18 @@
       "endpoint": "/api/connection/following/update",
       "method": "PUT",
       "output_encoding": "json",
-      "extra_config": {},
+      "extra_config": {
+        "github.com/devopsfaith/krakend-httpsecure": {
+          "allowed_hosts": [
+            "localhost:81",
+            "localhost"
+          ],
+          "ssl_proxy_headers": {},
+          "ssl_redirect": true,
+          "ssl_certificate": "/certs/localhost.cert.pem",
+          "ssl_private_key": "/certs/localhost.key.pem"
+        }
+      },
       "headers_to_pass": [
         "Authorization"
       ],
@@ -490,7 +732,18 @@
       "endpoint": "/api/connection/following/request",
       "method": "GET",
       "output_encoding": "json",
-      "extra_config": {},
+      "extra_config": {
+        "github.com/devopsfaith/krakend-httpsecure": {
+          "allowed_hosts": [
+            "localhost:81",
+            "localhost"
+          ],
+          "ssl_proxy_headers": {},
+          "ssl_redirect": true,
+          "ssl_certificate": "/certs/localhost.cert.pem",
+          "ssl_private_key": "/certs/localhost.key.pem"
+        }
+      },
       "headers_to_pass": [
         "Authorization"
       ],
@@ -514,7 +767,18 @@
       "endpoint": "/api/connection/following/request/{profileId}",
       "method": "DELETE",
       "output_encoding": "json",
-      "extra_config": {},
+      "extra_config": {
+        "github.com/devopsfaith/krakend-httpsecure": {
+          "allowed_hosts": [
+            "localhost:81",
+            "localhost"
+          ],
+          "ssl_proxy_headers": {},
+          "ssl_redirect": true,
+          "ssl_certificate": "/certs/localhost.cert.pem",
+          "ssl_private_key": "/certs/localhost.key.pem"
+        }
+      },
       "headers_to_pass": [
         "Authorization"
       ],
@@ -536,7 +800,18 @@
       "endpoint": "/web",
       "method": "GET",
       "output_encoding": "no-op",
-      "extra_config": {},
+      "extra_config": {
+        "github.com/devopsfaith/krakend-httpsecure": {
+          "allowed_hosts": [
+            "localhost:81",
+            "localhost"
+          ],
+          "ssl_proxy_headers": {},
+          "ssl_redirect": true,
+          "ssl_certificate": "/certs/localhost.cert.pem",
+          "ssl_private_key": "/certs/localhost.key.pem"
+        }
+      },
       "backend": [
         {
           "url_pattern": "/dist/web/index.html",
@@ -555,7 +830,18 @@
       "endpoint": "/web/index.html",
       "method": "GET",
       "output_encoding": "no-op",
-      "extra_config": {},
+      "extra_config": {
+        "github.com/devopsfaith/krakend-httpsecure": {
+          "allowed_hosts": [
+            "localhost:81",
+            "localhost"
+          ],
+          "ssl_proxy_headers": {},
+          "ssl_redirect": true,
+          "ssl_certificate": "/certs/localhost.cert.pem",
+          "ssl_private_key": "/certs/localhost.key.pem"
+        }
+      },
       "backend": [
         {
           "url_pattern": "/dist/web/index.html",
@@ -574,7 +860,18 @@
       "endpoint": "/web/favicon.ico",
       "method": "GET",
       "output_encoding": "no-op",
-      "extra_config": {},
+      "extra_config": {
+        "github.com/devopsfaith/krakend-httpsecure": {
+          "allowed_hosts": [
+            "localhost:81",
+            "localhost"
+          ],
+          "ssl_proxy_headers": {},
+          "ssl_redirect": true,
+          "ssl_certificate": "/certs/localhost.cert.pem",
+          "ssl_private_key": "/certs/localhost.key.pem"
+        }
+      },
       "backend": [
         {
           "url_pattern": "/dist/web/favicon.ico",
@@ -593,7 +890,18 @@
       "endpoint": "/web/js/{content}",
       "method": "GET",
       "output_encoding": "no-op",
-      "extra_config": {},
+      "extra_config": {
+        "github.com/devopsfaith/krakend-httpsecure": {
+          "allowed_hosts": [
+            "localhost:81",
+            "localhost"
+          ],
+          "ssl_proxy_headers": {},
+          "ssl_redirect": true,
+          "ssl_certificate": "/certs/localhost.cert.pem",
+          "ssl_private_key": "/certs/localhost.key.pem"
+        }
+      },
       "backend": [
         {
           "url_pattern": "/dist/web/js/{content}",
@@ -612,7 +920,18 @@
       "endpoint": "/web/css/{content}",
       "method": "GET",
       "output_encoding": "no-op",
-      "extra_config": {},
+      "extra_config": {
+        "github.com/devopsfaith/krakend-httpsecure": {
+          "allowed_hosts": [
+            "localhost:81",
+            "localhost"
+          ],
+          "ssl_proxy_headers": {},
+          "ssl_redirect": true,
+          "ssl_certificate": "/certs/localhost.cert.pem",
+          "ssl_private_key": "/certs/localhost.key.pem"
+        }
+      },
       "backend": [
         {
           "url_pattern": "/dist/web/css/{content}",
@@ -631,7 +950,18 @@
       "endpoint": "/web/img/{content}",
       "method": "GET",
       "output_encoding": "no-op",
-      "extra_config": {},
+      "extra_config": {
+        "github.com/devopsfaith/krakend-httpsecure": {
+          "allowed_hosts": [
+            "localhost:81",
+            "localhost"
+          ],
+          "ssl_proxy_headers": {},
+          "ssl_redirect": true,
+          "ssl_certificate": "/certs/localhost.cert.pem",
+          "ssl_private_key": "/certs/localhost.key.pem"
+        }
+      },
       "backend": [
         {
           "url_pattern": "/dist/web/img/{content}",
@@ -650,7 +980,18 @@
       "endpoint": "/api/post/public/location/{value}",
       "method": "GET",
       "output_encoding": "json",
-      "extra_config": {},
+      "extra_config": {
+        "github.com/devopsfaith/krakend-httpsecure": {
+          "allowed_hosts": [
+            "localhost:81",
+            "localhost"
+          ],
+          "ssl_proxy_headers": {},
+          "ssl_redirect": true,
+          "ssl_certificate": "/certs/localhost.cert.pem",
+          "ssl_private_key": "/certs/localhost.key.pem"
+        }
+      },
       "backend": [
         {
           "url_pattern": "/public/location/{value}",
@@ -671,7 +1012,18 @@
       "endpoint": "/api/post/public/hashtag/{value}",
       "method": "GET",
       "output_encoding": "json",
-      "extra_config": {},
+      "extra_config": {
+        "github.com/devopsfaith/krakend-httpsecure": {
+          "allowed_hosts": [
+            "localhost:81",
+            "localhost"
+          ],
+          "ssl_proxy_headers": {},
+          "ssl_redirect": true,
+          "ssl_certificate": "/certs/localhost.cert.pem",
+          "ssl_private_key": "/certs/localhost.key.pem"
+        }
+      },
       "backend": [
         {
           "url_pattern": "/public/hashtag/{value}",
@@ -692,7 +1044,18 @@
       "endpoint": "/api/post/homePage",
       "method": "GET",
       "output_encoding": "json",
-      "extra_config": {},
+      "extra_config": {
+        "github.com/devopsfaith/krakend-httpsecure": {
+          "allowed_hosts": [
+            "localhost:81",
+            "localhost"
+          ],
+          "ssl_proxy_headers": {},
+          "ssl_redirect": true,
+          "ssl_certificate": "/certs/localhost.cert.pem",
+          "ssl_private_key": "/certs/localhost.key.pem"
+        }
+      },
       "headers_to_pass": [
         "Authorization"
       ],
@@ -717,5 +1080,9 @@
   "write_timeout": "0s",
   "idle_timeout": "0s",
   "read_header_timeout": "0s",
-  "disable_rest": false
+  "disable_rest": false,
+  "tls": {
+    "public_key": "/certs/localhost.cert.pem",
+    "private_key": "/certs/localhost.key.pem"
+  }
 }

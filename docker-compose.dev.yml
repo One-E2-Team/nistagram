@@ -9,6 +9,8 @@ services:
             - net_apigateway
         volumes: 
             - ./conf/krakend.json:/etc/krakend/krakend.json
+            - ./conf/certs/localhost.cert.pem:/certs/localhost.cert.pem
+            - ./conf/certs/localhost.key.pem:/certs/localhost.key.pem
         ports: 
             - 81:80
 
