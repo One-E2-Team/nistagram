@@ -62,7 +62,7 @@ export default {
         searchLocation(){
            axios({
             method: "get",
-            url: 'http://' + comm.server + '/api/post/public/location/' + this.searchParams,
+            url: comm.protocol + '://' + comm.server + '/api/post/public/location/' + this.searchParams,
             })
             .then(response => {
             if(response.status==200){
@@ -76,7 +76,7 @@ export default {
       searchHashTags(){
         axios({
             method: "get",
-            url: 'http://' + comm.server + '/api/post/public/hashtag/' + this.searchParams,
+            url: comm.protocol + '://' + comm.server + '/api/post/public/hashtag/' + this.searchParams,
             }).then(response => {
             if(response.status==200){
                let data = {
@@ -89,7 +89,7 @@ export default {
       searchAccounts(){
         axios({
           method: "get",
-          url: 'http://' + comm.server + '/api/profile/search/' + this.searchParams,
+          url: comm.protocol + '://' + comm.server + '/api/profile/search/' + this.searchParams,
         }).then(response => {
           if(response.status==200){
             let data = {

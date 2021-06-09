@@ -91,7 +91,7 @@ import axios from 'axios'
           }
           axios({
             method: "post",
-            url: 'http://' + comm.server + '/api/auth/recover',
+            url: comm.protocol + '://' + comm.server + '/api/auth/recover',
             data: JSON.stringify(data)
           }).then(response => {
             if(response.status==200){

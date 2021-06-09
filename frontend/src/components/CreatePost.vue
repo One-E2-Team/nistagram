@@ -138,7 +138,7 @@
         axios.defaults.headers.common['Authorization'] = 'Bearer ' + comm.getJWTToken().token;
         axios({
           method: "post",
-          url: "http://" + comm.server + "/api/post",
+          url: comm.protocol + "://" + comm.server + "/api/post",
           data: data,
           config: { headers: {...data.headers}}
         }).then(response => {

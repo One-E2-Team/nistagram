@@ -75,7 +75,7 @@
             }
             axios({
                 method: "post",
-                url: 'http://' + comm.server + '/api/auth/login',
+                url: comm.protocol +'://' + comm.server + '/api/auth/login',
                 data: JSON.stringify(credentials)
             }).then(response => {
               if(response.status==200){
@@ -95,7 +95,7 @@
         }
         axios({
           method: "post",
-          url: 'http://' + comm.server + '/api/auth/request-recovery',
+          url: comm.protocol + '://' + comm.server + '/api/auth/request-recovery',
           data: JSON.stringify(mail)
         }).then(response => {
           if(response.status==200){

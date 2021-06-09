@@ -325,7 +325,7 @@ import * as validator from '../plugins/validator.js'
     created(){
       axios({
           method: "get",
-          url: "http://" + comm.server +"/api/profile/interests",
+          url: comm.protocol + "://" + comm.server +"/api/profile/interests",
         }).then(response => {
           if (response.status == 200) {
             this.interests = response.data.collection
@@ -368,7 +368,7 @@ import * as validator from '../plugins/validator.js'
         }
         axios({
           method: "post",
-          url: "http://" + comm.server +"/api/profile/",
+          url: comm.protocol + "://" + comm.server +"/api/profile/",
           data: JSON.stringify(data),
         }).then((response) => {
           if (response.status == 200) {

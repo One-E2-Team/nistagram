@@ -119,7 +119,7 @@ export default {
     created(){
         axios({
             method: 'get',
-            url: "http://" + comm.server + "/api/profile/my-personal-data",
+            url: comm.protocol + "://" + comm.server + "/api/profile/my-personal-data",
             headers: comm.getHeader(),
             }).then(response => {
                 if(response.status == 200){

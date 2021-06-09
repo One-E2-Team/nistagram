@@ -59,7 +59,7 @@ export default {
         getRequests(){
             axios({
                 method: "get",
-                url: 'http://' + comm.server + '/api/connection/following/request',
+                url: comm.protocol +'://' + comm.server + '/api/connection/following/request',
                 headers: comm.getHeader(),
             }).then(response => {
               if(response.status==200){
@@ -70,7 +70,7 @@ export default {
         approve(id){
           axios({
                 method: "post",
-                url: 'http://' + comm.server + '/api/connection/following/approve/' + id,
+                url: comm.protocol + '://' + comm.server + '/api/connection/following/approve/' + id,
                 headers: comm.getHeader(),
             }).then(response => {
               if(response.status==200){
@@ -81,7 +81,7 @@ export default {
         decline(id){
           axios({
                 method: "delete",
-                url: 'http://' + comm.server + '/api/connection/following/request/' + id,
+                url: comm.protocol + '://' + comm.server + '/api/connection/following/request/' + id,
                 headers: comm.getHeader(),
             }).then(response => {
               if(response.status==200){

@@ -32,10 +32,10 @@
                       <v-carousel-item
                       reverse-transition="fade-transition"
                       transition="fade-transition">
-                      <video autoplay loop width="600" height="500" :src="'http://' + server + '/static/data/' + item.filePath" v-if="item.filePath.includes('mp4')">
+                      <video autoplay loop width="600" height="500" :src=" protocol + '://' + server + '/static/data/' + item.filePath" v-if="item.filePath.includes('mp4')">
                         Your browser does not support the video tag.
                       </video>
-                      <img width="600" height="500" :src="'http://' + server + '/static/data/' + item.filePath" v-if="!item.filePath.includes('mp4')">
+                      <img width="600" height="500" :src=" protocol + '://' + server + '/static/data/' + item.filePath" v-if="!item.filePath.includes('mp4')">
 
                       </v-carousel-item>
                 </v-template>
@@ -68,7 +68,7 @@ export default {
         follow(){
             axios({
                 method: "post",
-                url: 'http://' + comm.server + '/api/connection/following/request/' + this.profileId,
+                url: comm.protocol + '://' + comm.server + '/api/connection/following/request/' + this.profileId,
                 headers: comm.getHeader(),
             }).then(response => {
               if(response.status==200){
@@ -82,7 +82,7 @@ export default {
             if(this.isMyProfile){
                 axios({
                 method: "get",
-                url: 'http://' + comm.server + '/api/post/my',
+                url: comm.protocol + '://' + comm.server + '/api/post/my',
                 headers: comm.getHeader(),
             }).then(response => {
               if(response.status==200){
@@ -93,7 +93,7 @@ export default {
             }else{
                 axios({
                 method: "get",
-                url: 'http://' + comm.server + '/api/post/profile/' + this.username,
+                url: comm.protocol + '://' + comm.server + '/api/post/profile/' + this.username,
             }).then(response => {
               if(response.status==200){
                   this.posts = response.data.collection;
