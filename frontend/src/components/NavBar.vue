@@ -7,7 +7,7 @@
                 <router-link to="/">Home</router-link> |
                 <router-link to="/explore">Explore</router-link> |
           </v-col>
-          <v-col cols="12" sm="1">
+          <v-col cols="12" sm="4">
               <v-spacer />
               <settings v-if="isUserLogged"></settings>
           </v-col>
