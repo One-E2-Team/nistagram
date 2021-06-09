@@ -7,6 +7,7 @@ import (
 	uuid "github.com/nu7hatch/gouuid"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"html/template"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -114,7 +115,7 @@ func (handler Handler) GetPostsForHomePage(w http.ResponseWriter, r *http.Reques
 func (handler Handler) GetProfilesPosts(w http.ResponseWriter, r *http.Request){
 
 	params := mux.Vars(r)
-	targetUsername := params["username"]
+	targetUsername := template.HTMLEscapeString(params["username"])
 
 	var followingProfiles []uint
 
@@ -152,7 +153,7 @@ func (handler Handler) GetProfilesPosts(w http.ResponseWriter, r *http.Request){
 
 func (handler *Handler) SearchPublicByLocation(w http.ResponseWriter, r *http.Request){
 	params := mux.Vars(r)
-	location := params["value"]
+	location := template.HTMLEscapeString(params["value"])
 
 	var result []model.Post
 	result = handler.PostService.GetPublicPostByLocation(location)
@@ -164,7 +165,7 @@ func (handler *Handler) SearchPublicByLocation(w http.ResponseWriter, r *http.Re
 
 func (handler *Handler) SearchPublicByHashTag(w http.ResponseWriter, r *http.Request){
 	params := mux.Vars(r)
-	hashTag := params["value"]
+	hashTag := template.HTMLEscapeString(params["value"])
 
 	var result []model.Post
 	result = handler.PostService.GetPublicPostByHashTag(hashTag)
@@ -335,6 +336,7 @@ func (handler *Handler) UpdatePost(w http.ResponseWriter, r *http.Request){
 	id, err := primitive.ObjectIDFromHex(params["id"])
 	var postDto dto.PostDto
 	err = json.NewDecoder(r.Body).Decode(&postDto)
+	postDto = safePostDto(postDto)
 	if err != nil || postType == model.NONE{
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -352,6 +354,7 @@ func (handler *Handler) UpdatePost(w http.ResponseWriter, r *http.Request){
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte("{\"success\":\"ok\"}"))
 }
+
 
 func (handler *Handler) DeleteUserPosts (w http.ResponseWriter, r *http.Request){
 	switch err := handler.PostService.DeleteUserPosts(util.GetLoggedUserIDFromToken(r)) ; err{
@@ -371,7 +374,7 @@ func (handler *Handler) ChangeUsername(w http.ResponseWriter, r *http.Request) {
 	type data struct { Username string `json:"username"` }
 	var input data
 	err := json.NewDecoder(r.Body).Decode(&input)
-
+	input.Username = template.HTMLEscapeString(input.Username)
 	if err != nil{
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -408,6 +411,18 @@ func (handler *Handler) ChangePrivacy (w http.ResponseWriter, r *http.Request) {
 	default:
 		w.WriteHeader(http.StatusInternalServerError)
 	}
+}
+
+func safePostDto(postDto dto.PostDto) dto.PostDto {
+	postDto.Description = template.HTMLEscapeString(postDto.Description)
+	taggedUsers := postDto.TaggedUsers
+	for i := 0; i < len(postDto.TaggedUsers) ; i++ {
+		taggedUsers[i] = template.HTMLEscapeString(postDto.TaggedUsers[i])
+	}
+	postDto.TaggedUsers = taggedUsers
+	postDto.HashTags = template.HTMLEscapeString(postDto.HashTags)
+	postDto.Location = template.HTMLEscapeString(postDto.Location)
+	return postDto
 }
 
 
