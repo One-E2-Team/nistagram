@@ -2,7 +2,7 @@
     <v-container>
         <v-row align="left" >
             <v-col cols="12" sm="11" >
-                <personal-data v-on:loaded-user='profileLoaded($event)' style="height:200px"   />
+                <personal-data v-on:loaded-user='profileLoaded($event)' style="height:200px" v-bind:username="username"/>
                 <v-btn v-if="!isMyProfile"
                 color="warning"
                 elevation="8"
@@ -18,9 +18,6 @@
                 >
                 Create post
                 </v-btn>
-            </v-col>
-            <v-col cols="12" sm="1">
-                <settings v-if="isMyProfile"></settings>
             </v-col>
         </v-row>
         <v-row align="center" justify="center">
@@ -54,18 +51,17 @@ import PersonalData from '../components/PersonalData.vue'
 import FollowRequests from '../components/FollowRequests.vue'
 import axios from 'axios'
 import * as comm from '../configuration/communication.js'
-import Settings from '../components/Settings.vue'
+
 export default {
     components: {
         PersonalData,
         FollowRequests,
-        Settings
     },
+    props: ['username'],
     data: () => ({
       isMyProfile: false,
       profileId: 1,
       posts: [],
-      username: '',
       server: comm.server
     }),
     methods: {
@@ -83,7 +79,6 @@ export default {
         profileLoaded(loadedProfileID){
             this.profileId = loadedProfileID;
             this.isMyProfile = comm.getLoggedUserID() == loadedProfileID;
-            this.username = comm.getUrlVars()['username'];
             if(this.isMyProfile){
                 axios({
                 method: "get",

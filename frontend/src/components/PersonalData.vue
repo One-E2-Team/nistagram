@@ -54,7 +54,7 @@ import axios from 'axios'
 import * as comm from '../configuration/communication.js'
 export default {
 name: "PersonalData",
-
+props: ['username'],
 data: () => ({
     profile: {}
 }),
@@ -62,10 +62,10 @@ methods: {
 
 },
 created(){
-    let username = comm.getUrlVars()['username'];
+    
     axios({
         method: "get",
-        url: 'http://' + comm.server + '/api/profile/get/' + username,
+        url: 'http://' + comm.server + '/api/profile/get/' + this.username,
     }).then(response => {
         if(response.status==200){
             this.profile = response.data;
