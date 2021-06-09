@@ -51,7 +51,7 @@ export default {
     methods:{
         relocate(componentName){
             console.log(componentName)
-            if(commponentName == 'Profile')
+            if(componentName == 'Profile')
                 this.$router.push({name: componentName, params: {username: comm.getLoggedUserUsername()}})
             this.$router.push({name:componentName})
         }

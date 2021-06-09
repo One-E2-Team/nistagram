@@ -2,7 +2,7 @@
     <v-container>
         <v-row align="left" >
             <v-col cols="12" sm="11" >
-                <personal-data v-on:loaded-user='profileLoaded($event)' style="height:200px"   />
+                <personal-data v-on:loaded-user='profileLoaded($event)' style="height:200px" v-bind:username="username"/>
                 <v-btn v-if="!isMyProfile"
                 color="warning"
                 elevation="8"
