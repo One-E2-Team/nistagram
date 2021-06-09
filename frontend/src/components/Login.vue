@@ -68,6 +68,7 @@
 
     methods: {
       login () {
+        this.$root.$emit('loggedUser', this.$refs.form.validate())
         if (this.$refs.form.validate()){
             let credentials = {
                 "email" : this.email,

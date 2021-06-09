@@ -9,7 +9,7 @@
           </v-col>
           <v-col cols="12" sm="1">
               <v-spacer />
-              <settings v-if="IsUsserLogged()"></settings>
+              <settings v-if="isUserLogged"></settings>
           </v-col>
         </v-row>
       </v-container>
@@ -24,10 +24,15 @@ export default {
     components: {
       Settings
     },
-    computed:{
-      IsUsserLogged() {
-        return comm.getLoggedUserUsername() != null
+    data(){
+      return {
+        isUserLogged: comm.getLoggedUserUsername() != null
       }
     },
+    mounted(){
+      this.$root.$on('loggedUser', () => {
+        this.isUserLogged = comm.getLoggedUserUsername() != null;
+      })
+    }
 }
 </script>
