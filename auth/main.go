@@ -84,6 +84,7 @@ func handlerFunc(handler *handler.AuthHandler) {
 	router.HandleFunc("/recover", handler.ChangePassword).Methods("POST")
 	router.HandleFunc("/update-user", handler.UpdateUser).Methods("POST")
 	router.HandleFunc("/validate/{id}/{uuid}", handler.ValidateUser).Methods("GET")
+	router.HandleFunc("/privileges/{profileId}", handler.GetPrivileges).Methods("GET")
 	_, port := util.GetAuthHostAndPort()
 	err := http.ListenAndServe(":"+port, router)
 	if err != nil {

@@ -35,9 +35,13 @@ func (service *AuthService) LogIn(dto dto.LogInDTO) (*model.User, error) {
 
 func (service *AuthService) Register(dto dto.RegisterDTO) error {
 	pass := hashAndSalt(dto.Password)
+	role, err := service.AuthRepository.GetRoleByName("REGULAR")
+	if err != nil {
+		return err
+	}
 	user := model.User{ProfileId: util.String2Uint(dto.ProfileIdString), Password: pass, Email: dto.Email, Username: dto.Username,
-		ValidationUid: uuid.NewString(), Roles: nil, IsDeleted: false, IsValidated: false, ValidationExpire: time.Now().Add(1 * time.Hour)}
-	err := service.AuthRepository.CreateUser(&user)
+		ValidationUid: uuid.NewString(), Roles: []model.Role{*role}, IsDeleted: false, IsValidated: false, ValidationExpire: time.Now().Add(1 * time.Hour)}
+	err = service.AuthRepository.CreateUser(&user)
 	if err != nil {
 		return err
 	}
@@ -117,6 +121,18 @@ func (service *AuthService) ValidateUser(id string, uuid string) error {
 	user.ValidationExpire = time.Now()
 	err = service.AuthRepository.UpdateUser(*user)
 	return err
+}
+
+func (service *AuthService) GetPrivileges(id uint) *[]string {
+	user, uerr := service.AuthRepository.GetUserByProfileID(id)
+	if uerr != nil {
+		return nil
+	}
+	privileges, err := service.AuthRepository.GetPrivilegesByUserID(user.ID)
+	if err != nil {
+		return nil
+	}
+	return privileges
 }
 
 func hashAndSalt(pass string) string {

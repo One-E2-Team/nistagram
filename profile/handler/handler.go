@@ -4,8 +4,6 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
-	"gopkg.in/go-playground/validator.v9"
 	"net/http"
 	"nistagram/profile/dto"
 	"nistagram/profile/service"
@@ -13,6 +11,8 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"github.com/gorilla/mux"
+	"gopkg.in/go-playground/validator.v9"
 )
 
 type Handler struct {
