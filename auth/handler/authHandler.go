@@ -163,3 +163,17 @@ func (handler *AuthHandler) ValidateUser(w http.ResponseWriter, r *http.Request)
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 }
+
+func (handler *AuthHandler) GetPrivileges(writer http.ResponseWriter, request *http.Request) {
+	vars := mux.Vars(request)
+	id := util.String2Uint(vars["profileId"])
+	var privileges *[]string = handler.AuthService.GetPrivileges(id)
+	if privileges == nil  || len(*privileges) == 0 {
+		var temp []string = make([]string, 0)
+		writer.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(writer).Encode(temp)
+	} else {
+		writer.WriteHeader(http.StatusOK)
+		json.NewEncoder(writer).Encode(privileges)
+	}
+}

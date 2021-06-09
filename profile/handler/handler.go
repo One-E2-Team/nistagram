@@ -3,12 +3,13 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
-	"gopkg.in/go-playground/validator.v9"
 	"net/http"
 	"nistagram/profile/dto"
 	"nistagram/profile/service"
 	"nistagram/util"
+
+	"github.com/gorilla/mux"
+	"gopkg.in/go-playground/validator.v9"
 )
 
 type Handler struct {
@@ -69,7 +70,6 @@ func (handler *Handler) GetProfileByUsername(w http.ResponseWriter, r *http.Requ
 }
 
 func (handler *Handler) ChangeProfileSettings(w http.ResponseWriter, r *http.Request) {
-	util.LoggedUserHasPermission("", r)
 	var dto dto.ProfileSettingsDTO
 	err := json.NewDecoder(r.Body).Decode(&dto)
 	if err != nil {

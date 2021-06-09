@@ -123,6 +123,18 @@ func (service *AuthService) ValidateUser(id string, uuid string) error {
 	return err
 }
 
+func (service *AuthService) GetPrivileges(id uint) *[]string {
+	user, uerr := service.AuthRepository.GetUserByProfileID(id)
+	if uerr != nil {
+		return nil
+	}
+	privileges, err := service.AuthRepository.GetPrivilegesByUserID(user.ID)
+	if err != nil {
+		return nil
+	}
+	return privileges
+}
+
 func hashAndSalt(pass string) string {
 	bytePass := []byte(pass)
 	hash, err := bcrypt.GenerateFromPassword(bytePass, bcrypt.DefaultCost)
