@@ -13,7 +13,7 @@
           <v-text-field
             v-model ="password1"
             :append-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
-            :rules="[rules.required, rules.min]"
+            :rules="[rules.password]"
             :type="show ? 'text' : 'password'"
             label="Enter password"
             hint="At least 8 characters"
