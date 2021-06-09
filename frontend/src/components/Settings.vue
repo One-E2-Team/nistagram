@@ -32,6 +32,7 @@
 </template>
 
 <script>
+import * as comm from '../configuration/communication.js'
 export default {
     name : "Settings",
 
@@ -41,13 +42,17 @@ export default {
                 {title: 'Personal settings',
                 name: 'PersonalSettings'},
                 {title: 'Profile settings',
-                name: 'ProfileSettings'}]
+                name: 'ProfileSettings'},
+                {title: 'My profile',
+                name: 'Profile'}]
         }
     },
 
     methods:{
         relocate(componentName){
             console.log(componentName)
+            if(componentName == 'Profile')
+                this.$router.push({name: componentName, params: {username: comm.getLoggedUserUsername()}})
             this.$router.push({name:componentName})
         }
     }

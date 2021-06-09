@@ -43,10 +43,23 @@
                 <v-text-field
                     v-model="credentials.password"
                     :append-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
-                    :rules="[rules.required, rules.min]"
+                    :rules="[rules.required, rules.password]"
                     :type="show ? 'text' : 'password'"
                     label="Password"
-                    hint="At least 8 characters"
+                    hint="At least 8 characters, 1 lower, 1 capital letter, 1 number and 1 special character"
+                    counter
+                    @click:append="show = !show"
+                    ></v-text-field>
+              </v-col>
+            </v-row>
+             <v-row align="center" justify="center">
+              <v-col cols="12" sm="6">
+                <v-text-field
+                    v-model="password2"
+                    :rules="[passworMatch, rules.required]"
+                    :type="'password'"
+                    label="Confirm password"
+                    hint="Password must match"
                     counter
                     @click:append="show = !show"
                     ></v-text-field>
@@ -132,7 +145,6 @@
             <v-col cols="12" sm="8" >          
               <v-text-field
                 v-model="person.telephone"
-                :rules="[ rules.required , rules.name] "
                 label="Telephone:"
                 required
                 ></v-text-field>
@@ -278,7 +290,7 @@ import * as validator from '../plugins/validator.js'
     data: () => ({
       e1: 1,
       show: false,
-      valid: true,
+      valid: false,
       credentials: {
         email: '',
         password: '',
@@ -296,10 +308,10 @@ import * as validator from '../plugins/validator.js'
       } ,  
       interests: [],
       isPrivate: false,
-
+      password2: '',
       rules: validator.rules,
-
-        menu: false
+      passwordMatch: () => (this.credentials.password === this.password2) || 'Password must match',
+      menu: false
     }),
 
     created(){
@@ -321,13 +333,11 @@ import * as validator from '../plugins/validator.js'
         if (this.$refs.form1.validate()){
             this.e1 = 2 
         }
-        this.e1 = 2
       },
       continueTo3(){
         if (this.$refs.form2.validate()){
             this.e1 = 3
         }
-        this.e1 = 3
       },
       remove (item) {
         this.person.interests.splice(this.person.interests.indexOf(item), 1)

@@ -81,6 +81,7 @@
               if(response.status==200){
                 comm.setJWTToken(response.data);
                 this.$router.push({name: "HomePage"})
+                this.$root.$emit('loggedUser')
                 //axios.defaults.headers.common['Authorization'] = 'Bearer ' + comm.getJWTToken().token;
               }
             }) //TODO: redirect

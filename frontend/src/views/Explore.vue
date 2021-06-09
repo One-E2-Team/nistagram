@@ -140,7 +140,7 @@ import Search from '../components/Search.vue'
         }
       },
       redirect(username){
-        this.$router.push("/profile?username=" + username);
+        this.$router.push({name: 'Profile', params: {username: username}})
       }
     }
   }
