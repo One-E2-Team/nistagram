@@ -69,6 +69,7 @@ func (handler *Handler) GetProfileByUsername(w http.ResponseWriter, r *http.Requ
 }
 
 func (handler *Handler) ChangeProfileSettings(w http.ResponseWriter, r *http.Request) {
+	util.LoggedUserHasPermission("", r)
 	var dto dto.ProfileSettingsDTO
 	err := json.NewDecoder(r.Body).Decode(&dto)
 	if err != nil {

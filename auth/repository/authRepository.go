@@ -41,3 +41,11 @@ func (repo *AuthRepository) UpdateUser(user model.User) error {
 	}
 	return nil
 }
+
+func (repo *AuthRepository) GetRoleByName(name string) (*model.Role, error) {
+	role := &model.Role{}
+	if err := repo.Database.Table("roles").First(&role, "name = ?", name).Error; err != nil {
+		return nil, err
+	}
+	return role, nil
+}
