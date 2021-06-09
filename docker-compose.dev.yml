@@ -33,6 +33,8 @@ services:
             args:
                 ARG_TARGET_MS_GO: profile
             dockerfile: Build.dockerfile
+        volumes:
+            - "./common_pass.txt:/nistagram/common_pass.txt"
         networks: 
             - net_apigateway
             - net_db_relational
