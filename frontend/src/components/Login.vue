@@ -68,7 +68,6 @@
 
     methods: {
       login () {
-        this.$root.$emit('loggedUser', this.$refs.form.validate())
         if (this.$refs.form.validate()){
             let credentials = {
                 "email" : this.email,
@@ -82,6 +81,7 @@
               if(response.status==200){
                 comm.setJWTToken(response.data);
                 this.$router.push({name: "HomePage"})
+                this.$root.$emit('loggedUser')
                 //axios.defaults.headers.common['Authorization'] = 'Bearer ' + comm.getJWTToken().token;
               }
             }) //TODO: redirect
