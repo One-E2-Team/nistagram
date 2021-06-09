@@ -1,5 +1,7 @@
 export let server = 'localhost:81'
 
+export let protocol = 'http'
+
 export function setJWTToken(jwt) {
   sessionStorage.setItem("JWT", JSON.stringify(jwt));
 }

@@ -28,10 +28,10 @@
                       <v-carousel-item
                       reverse-transition="fade-transition"
                       transition="fade-transition">
-                      <video autoplay  width="600" height="500" :src="'http://' + server + '/static/data/' + item.filePath" v-if="item.filePath.includes('mp4')">
+                      <video autoplay  width="600" height="500" :src=" protocol + '://' + server + '/static/data/' + item.filePath" v-if="item.filePath.includes('mp4')">
                         Your browser does not support the video tag.
                       </video>
-                      <img width="600" height="500" :src="'http://' + server + '/static/data/' + item.filePath" v-if="!item.filePath.includes('mp4')">
+                      <img width="600" height="500" :src=" protocol + '://' + server + '/static/data/' + item.filePath" v-if="!item.filePath.includes('mp4')">
 
                       </v-carousel-item>
              </v-template>
@@ -57,10 +57,10 @@
                       <v-carousel-item
                       reverse-transition="fade-transition"
                       transition="fade-transition">
-                      <video autoplay loop width="600" height="500" :src="'http://' + server + '/static/data/' + item.filePath" v-if="item.filePath.includes('mp4')">
+                      <video autoplay loop width="600" height="500" :src=" protocol + '://' + server + '/static/data/' + item.filePath" v-if="item.filePath.includes('mp4')">
                         Your browser does not support the video tag.
                       </video>
-                      <img width="600" height="500" :src="'http://' + server + '/static/data/' + item.filePath" v-if="!item.filePath.includes('mp4')">
+                      <img width="600" height="500" :src=" protocol + '://' + server + '/static/data/' + item.filePath" v-if="!item.filePath.includes('mp4')">
 
                       </v-carousel-item>
              </v-template>
@@ -111,7 +111,7 @@ import Search from '../components/Search.vue'
       Search
     },
      mounted(){
-        axios.get("http://" + comm.server +"/api/post/public").then((response) => {
+        axios.get(comm.protocol + "://" + comm.server +"/api/post/public").then((response) => {
           if(response.status == 200){
             this.posts = response.data.collection;
           }
@@ -125,6 +125,7 @@ import Search from '../components/Search.vue'
       posts : [],
       searchType: "posts", //possible values: {accounts, posts}
       server: comm.server,
+      protocol: comm.protocol,
       usernames:[]
     }),
 

@@ -10,7 +10,7 @@
       >
         <v-text-field
             v-model="person.username"
-            :rules="[ rules.required , rules.name] "
+            :rules="[ rules.required , rules.username] "
             label="Username:"
             required
             ></v-text-field>
@@ -24,13 +24,13 @@
 
         <v-text-field
             v-model="person.name"
-            :rules="[ rules.required , rules.name] "
+            :rules="[ rules.required ] "
             label="Name:"
             required
             ></v-text-field>   
         <v-text-field
             v-model="person.surname"
-            :rules="[ rules.required , rules.name] "
+            :rules="[ rules.required] "
             label="Surname:"
             required
             ></v-text-field>
@@ -61,9 +61,7 @@
 
         <v-text-field
             v-model="person.telephone"
-            :rules="[ rules.required , rules.name] "
             label="Telephone:"
-            required
             ></v-text-field>
         
         <div class="text-left">
@@ -121,7 +119,7 @@ export default {
     created(){
         axios({
             method: 'get',
-            url: "http://" + comm.server + "/api/profile/my-personal-data",
+            url: comm.protocol + "://" + comm.server + "/api/profile/my-personal-data",
             headers: comm.getHeader(),
             }).then(response => {
                 if(response.status == 200){

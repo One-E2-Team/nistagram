@@ -13,7 +13,7 @@
           <v-text-field
             v-model ="password1"
             :append-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
-            :rules="[rules.required, rules.min]"
+            :rules="[rules.password]"
             :type="show ? 'text' : 'password'"
             label="Enter password"
             hint="At least 8 characters"
@@ -91,7 +91,7 @@ import axios from 'axios'
           }
           axios({
             method: "post",
-            url: 'http://' + comm.server + '/api/auth/recover',
+            url: comm.protocol + '://' + comm.server + '/api/auth/recover',
             data: JSON.stringify(data)
           }).then(response => {
             if(response.status==200){

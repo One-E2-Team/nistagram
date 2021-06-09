@@ -51,7 +51,7 @@
                 <v-text-field
                     v-model="credentials.password"
                     :append-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
-                    :rules="[rules.required, rules.password]"
+                    :rules="[ rules.password ]"
                     :type="show ? 'text' : 'password'"
                     label="Password"
                     hint="At least 8 characters, 1 lower, 1 capital letter, 1 number and 1 special character"
@@ -69,7 +69,6 @@
                     label="Confirm password"
                     hint="Password must match"
                     counter
-                    @click:append="show = !show"
                     ></v-text-field>
               </v-col>
             </v-row>
@@ -95,18 +94,18 @@
             <v-row align="center" justify="center">
               <v-col cols="12" sm="8" >
                 <v-text-field
-                  v-model="person.username"
-                  :rules="[ rules.required , rules.name] "
-                  label="Username:"
-                  required
-                  ></v-text-field>
+                    v-model="person.username"
+                    :rules="[ rules.username , rules.required] "
+                    label="Username:"
+                    required
+                    ></v-text-field>
               </v-col>
             </v-row>
           <v-row align="center" justify="center">
             <v-col cols="12" sm="8" >
               <v-text-field
                 v-model="person.name"
-                :rules="[ rules.required , rules.name] "
+                :rules="[ rules.required ] "
                 label="Name:"
                 required
                 ></v-text-field>
@@ -116,7 +115,7 @@
             <v-col cols="12" sm="8" >  
               <v-text-field
                 v-model="person.surname"
-                :rules="[ rules.required , rules.name] "
+                :rules="[ rules.required , rules.max ] "
                 label="Surname:"
                 required
                 ></v-text-field>
@@ -154,7 +153,6 @@
               <v-text-field
                 v-model="person.telephone"
                 label="Telephone:"
-                required
                 ></v-text-field>
             </v-col>
           </v-row>
@@ -273,7 +271,7 @@
               <v-btn
               color="normal"
               class="d-flex justify-space-around mb-6"
-              @click="e1=1">
+              @click="e1=2">
               Back
               </v-btn>
             </v-col>
@@ -327,7 +325,7 @@ import * as validator from '../plugins/validator.js'
     created(){
       axios({
           method: "get",
-          url: "http://" + comm.server +"/api/profile/interests",
+          url: comm.protocol + "://" + comm.server +"/api/profile/interests",
         }).then(response => {
           if (response.status == 200) {
             this.interests = response.data.collection
@@ -370,7 +368,7 @@ import * as validator from '../plugins/validator.js'
         }
         axios({
           method: "post",
-          url: "http://" + comm.server +"/api/profile/",
+          url: comm.protocol + "://" + comm.server +"/api/profile/",
           data: JSON.stringify(data),
         }).then((response) => {
           if (response.status == 200) {

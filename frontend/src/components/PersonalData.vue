@@ -65,7 +65,7 @@ created(){
     
     axios({
         method: "get",
-        url: 'http://' + comm.server + '/api/profile/get/' + this.username,
+        url: comm.protocol + '://' + comm.server + '/api/profile/get/' + this.username,
     }).then(response => {
         if(response.status==200){
             this.profile = response.data;
