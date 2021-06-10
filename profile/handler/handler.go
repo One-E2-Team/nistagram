@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/mux"
+	"gopkg.in/go-playground/validator.v9"
 	"html/template"
 	"net/http"
 	"nistagram/profile/dto"
@@ -12,9 +14,6 @@ import (
 	"os"
 	"regexp"
 	"strings"
-
-	"github.com/gorilla/mux"
-	"gopkg.in/go-playground/validator.v9"
 )
 
 type Handler struct {
@@ -68,7 +67,7 @@ func (handler *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		if ret == false {
 			return false
 		}
-		ret, _ = regexp.MatchString("(.*[*!@#$%^&(){}\\[:;\\]<>,.?~_+\\\\=|/].*)", fl.Field().String())
+		ret, _ = regexp.MatchString("(.*[*!@#$%^&(){}\\[:;\\]<>,.?~_+\\-\\\\=|/].*)", fl.Field().String())
 		if err != nil {
 			fmt.Println(err)
 			return false
@@ -169,8 +168,6 @@ func (handler *Handler) ChangePersonalData(w http.ResponseWriter, r *http.Reques
 	w.Header().Set("Content-Type", "application/json")
 }
 
-
-
 func (handler *Handler) Test(w http.ResponseWriter, r *http.Request) {
 	var key string
 	err := json.NewDecoder(r.Body).Decode(&key)
@@ -251,7 +248,7 @@ func safeRegistrationDto(dto dto.RegistrationDto) dto.RegistrationDto {
 	dto.Telephone = template.HTMLEscapeString(dto.Telephone)
 	dto.WebSite = template.HTMLEscapeString(dto.WebSite)
 	interests := dto.InterestedIn
-	for i:=0 ; i< len(dto.InterestedIn); i++ {
+	for i := 0; i < len(dto.InterestedIn); i++ {
 		interests[i] = template.HTMLEscapeString(dto.InterestedIn[i])
 	}
 	return dto
