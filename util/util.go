@@ -7,6 +7,30 @@ import (
 	"strconv"
 )
 
+type LogType int
+
+const (
+	INFO LogType = iota
+	WARN
+	SUCCESS
+	ERROR
+)
+
+func (e LogType) ToString() string {
+	switch e {
+	case INFO:
+		return "INFO"
+	case WARN:
+		return "WARN"
+	case SUCCESS:
+		return "SUCCESS"
+	case ERROR:
+		return "ERROR"
+	default:
+		return fmt.Sprintf("%d", int(e))
+	}
+}
+
 func SendMail(sendTo string, subject string, mailMessage string) {
 	from := os.Getenv("MAIL_USERNAME")
 	password := os.Getenv("MAIL_PASSWORD")

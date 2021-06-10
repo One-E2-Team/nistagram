@@ -37,6 +37,7 @@ services:
             dockerfile: Build.dockerfile
         volumes:
             - ./common_pass.txt:/nistagram/common_pass.txt:ro
+            - ../logs/profile:/logs/profile
         networks: 
             - net_apigateway
             - net_db_relational
@@ -57,6 +58,8 @@ services:
             args:
                 ARG_TARGET_MS_GO: auth
             dockerfile: Build.dockerfile
+        volumes:
+            - ../logs/auth:/logs/auth
         networks: 
             - net_apigateway
             - net_db_relational
@@ -75,6 +78,8 @@ services:
             args:
                 ARG_TARGET_MS_GO: connection
             dockerfile: Build.dockerfile
+        volumes:
+            - ../logs/connection:/logs/connection
         networks: 
             - net_apigateway
             - net_db_graph
@@ -95,6 +100,7 @@ services:
                 ARG_TARGET_MS_GO: post
         volumes:
             - "../nistagramstaticdata:/nistagramstaticdata"
+            - ../logs/post:/logs/post
 
         networks:
             - net_apigateway
