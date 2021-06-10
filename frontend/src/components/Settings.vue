@@ -58,13 +58,15 @@ export default {
         relocate(componentName){
             console.log(componentName)
             if(componentName == 'Profile') {
-                this.$router.push({name: componentName, params: {username: comm.getLoggedUserUsername()}})
+                this.$router.push({name: componentName, params: {username: comm.getLoggedUserUsername()}});
                 return; //this return must stay here because method propagate and switch to undefined route on line bellow if
             }
             this.$router.push({name:componentName})
         },
         logOut(){
-            comm.logOut()
+            comm.logOut();
+            this.$root.$emit('loggedUser')
+            this.$router.push({name: 'Home'});
         }
     }
 }
