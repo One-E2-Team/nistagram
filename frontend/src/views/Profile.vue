@@ -62,7 +62,8 @@ export default {
       isMyProfile: false,
       profileId: 1,
       posts: [],
-      server: comm.server
+      server: comm.server,
+      protocol: comm.protocol
     }),
     methods: {
         follow(){

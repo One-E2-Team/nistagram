@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	"html/template"
 	"net/http"
 	"nistagram/auth/dto"
 	"nistagram/auth/model"
@@ -62,6 +63,7 @@ func (handler *AuthHandler) LogIn(w http.ResponseWriter, r *http.Request) {
 func (handler *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var registerDTO dto.RegisterDTO
 	err := json.NewDecoder(r.Body).Decode(&registerDTO)
+	registerDTO = safeRegisterDTO(registerDTO)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -79,6 +81,7 @@ func (handler *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write([]byte("{\"success\":\"ok\"}"))
 	w.Header().Set("Content-Type", "application/json")
 }
+
 
 func (handler *AuthHandler) RequestPassRecovery(w http.ResponseWriter, r *http.Request) {
 	var email string
@@ -125,6 +128,7 @@ func (handler *AuthHandler) ChangePassword(w http.ResponseWriter, r *http.Reques
 func (handler *AuthHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	var updateUserDto dto.UpdateUserDTO
 	err := json.NewDecoder(r.Body).Decode(&updateUserDto)
+	updateUserDto = safeUpdateUserDto(updateUserDto)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -186,4 +190,21 @@ func (handler *AuthHandler) GetPrivileges(writer http.ResponseWriter, request *h
 			return
 		}
 	}
+}
+
+
+func safeRegisterDTO(dto dto.RegisterDTO) dto.RegisterDTO {
+	dto.Username = sanitize(dto.Username)
+	dto.Email = sanitize(dto.Email)
+	return dto
+}
+
+func safeUpdateUserDto(dto dto.UpdateUserDTO) dto.UpdateUserDTO {
+	dto.Username = sanitize(dto.Username)
+	dto.Email = sanitize(dto.Email)
+	return dto
+}
+
+func sanitize(str string) string {
+	return  template.HTMLEscapeString(str)
 }
