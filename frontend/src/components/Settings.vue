@@ -24,6 +24,12 @@
                     >
                         <v-list-item-title @click="relocate(item.name)">{{ item.title }}</v-list-item-title>
                     </v-list-item>
+                    <v-list-item>
+                        <v-divider/>
+                    </v-list-item>
+                    <v-list-item>
+                        <v-list-item-title @click="logOut()">Log out</v-list-item-title>
+                    </v-list-item>
                     </v-list>
                 </v-menu>
             </v-col>
@@ -56,6 +62,9 @@ export default {
                 return; //this return must stay here because method propagate and switch to undefined route on line bellow if
             }
             this.$router.push({name:componentName})
+        },
+        logOut(){
+            comm.logOut()
         }
     }
 }

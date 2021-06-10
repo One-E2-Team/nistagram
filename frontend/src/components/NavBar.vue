@@ -4,8 +4,9 @@
         <v-row align="center" justify="center">
           <v-col cols="12" sm="4"><v-spacer/></v-col>
           <v-col cols="12" sm="4">
-                <router-link to="/">Home</router-link> |
-                <router-link to="/explore">Explore</router-link> |
+                <router-link v-if="isUserLogged" to="/homePage">Home page</router-link> 
+                <router-link v-else to="/">Home</router-link> |
+                <router-link to="/explore">Explore</router-link>
           </v-col>
           <v-col cols="12" sm="4">
               <v-spacer />

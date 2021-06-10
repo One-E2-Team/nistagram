@@ -28,6 +28,10 @@ export function getLoggedUserID() {
   return 0;
 }
 
+export function isUserLogged() {
+  return getLoggedUserID() != 0;
+}
+
 export function getLoggedUserUsername() {
   if (getJWTToken()) {
     return getJWTToken().username;

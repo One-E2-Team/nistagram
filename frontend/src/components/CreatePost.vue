@@ -126,7 +126,10 @@
       isCloseFriendsOnly: false,
       files : [],
     }),
-
+    mounted(){
+      if( !comm.isUserLogged() )
+        this.$router.push({name: 'NotFound'})
+    },
     methods: {
       resetForm () {
         Object.keys(this.form).forEach(f => {
