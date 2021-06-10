@@ -323,6 +323,11 @@ import * as validator from '../plugins/validator.js'
       menu: false
     }),
 
+    beforeCreate(){
+       if (this.isAvailable()){
+          this.$router.push({name: 'NotFound'})
+        }
+    },
     created(){
       axios({
           method: "get",
@@ -338,6 +343,9 @@ import * as validator from '../plugins/validator.js'
     },
 
     methods: {
+      isAvailable(){
+        return !comm.isUserLogged()
+      },
       continueTo2 () {
         if (this.$refs.form1.validate()){
             this.e1 = 2 
