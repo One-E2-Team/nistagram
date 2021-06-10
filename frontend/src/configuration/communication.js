@@ -48,7 +48,6 @@ export function setLoggedUserUsername(u) {
 export function logOut() {
   sessionStorage.removeItem("JWT");
   console.log(sessionStorage.getItem("JWT"));
-  window.location.href = '/';
 }
 
 export function getUrlVars() {

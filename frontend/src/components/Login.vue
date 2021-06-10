@@ -65,14 +65,14 @@
 
       rules: validator.rules
     }),
-    beforeCreate(){
+    mounted(){
        if (this.isAvailable()){
           this.$router.push({name: 'NotFound'})
         }
     },
     methods: {
       isAvailable(){
-        return !comm.isUserLogged()
+        return comm.isUserLogged()
       },
       login () {
         if (this.$refs.form.validate()){

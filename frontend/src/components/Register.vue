@@ -323,7 +323,7 @@ import * as validator from '../plugins/validator.js'
       menu: false
     }),
 
-    beforeCreate(){
+    mounted(){
        if (this.isAvailable()){
           this.$router.push({name: 'NotFound'})
         }
@@ -344,7 +344,7 @@ import * as validator from '../plugins/validator.js'
 
     methods: {
       isAvailable(){
-        return !comm.isUserLogged()
+        return comm.isUserLogged()
       },
       continueTo2 () {
         if (this.$refs.form1.validate()){
@@ -375,6 +375,7 @@ import * as validator from '../plugins/validator.js'
           webSite: this.person.webSite,
           interestedIn: this.person.interests
         }
+        //TODO: must enter at least 1 interest
         axios({
           method: "post",
           url: comm.protocol + "://" + comm.server +"/api/profile/",
