@@ -41,11 +41,11 @@ func (handler *AuthHandler) LogIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	resp := dto.TokenResponseDTO{
-		Token: token,
-		Email: user.Email,
+		Token:     token,
+		Email:     user.Email,
 		ProfileId: user.ProfileId,
-		Roles: user.Roles,
-		Username: user.Username,
+		Roles:     user.Roles,
+		Username:  user.Username,
 	}
 	respJson, err := json.Marshal(resp)
 	if err != nil {
@@ -154,7 +154,9 @@ func (handler *AuthHandler) ValidateUser(w http.ResponseWriter, r *http.Request)
 	}
 	w.WriteHeader(http.StatusOK)
 	//TODO: parametrize host
-	_, err = fmt.Fprintf(w, "<html><head><script>window.location.href = \"http://localhost:81/web#/log-in\";</script></head><body></body></html>")
+	frontHost, frontPort := util.GetFrontHostAndPort()
+	_, err = fmt.Fprintf(w, "<html><head><script>window.location.href = \""+util.FrontProtocol+"://"+
+		frontHost+":"+frontPort+"/web#/log-in\";</script></head><body></body></html>")
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -167,13 +169,21 @@ func (handler *AuthHandler) ValidateUser(w http.ResponseWriter, r *http.Request)
 func (handler *AuthHandler) GetPrivileges(writer http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 	id := util.String2Uint(vars["profileId"])
-	var privileges *[]string = handler.AuthService.GetPrivileges(id)
-	if privileges == nil  || len(*privileges) == 0 {
-		var temp []string = make([]string, 0)
+	var privileges = handler.AuthService.GetPrivileges(id)
+	if privileges == nil || len(*privileges) == 0 {
+		var temp = make([]string, 0)
 		writer.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(writer).Encode(temp)
+		err := json.NewEncoder(writer).Encode(temp)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
 	} else {
 		writer.WriteHeader(http.StatusOK)
-		json.NewEncoder(writer).Encode(privileges)
+		err := json.NewEncoder(writer).Encode(privileges)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
 	}
 }

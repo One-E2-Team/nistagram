@@ -46,8 +46,9 @@ func (service *AuthService) Register(dto dto.RegisterDTO) error {
 		return err
 	}
 	//TODO: change host, port and html page
-	message := "Visit this link in the next 60 minutes to validate your account: http://localhost:81/api/auth/validate/" +
-	util.Uint2String(user.ProfileId) + "/" + user.ValidationUid
+	gatewayHost, gatewayPort := util.GetGatewayHostAndPort()
+	message := "Visit this link in the next 60 minutes to validate your account: " + util.MicroservicesProtocol +
+		"://" + gatewayHost + ":" + gatewayPort + "/api/auth/validate/" + util.Uint2String(user.ProfileId) + "/" + user.ValidationUid
 	go util.SendMail(dto.Email, "Account Validation", message)
 	return nil
 }
@@ -76,7 +77,8 @@ func (service *AuthService) RequestPassRecovery(email string) error {
 		return err
 	}
 	//TODO: change host, port
-	var message = "Visit this link in the next 20 minutes to change your password: http://localhost:81/web#/reset-password?id=" +
+	frontHost, frontPort := util.GetFrontHostAndPort()
+	var message = "Visit this link in the next 20 minutes to change your password: " + util.FrontProtocol + "://" + frontHost + ":" + frontPort + "/web#/reset-password?id=" +
 		util.Uint2String(user.ProfileId) + "&str=" + user.ValidationUid
 	go util.SendMail(user.Email, "Recovery password", message)
 	return nil
@@ -124,8 +126,8 @@ func (service *AuthService) ValidateUser(id string, uuid string) error {
 }
 
 func (service *AuthService) GetPrivileges(id uint) *[]string {
-	user, uerr := service.AuthRepository.GetUserByProfileID(id)
-	if uerr != nil {
+	user, err := service.AuthRepository.GetUserByProfileID(id)
+	if err != nil {
 		return nil
 	}
 	privileges, err := service.AuthRepository.GetPrivilegesByUserID(user.ID)

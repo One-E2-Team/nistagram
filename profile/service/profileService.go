@@ -23,7 +23,8 @@ func (service *ProfileService) Register(dto dto.RegistrationDto) error {
 		interest := service.ProfileRepository.FindInterestByName(item)
 		personalData.AddItem(interest)
 	}
-	profile := model.Profile{Username: dto.Username, Email: dto.Email, ProfileSettings: profileSettings, PersonalData: personalData, Biography: dto.Biography, Website: dto.WebSite, Type: model.REGULAR}
+	profile := model.Profile{Username: dto.Username, Email: dto.Email, ProfileSettings: profileSettings,
+		PersonalData: personalData, Biography: dto.Biography, Website: dto.WebSite, Type: model.REGULAR}
 	err := service.ProfileRepository.CreateProfile(&profile)
 	if err != nil {
 		return err
@@ -34,15 +35,39 @@ func (service *ProfileService) Register(dto dto.RegistrationDto) error {
 		"email":     profile.Email,
 		"username":  profile.Username,
 	})
+	//responseBody := bytes.NewBuffer(postBody)
+	go func() {
+		err := registerInAuth(postBody)
+		if err != nil {
+			fmt.Println("auth bug")
+			fmt.Println(err)
+		}
+	}()
+	go func() {
+		err := registerInConnection(profile.ID, postBody)
+		if err != nil {
+			fmt.Println("conn bug")
+			fmt.Println(err)
+		}
+	}()
+	return nil
+}
+
+func registerInAuth(postBody []byte) error {
 	responseBody := bytes.NewBuffer(postBody)
 	authHost, authPort := util.GetAuthHostAndPort()
-	_, err = http.Post("http://"+authHost+":"+authPort+"/register", "application/json", responseBody)
+	_, err := http.Post(util.CrossServiceProtocol+"://"+authHost+":"+authPort+"/register", "application/json", responseBody)
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
+	return nil
+}
+
+func registerInConnection(profileId uint, postBody []byte) error {
+	responseBody := bytes.NewBuffer(postBody)
 	connHost, connPort := util.GetConnectionHostAndPort()
-	_, err = http.Post("http://"+connHost+":"+connPort+"/profile/"+util.Uint2String(profile.ID), "application/json", responseBody)
+	_, err := http.Post(util.CrossServiceProtocol+"://"+connHost+":"+connPort+"/profile/"+util.Uint2String(profileId), "application/json", responseBody)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -88,7 +113,7 @@ func (service *ProfileService) ChangePersonalData(dto dto.PersonalDataDTO, logge
 	}
 	callAuth := false
 	callPost := false
-	if profile.Email != dto.Email{
+	if profile.Email != dto.Email {
 		callAuth = true
 	}
 	if profile.Username != dto.Username {
@@ -117,7 +142,7 @@ func (service *ProfileService) ChangePersonalData(dto dto.PersonalDataDTO, logge
 		})
 		responseBody := bytes.NewBuffer(postBody)
 		authHost, authPort := util.GetAuthHostAndPort()
-		_, err = http.Post("http://"+authHost+":"+authPort+"/update-user", "application/json", responseBody)
+		_, err = http.Post(util.CrossServiceProtocol+"://"+authHost+":"+authPort+"/update-user", "application/json", responseBody)
 		if err != nil {
 			fmt.Println(err)
 			return err
@@ -182,7 +207,8 @@ func (service *ProfileService) changePrivacyInPostService(isPrivate bool, logged
 	input := Privacy{IsPrivate: isPrivate}
 	json, _ := json.Marshal(input)
 	client := &http.Client{}
-	req, err := http.NewRequest(http.MethodPut, "http://"+postHost+":"+postPort+"/user/"+util.Uint2String(loggedUserId)+"/privacy", bytes.NewBuffer(json))
+	req, err := http.NewRequest(http.MethodPut, util.CrossServiceProtocol+"://"+postHost+":"+postPort+"/user/"+
+		util.Uint2String(loggedUserId)+"/privacy", bytes.NewBuffer(json))
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -201,7 +227,8 @@ func (service *ProfileService) changeUsernameInPostService(loggedUserId uint, us
 	input := UsernameDto{Username: username}
 	json, _ := json.Marshal(input)
 	client := &http.Client{}
-	req, err := http.NewRequest(http.MethodPut, "http://"+postHost+":"+postPort+"/user/"+util.Uint2String(loggedUserId)+"/username", bytes.NewBuffer(json))
+	req, err := http.NewRequest(http.MethodPut, util.CrossServiceProtocol+"://"+postHost+":"+postPort+"/user/"+
+		util.Uint2String(loggedUserId)+"/username", bytes.NewBuffer(json))
 	if err != nil {
 		fmt.Println(err)
 		return err

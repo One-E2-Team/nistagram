@@ -16,7 +16,7 @@ func RBAC(handler func(http.ResponseWriter, *http.Request), privilege string, re
 			return func(writer http.ResponseWriter, request *http.Request) {
 				writer.WriteHeader(http.StatusOK)
 				writer.Header().Set("Content-Type", "application/json")
-				if returnCollection{
+				if returnCollection {
 					writer.Write([]byte("[{\"status\":\"fail\", \"reason\":\"unauthorized\"}]"))
 				} else {
 					writer.Write([]byte("{\"status\":\"fail\", \"reason\":\"unauthorized\"}"))
@@ -32,7 +32,7 @@ func RBAC(handler func(http.ResponseWriter, *http.Request), privilege string, re
 			handleFunc = finalHandler(false)
 		} else {
 			authHost, authPort := GetAuthHostAndPort()
-			resp, err := http.Get("http://" + authHost + ":" + authPort + "/privileges/" + Uint2String(id))
+			resp, err := http.Get(CrossServiceProtocol + "://" + authHost + ":" + authPort + "/privileges/" + Uint2String(id))
 			if err != nil {
 				fmt.Println(err)
 				handleFunc = finalHandler(false)

@@ -2,6 +2,10 @@ package util
 
 import "os"
 
+const MicroservicesProtocol = "https"
+const CrossServiceProtocol = "http"
+const FrontProtocol = "http"
+
 func dockerChecker() bool {
 	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD") // dev production environment
 	_, ok1 := os.LookupEnv("DOCKER_ENV_SET_DEV") // dev front environment
@@ -9,7 +13,7 @@ func dockerChecker() bool {
 }
 
 func GetAuthHostAndPort() (string, string) {
-	var authHost, authPort string = "localhost", "8000" // dev.db environment
+	var authHost, authPort = "localhost", "8000" // dev.db environment
 	if dockerChecker() {
 		authHost = "auth"
 		authPort = "8080"
@@ -18,7 +22,7 @@ func GetAuthHostAndPort() (string, string) {
 }
 
 func GetConnectionHostAndPort() (string, string) {
-	var connHost, connPort string = "localhost", "8085" // dev.db environment
+	var connHost, connPort = "localhost", "8085" // dev.db environment
 	if dockerChecker() {
 		connHost = "connection"
 		connPort = "8080"
@@ -27,7 +31,7 @@ func GetConnectionHostAndPort() (string, string) {
 }
 
 func GetProfileHostAndPort() (string, string) {
-	var profileHost, profilePort string = "localhost", "8083" // dev.db environment
+	var profileHost, profilePort = "localhost", "8083" // dev.db environment
 	if dockerChecker() {
 		profileHost = "profile"
 		profilePort = "8080"
@@ -36,10 +40,24 @@ func GetProfileHostAndPort() (string, string) {
 }
 
 func GetPostHostAndPort() (string, string) {
-	var postHost, postPort string = "localhost", "8086" // dev.db environment
+	var postHost, postPort = "localhost", "8086" // dev.db environment
 	if dockerChecker() {
 		postHost = "post"
 		postPort = "8080"
 	}
 	return postHost, postPort
+}
+
+func GetFrontHostAndPort() (string, string) {
+	var frontHost, frontPort = "localhost", "3000" //dev environment
+	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD")   // dev production environment
+	if ok {
+		frontPort = "81"
+	}
+	return frontHost, frontPort
+}
+
+func GetGatewayHostAndPort() (string, string) {
+	var gatewayHost, gatewayPort = "localhost", "81"
+	return gatewayHost, gatewayPort
 }

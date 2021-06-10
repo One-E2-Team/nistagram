@@ -131,7 +131,7 @@ export default {
         updateSettings(){
             axios({
             method: 'put',
-            url: "http://" + comm.server + "/api/profile/my-personal-data",
+            url: comm.protocol + "://" + comm.server + "/api/profile/my-personal-data",
             headers: comm.getHeader(),
             data: JSON.stringify(this.person)
             }).then(response => {
