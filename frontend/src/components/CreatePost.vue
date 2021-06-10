@@ -1,6 +1,15 @@
 
 <template>
   <v-row justify="center">
+    <v-alert
+    v-if="alert"
+    :value="alertText"
+    color="red"
+    type="error"
+    dismissible
+    text
+    v-model="alertText"
+  >{{alertText}}</v-alert>
     <v-col
       cols="12"
       sm="10"
@@ -11,10 +20,7 @@
         <v-card-text>
           <v-text-field
             v-model="description"
-            :counter="255"
-            :rules="descriptionRules"
             label="Description"
-            required
           ></v-text-field>
 
           <v-autocomplete
@@ -101,6 +107,8 @@
     name: 'CreatePost',
 
     data: () => ({
+      alert : false,
+      alertText : '',
       valid: true,
       description: '',
       descriptionRules: [
@@ -126,27 +134,36 @@
         })
       },
       submit () {
-        let dto = {"description" : this.description, "isHighlighted" : this.isHighlighted,
-        "isCloseFriendsOnly": this.isCloseFriendsOnly, "location" : this.location, 
-        "hashTags" : this.hashTags, "taggedUsers" : [], "postType" : this.selectedPostType}
-        let json = JSON.stringify(dto);
-        const data = new FormData();
-         for(let i = 0;i < this.files.length;i++){
-            data.append("file" + i, this.files[i], this.files[i].name);
-          }
-         data.append("data", json);
-        axios.defaults.headers.common['Authorization'] = 'Bearer ' + comm.getJWTToken().token;
-        axios({
-          method: "post",
-          url: comm.protocol + "://" + comm.server + "/api/post",
-          data: data,
-          config: { headers: {...data.headers}}
-        }).then(response => {
-          console.log(response);
-        })
-        .catch(response => {
-          console.log(response);
-        });
+        if(this.files.length == 0){
+          this.alert = true;
+           this.alertText = "Please choose at least one picture or video."
+        }
+        else{
+          this.alert = false;
+          this.alertText = ""
+          let dto = {"description" : this.description, "isHighlighted" : this.isHighlighted,
+          "isCloseFriendsOnly": this.isCloseFriendsOnly, "location" : this.location, 
+          "hashTags" : this.hashTags, "taggedUsers" : [], "postType" : this.selectedPostType}
+          let json = JSON.stringify(dto);
+          const data = new FormData();
+          for(let i = 0;i < this.files.length;i++){
+              data.append("file" + i, this.files[i], this.files[i].name);
+            }
+          data.append("data", json);
+          axios.defaults.headers.common['Authorization'] = 'Bearer ' + comm.getJWTToken().token;
+          axios({
+            method: "post",
+            url: comm.protocol + "://" + comm.server + "/api/post",
+            data: data,
+            config: { headers: {...data.headers}}
+          }).then(response => {
+            console.log(response);
+            alert("Post is successfully created!")
+          })
+          .catch(response => {
+            console.log(response);
+          });
+      }
       }
     }
   }

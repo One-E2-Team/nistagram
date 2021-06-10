@@ -25,7 +25,7 @@ func (handler *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&dto)
 	if err != nil {
 		fmt.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("{\"message\":\"Server error while decoding.\"}"))
 		return
 	}
@@ -36,7 +36,7 @@ func (handler *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		f, err := os.Open("../common_pass.txt")
 		if err != nil {
 			fmt.Println(err)
-			w.WriteHeader(http.StatusInternalServerError)
+			w.WriteHeader(http.StatusOK)
 			return false
 		}
 		defer f.Close()
@@ -78,7 +78,7 @@ func (handler *Handler) Register(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		fmt.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("{\"message\":\"Invalid data.\",\n"))
 		w.Write([]byte("\"errors\":\""))
 		for _, e := range err.(validator.ValidationErrors) {
@@ -95,7 +95,7 @@ func (handler *Handler) Register(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		fmt.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("{\"message\":\"Server error while registering.\"}"))
 	} else {
 		w.WriteHeader(http.StatusCreated)
