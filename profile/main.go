@@ -23,24 +23,24 @@ func initDBs() (*gorm.DB, *redis.Client) {
 		err error
 	)
 	time.Sleep(5 * time.Second)
-	var dbhost, dbport, dbusername, dbpassword string = "localhost", "3306", "root", "root" // dev.db environment
-	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD")                                            // production environment
+	var dbHost, dbPort, dbUsername, dbPassword = "localhost", "3306", "root", "root" // dev.db environment
+	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD")                                     // production environment
 	if ok {
-		dbhost = "db_profile"
-		dbport = "3306"
-		dbusername = os.Getenv("DB_USERNAME")
-		dbpassword = os.Getenv("DB_PASSWORD")
+		dbHost = "db_profile"
+		dbPort = "3306"
+		dbUsername = os.Getenv("DB_USERNAME")
+		dbPassword = os.Getenv("DB_PASSWORD")
 	} else {
 		_, ok := os.LookupEnv("DOCKER_ENV_SET_DEV") // dev front environment
 		if ok {
-			dbhost = "db_relational"
-			dbport = "3306"
-			dbusername = "root"
-			dbpassword = "root"
+			dbHost = "db_relational"
+			dbPort = "3306"
+			dbUsername = "root"
+			dbPassword = "root"
 		}
 	}
 	for {
-		db, err = gorm.Open(mysql.Open(dbusername + ":" + dbpassword + "@tcp(" + dbhost + ":" + dbport + ")/profile?charset=utf8mb4&parseTime=True&loc=Local"))
+		db, err = gorm.Open(mysql.Open(dbUsername + ":" + dbPassword + "@tcp(" + dbHost + ":" + dbPort + ")/profile?charset=utf8mb4&parseTime=True&loc=Local"))
 
 		if err != nil {
 			fmt.Println("Cannot connect to database! Sleeping 10s and then retrying....")
@@ -51,12 +51,30 @@ func initDBs() (*gorm.DB, *redis.Client) {
 		}
 	}
 
-	db.AutoMigrate(&model.Category{})
-	db.AutoMigrate(&model.Interest{})
-	db.AutoMigrate(&model.PersonalData{})
-	db.AutoMigrate(&model.ProfileSettings{})
-	db.AutoMigrate(&model.VerificationRequest{})
-	db.AutoMigrate(&model.Profile{})
+	err = db.AutoMigrate(&model.Category{})
+	if err != nil {
+		return nil, nil
+	}
+	err = db.AutoMigrate(&model.Interest{})
+	if err != nil {
+		return nil, nil
+	}
+	err = db.AutoMigrate(&model.PersonalData{})
+	if err != nil {
+		return nil, nil
+	}
+	err = db.AutoMigrate(&model.ProfileSettings{})
+	if err != nil {
+		return nil, nil
+	}
+	err = db.AutoMigrate(&model.VerificationRequest{})
+	if err != nil {
+		return nil, nil
+	}
+	err = db.AutoMigrate(&model.Profile{})
+	if err != nil {
+		return nil, nil
+	}
 
 	//TODO: parametrize
 	client := redis.NewClient(&redis.Options{
@@ -86,19 +104,26 @@ func initHandler(service *service.ProfileService) *handler.Handler {
 
 func handleFunc(handler *handler.Handler) {
 	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/", handler.Register).Methods("POST")
-	router.HandleFunc("/search/{username}", handler.Search).Methods("GET")
-	router.HandleFunc("/get/{username}", handler.GetProfileByUsername).Methods("GET")
-	router.HandleFunc("/change-profile-settings", handler.ChangeProfileSettings).Methods("PUT")
-	router.HandleFunc("/change-personal-data", handler.ChangePersonalData).Methods("PUT")
-	router.HandleFunc("/interests", handler.GetAllInterests).Methods("GET")
-	router.HandleFunc("/my-profile-settings", util.RBAC(handler.GetMyProfileSettings, "READ_PROFILE_DATA", false)).Methods("GET")
-	router.HandleFunc("/my-personal-data", handler.GetMyPersonalData).Methods("GET")
+	router.HandleFunc("/", handler.Register).Methods("POST")                          // frontend func
+	router.HandleFunc("/search/{username}", handler.Search).Methods("GET")            // frontend func
+	router.HandleFunc("/get/{username}", handler.GetProfileByUsername).Methods("GET") // frontend func
+	router.HandleFunc("/interests", handler.GetAllInterests).Methods("GET")           // frontend func
+	router.HandleFunc("/change-profile-settings",
+		util.RBAC(handler.ChangeProfileSettings, "EDIT_PROFILE_DATA", false)).Methods("PUT") // frontend func
+	router.HandleFunc("/change-personal-data",
+		util.RBAC(handler.ChangePersonalData, "EDIT_PROFILE_DATA", false)).Methods("PUT") // frontend func
+	router.HandleFunc("/my-profile-settings",
+		util.RBAC(handler.GetMyProfileSettings, "READ_PROFILE_DATA", false)).Methods("GET") // frontend func
+	router.HandleFunc("/my-personal-data",
+		util.RBAC(handler.GetMyPersonalData, "READ_PROFILE_DATA", false)).Methods("GET") // frontend func
 	router.HandleFunc("/get-by-id/{id}", handler.GetProfileByID).Methods("GET")
 	router.HandleFunc("/test", handler.Test).Methods("GET")
 	fmt.Println("Starting server..")
 	_, port := util.GetProfileHostAndPort()
-	http.ListenAndServe(":"+port, router)
+	err := http.ListenAndServe(":"+port, router)
+	if err != nil {
+		return
+	}
 }
 
 func main() {
