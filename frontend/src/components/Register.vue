@@ -1,13 +1,14 @@
 <template>
 <v-container>
   <v-alert
-    :value="alert"
+    v-if="alert"
+    :value="alertText"
     color="red"
     type="error"
     dismissible
     text
     v-model="alertText"
-  ></v-alert>
+  >{{alertText}}</v-alert>
   <v-row align="center" justify="center">
     <v-col cols="12" sm="9" >
   <v-stepper v-model="e1">
@@ -372,21 +373,23 @@ import * as validator from '../plugins/validator.js'
           data: JSON.stringify(data),
         }).then((response) => {
           if (response.status == 200) {
-            alert('Check your email!');
-            this.alert = false;
-          }
-        })
-        .catch((response) => {
-          console.log(response.data);
+            if(response.data.message == 'ok'){
+                alert('Check your email!');
+                this.alert = false;
+            }
            if(response.data.message=="Invalid data."){
               this.alert = true;
-              this.alertText = response.data.errors;
-           }else{
-             alert("Server error.")
+                if(response.data.errors.includes("Password")){
+                  this.alertText = "Password is too weak. Please choose another password."
+                }
            }
-           });
+           if(response.data.message == "Server error while registering."){
+                  this.alert = true;
+                  this.alertText = "Chosen e-mail already exists.Please choose another mail."
+              }
+          }
+        })
       }
-      
-    },
   }
+}
 </script>

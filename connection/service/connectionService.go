@@ -27,10 +27,10 @@ func (service *ConnectionService) GetConnection(followerId, profileId uint) *mod
 	return connection
 }
 
-func getProfile(id uint) *model2.Profile{
+func getProfile(id uint) *model2.Profile {
 	var p model2.Profile
 	profileHost, profilePort := util.GetProfileHostAndPort()
-	resp, err := http.Get("http://" + profileHost+":" + profilePort + "/get-by-id/" + util.Uint2String(id))
+	resp, err := http.Get(util.CrossServiceProtocol + "://" + profileHost + ":" + profilePort + "/get-by-id/" + util.Uint2String(id))
 	if err != nil {
 		fmt.Println(err)
 		return nil
@@ -79,7 +79,7 @@ func (service *ConnectionService) FollowRequest(followerId, profileId uint) (*mo
 	}
 }
 
-func (service *ConnectionService) Block(followerId, profileId uint) (*model.Connection, bool){
+func (service *ConnectionService) Block(followerId, profileId uint) (*model.Connection, bool) {
 	connection := service.ConnectionRepository.SelectOrCreateConnection(followerId, profileId)
 	connection.Block = true
 	resConnection, ok := service.ConnectionRepository.UpdateConnection(connection)
@@ -90,10 +90,10 @@ func (service *ConnectionService) Block(followerId, profileId uint) (*model.Conn
 	}
 }
 
-func (service *ConnectionService) MessageConnect(followerId, profileId uint) (*model.Connection, bool){
+func (service *ConnectionService) MessageConnect(followerId, profileId uint) (*model.Connection, bool) {
 	connection, ok := service.ConnectionRepository.SelectConnection(followerId, profileId, false)
 	conn2, ok2 := service.ConnectionRepository.SelectConnection(profileId, followerId, false)
-	if !connection.MessageRequest || (!ok || !ok2){
+	if !connection.MessageRequest || (!ok || !ok2) {
 		return nil, false
 	}
 	connection.MessageRequest = false
@@ -109,7 +109,7 @@ func (service *ConnectionService) MessageConnect(followerId, profileId uint) (*m
 	}
 }
 
-func (service *ConnectionService) MessageRequest(followerId, profileId uint) (*model.Connection, bool){
+func (service *ConnectionService) MessageRequest(followerId, profileId uint) (*model.Connection, bool) {
 	connection := service.ConnectionRepository.SelectOrCreateConnection(followerId, profileId)
 	if connection.MessageConnected {
 		return nil, false
@@ -131,7 +131,7 @@ func (service *ConnectionService) MessageRequest(followerId, profileId uint) (*m
 	}
 }
 
-func (service *ConnectionService) ApproveConnection(followerId, profileId uint) (*model.Connection, bool){
+func (service *ConnectionService) ApproveConnection(followerId, profileId uint) (*model.Connection, bool) {
 	connection, okSelect := service.ConnectionRepository.SelectConnection(followerId, profileId, false)
 	if okSelect && connection == nil {
 		return connection, false
@@ -168,7 +168,7 @@ func (service *ConnectionService) ApproveConnection(followerId, profileId uint) 
 	}*/
 }
 
-func (service *ConnectionService) ToggleNotifyComment(followerId, profileId uint) (*model.Connection, bool){
+func (service *ConnectionService) ToggleNotifyComment(followerId, profileId uint) (*model.Connection, bool) {
 	connection, okSelect := service.ConnectionRepository.SelectConnection(followerId, profileId, false)
 	if okSelect && connection == nil {
 		return connection, false
@@ -182,7 +182,7 @@ func (service *ConnectionService) ToggleNotifyComment(followerId, profileId uint
 	}
 }
 
-func (service *ConnectionService) ToggleNotifyMessage(followerId, profileId uint) (*model.Connection, bool){
+func (service *ConnectionService) ToggleNotifyMessage(followerId, profileId uint) (*model.Connection, bool) {
 	connection, okSelect := service.ConnectionRepository.SelectConnection(followerId, profileId, false)
 	if okSelect && connection == nil {
 		return connection, false
@@ -196,7 +196,7 @@ func (service *ConnectionService) ToggleNotifyMessage(followerId, profileId uint
 	}
 }
 
-func (service *ConnectionService) ToggleNotifyStory(followerId, profileId uint) (*model.Connection, bool){
+func (service *ConnectionService) ToggleNotifyStory(followerId, profileId uint) (*model.Connection, bool) {
 	connection, okSelect := service.ConnectionRepository.SelectConnection(followerId, profileId, false)
 	if okSelect && connection == nil {
 		return connection, false
@@ -210,7 +210,7 @@ func (service *ConnectionService) ToggleNotifyStory(followerId, profileId uint) 
 	}
 }
 
-func (service *ConnectionService) ToggleNotifyPost(followerId, profileId uint) (*model.Connection, bool){
+func (service *ConnectionService) ToggleNotifyPost(followerId, profileId uint) (*model.Connection, bool) {
 	connection, okSelect := service.ConnectionRepository.SelectConnection(followerId, profileId, false)
 	if okSelect && connection == nil {
 		return connection, false
@@ -224,7 +224,7 @@ func (service *ConnectionService) ToggleNotifyPost(followerId, profileId uint) (
 	}
 }
 
-func (service *ConnectionService) ToggleCloseFriend(followerId, profileId uint) (*model.Connection, bool){
+func (service *ConnectionService) ToggleCloseFriend(followerId, profileId uint) (*model.Connection, bool) {
 	connection, okSelect := service.ConnectionRepository.SelectConnection(followerId, profileId, false)
 	if okSelect && connection == nil {
 		return connection, false
@@ -238,7 +238,7 @@ func (service *ConnectionService) ToggleCloseFriend(followerId, profileId uint) 
 	}
 }
 
-func (service *ConnectionService) ToggleMuted(followerId, profileId uint) (*model.Connection, bool){
+func (service *ConnectionService) ToggleMuted(followerId, profileId uint) (*model.Connection, bool) {
 	connection, okSelect := service.ConnectionRepository.SelectConnection(followerId, profileId, false)
 	if okSelect && connection == nil {
 		return connection, false
@@ -274,12 +274,12 @@ func (service *ConnectionService) DeleteConnection(followerId, profileId uint) (
 }
 
 func (service *ConnectionService) GetAllFollowRequests(id uint) *[]dto.UserDTO {
-	var result *[]uint = service.ConnectionRepository.GetAllFollowRequests(id)
-	var ret []dto.UserDTO = make([]dto.UserDTO, 0) // 0, :)
+	var result = service.ConnectionRepository.GetAllFollowRequests(id)
+	var ret = make([]dto.UserDTO, 0) // 0, :)
 	for _, profileId := range *result {
 		var p model2.Profile
 		profileHost, profilePort := util.GetProfileHostAndPort()
-		resp, err := http.Get("http://" + profileHost+":" + profilePort + "/get-by-id/" + util.Uint2String(profileId))
+		resp, err := http.Get(util.CrossServiceProtocol + "://" + profileHost + ":" + profilePort + "/get-by-id/" + util.Uint2String(profileId))
 		if err != nil {
 			fmt.Println(err)
 			return nil
