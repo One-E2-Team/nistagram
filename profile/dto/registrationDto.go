@@ -1,7 +1,7 @@
 package dto
 
 type RegistrationDto struct {
-	Username     string   `json:"username" validate:"required"`
+	Username     string   `json:"username" validate:"required,bad_username"`
 	Password     string   `json:"password" validate:"required,common_pass,weak_pass"`
 	Name         string   `json:"name" validate:"required"`
 	Surname      string   `json:"surname" validate:"required"`

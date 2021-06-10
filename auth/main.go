@@ -21,8 +21,8 @@ func initDB() *gorm.DB {
 		err error
 	)
 	time.Sleep(5 * time.Second)
-	var dbHost, dbPort, dbUsername, dbPassword string = "localhost", "3306", "root", "root" // dev.db environment
-	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD")                                            // production environment
+	var dbHost, dbPort, dbUsername, dbPassword = "localhost", "3306", "root", "root" // dev.db environment
+	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD")                                     // production environment
 	if ok {
 		dbHost = "db_auth"
 		dbPort = "3306"
@@ -78,12 +78,12 @@ func initAuthHandler(service *service.AuthService) *handler.AuthHandler {
 func handlerFunc(handler *handler.AuthHandler) {
 	fmt.Println("Auth server started...")
 	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/login", handler.LogIn).Methods("POST")
+	router.HandleFunc("/login", handler.LogIn).Methods("POST")                          //frontend func
+	router.HandleFunc("/request-recovery", handler.RequestPassRecovery).Methods("POST") //frontend func
+	router.HandleFunc("/recover", handler.ChangePassword).Methods("POST")               //frontend func
+	router.HandleFunc("/validate/{id}/{uuid}", handler.ValidateUser).Methods("GET")     //frontend func
 	router.HandleFunc("/register", handler.Register).Methods("POST")
-	router.HandleFunc("/request-recovery", handler.RequestPassRecovery).Methods("POST")
-	router.HandleFunc("/recover", handler.ChangePassword).Methods("POST")
 	router.HandleFunc("/update-user", handler.UpdateUser).Methods("POST")
-	router.HandleFunc("/validate/{id}/{uuid}", handler.ValidateUser).Methods("GET")
 	router.HandleFunc("/privileges/{profileId}", handler.GetPrivileges).Methods("GET")
 	_, port := util.GetAuthHostAndPort()
 	err := http.ListenAndServe(":"+port, router)

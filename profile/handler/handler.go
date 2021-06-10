@@ -23,7 +23,6 @@ type Handler struct {
 func (handler *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	var dto dto.RegistrationDto
 	err := json.NewDecoder(r.Body).Decode(&dto)
-	dto = safeRegistrationDto(dto)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusOK)
@@ -75,6 +74,17 @@ func (handler *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		return ret
 	})
 
+	_ = v.RegisterValidation("bad_username", func(fl validator.FieldLevel) bool {
+		if len(fl.Field().String()) < 3 || len(fl.Field().String()) > 15 {
+			return false
+		}
+		ret, _ := regexp.MatchString("([*!@#$%^&(){}\\[:;\\]<>,.?~+\\-\\\\=|/ ])", fl.Field().String())
+		if ret {
+			return false
+		}
+		return true
+	})
+
 	err = v.Struct(dto)
 
 	if err != nil {
@@ -91,7 +101,7 @@ func (handler *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Println(dto)
-
+	dto = safeRegistrationDto(dto)
 	err = handler.ProfileService.Register(dto)
 
 	if err != nil {
