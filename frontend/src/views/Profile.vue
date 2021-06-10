@@ -109,9 +109,6 @@ export default {
             this.$router.push({name:'Post'});
         }
     },
-    mounted(){
-       
-    }
 }
 </script>
 
