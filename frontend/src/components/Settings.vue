@@ -65,6 +65,7 @@ export default {
         },
         logOut(){
             comm.logOut();
+            this.$root.$emit('loggedUser')
             this.$router.push({name: 'Home'});
         }
     }
