@@ -77,6 +77,7 @@ import axios from 'axios'
     },
     methods:{
       resetPassword(){
+        //TODO: add valitation for password
         if (this.$refs.form.validate()){
           let id = comm.getUrlVars()['id'];
           let str = comm.getUrlVars()['str'];

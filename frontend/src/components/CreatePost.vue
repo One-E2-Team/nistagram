@@ -137,6 +137,7 @@
         })
       },
       submit () {
+        //TODO: validation for postType
         if(this.files.length == 0){
           this.alert = true;
            this.alertText = "Please choose at least one picture or video."

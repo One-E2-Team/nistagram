@@ -21,12 +21,15 @@ type Handler struct {
 }
 
 func (handler *Handler) Register(w http.ResponseWriter, r *http.Request) {
-	var dto dto.RegistrationDto
-	err := json.NewDecoder(r.Body).Decode(&dto)
+	var req dto.RegistrationDto
+	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("{\"message\":\"Server error while decoding.\"}"))
+		_, err := w.Write([]byte("{\"message\":\"Server error while decoding.\"}"))
+		if err != nil {
+			return
+		}
 		return
 	}
 
@@ -39,7 +42,12 @@ func (handler *Handler) Register(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 			return false
 		}
-		defer f.Close()
+		defer func(f *os.File) {
+			err := f.Close()
+			if err != nil {
+
+			}
+		}(f)
 		scanner := bufio.NewScanner(f)
 		for scanner.Scan() {
 			if strings.Contains(fl.Field().String(), scanner.Text()) {
@@ -85,33 +93,54 @@ func (handler *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		return true
 	})
 
-	err = v.Struct(dto)
+	err = v.Struct(req)
 
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("{\"message\":\"Invalid data.\",\n"))
-		w.Write([]byte("\"errors\":\""))
-		for _, e := range err.(validator.ValidationErrors) {
-			w.Write([]byte(e.Field()))
-			w.Write([]byte(" "))
+		_, err = w.Write([]byte("{\"message\":\"Invalid data.\",\n"))
+		if err != nil {
+			return
 		}
-		w.Write([]byte("\"}"))
+		_, err = w.Write([]byte("\"errors\":\""))
+		if err != nil {
+			return
+		}
+		for _, e := range err.(validator.ValidationErrors) {
+			_, err = w.Write([]byte(e.Field()))
+			if err != nil {
+				return
+			}
+			_, err = w.Write([]byte(" "))
+			if err != nil {
+				return
+			}
+		}
+		_, err = w.Write([]byte("\"}"))
+		if err != nil {
+			return
+		}
 		return
 	}
 
-	fmt.Println(dto)
-	dto = safeRegistrationDto(dto)
-	err = handler.ProfileService.Register(dto)
+	fmt.Println(req)
+	req = safeRegistrationDto(req)
+	err = handler.ProfileService.Register(req)
 
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("{\"message\":\"Server error while registering.\"}"))
+		_, err = w.Write([]byte("{\"message\":\"Server error while registering.\"}"))
+		if err != nil {
+			return
+		}
 	} else {
 		w.WriteHeader(http.StatusCreated)
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte("{\"message\":\"ok\"}"))
+		_, err = w.Write([]byte("{\"message\":\"ok\"}"))
+		if err != nil {
+			return
+		}
 	}
 	return
 }
@@ -120,7 +149,10 @@ func (handler *Handler) Search(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	result := handler.ProfileService.Search(template.HTMLEscapeString(vars["username"]))
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(result)
+	err := json.NewEncoder(w).Encode(result)
+	if err != nil {
+		return
+	}
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -134,47 +166,60 @@ func (handler *Handler) GetProfileByUsername(w http.ResponseWriter, r *http.Requ
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(&result)
+	err = json.NewEncoder(w).Encode(&result)
+	if err != nil {
+		return
+	}
 }
 
 func (handler *Handler) ChangeProfileSettings(w http.ResponseWriter, r *http.Request) {
-	var dto dto.ProfileSettingsDTO
-	err := json.NewDecoder(r.Body).Decode(&dto)
+	var req dto.ProfileSettingsDTO
+	methodPath := "nistagram/profile/handler.ChangeProfileSettings"
+	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		fmt.Println(err)
+		util.Logging(util.ERROR, methodPath, "", err.Error(), "profile")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	userId := util.GetLoggedUserIDFromToken(r)
-	err = handler.ProfileService.ChangeProfileSettings(dto, userId)
+	err = handler.ProfileService.ChangeProfileSettings(req, userId)
 	if err != nil {
-		fmt.Println(err)
+		util.Logging(util.ERROR, methodPath, util.GetIPAddress(r), err.Error(), "profile")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("{\"success\":\"ok\"}"))
+	util.Logging(util.SUCCESS, methodPath, util.GetIPAddress(r), "Success in changing profile settings, "+util.GetLoggingStringFromID(userId), "profile")
+	_, err = w.Write([]byte("{\"success\":\"ok\"}"))
+	if err != nil {
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
 }
 
 func (handler *Handler) ChangePersonalData(w http.ResponseWriter, r *http.Request) {
-	var dto dto.PersonalDataDTO
-	err := json.NewDecoder(r.Body).Decode(&dto)
-	dto = safePersonalDataDto(dto)
+	var req dto.PersonalDataDTO
+	methodPath := "nistagram/profile/handler.ChangePersonalData"
+	err := json.NewDecoder(r.Body).Decode(&req)
+	req = safePersonalDataDto(req)
 	if err != nil {
-		fmt.Println(err)
+		util.Logging(util.ERROR, methodPath, "", err.Error(), "profile")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	userId := util.GetLoggedUserIDFromToken(r)
-	err = handler.ProfileService.ChangePersonalData(dto, userId)
+	err = handler.ProfileService.ChangePersonalData(req, userId)
 	if err != nil {
-		fmt.Println(err)
+		util.Logging(util.ERROR, methodPath, util.GetIPAddress(r), err.Error(), "profile")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("{\"success\":\"ok\"}"))
+	util.Logging(util.SUCCESS, methodPath, util.GetIPAddress(r), "Success in changing personal data, "+util.GetLoggingStringFromID(userId), "profile")
+	_, err = w.Write([]byte("{\"success\":\"ok\"}"))
+	if err != nil {
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
 }
 
@@ -195,7 +240,7 @@ func (handler *Handler) Test(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (handler *Handler) GetAllInterests(w http.ResponseWriter, r *http.Request) {
+func (handler *Handler) GetAllInterests(w http.ResponseWriter, _ *http.Request) {
 	interests, err := handler.ProfileService.GetAllInterests()
 	if err != nil {
 		fmt.Println(err)
@@ -204,7 +249,10 @@ func (handler *Handler) GetAllInterests(w http.ResponseWriter, r *http.Request) 
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(interests)
+	err = json.NewEncoder(w).Encode(interests)
+	if err != nil {
+		return
+	}
 }
 
 func (handler *Handler) GetMyProfileSettings(w http.ResponseWriter, r *http.Request) {
@@ -216,7 +264,10 @@ func (handler *Handler) GetMyProfileSettings(w http.ResponseWriter, r *http.Requ
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(settings)
+	err = json.NewEncoder(w).Encode(settings)
+	if err != nil {
+		return
+	}
 
 }
 
@@ -229,7 +280,10 @@ func (handler *Handler) GetMyPersonalData(w http.ResponseWriter, r *http.Request
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(data)
+	err = json.NewEncoder(w).Encode(data)
+	if err != nil {
+		return
+	}
 }
 
 func (handler *Handler) GetProfileByID(w http.ResponseWriter, r *http.Request) {
@@ -244,7 +298,10 @@ func (handler *Handler) GetProfileByID(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(*profile)
+	err = json.NewEncoder(w).Encode(*profile)
+	if err != nil {
+		return
+	}
 }
 
 func safeRegistrationDto(dto dto.RegistrationDto) dto.RegistrationDto {

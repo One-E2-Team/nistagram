@@ -4,13 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
-	"os"
 	"reflect"
 	"runtime"
 	"strings"
-	"time"
 )
 
 func RBAC(handler func(http.ResponseWriter, *http.Request), privilege string, returnCollection bool) func(http.ResponseWriter, *http.Request) {
@@ -23,9 +20,7 @@ func RBAC(handler func(http.ResponseWriter, *http.Request), privilege string, re
 				writer.WriteHeader(http.StatusOK)
 				handlerFunctionName := runtime.FuncForPC(reflect.ValueOf(handler).Pointer()).Name()
 				parts := strings.Split(handlerFunctionName, "/")
-				userA := request.Header.Get("X-FORWARDED-FOR")
-				//userA := request.RemoteAddr
-				Logging(INFO, "Unauthorized access from " + userA + " to '"+request.Method+":"+request.RequestURI+"' in "+handlerFunctionName+".", parts[1])
+				Logging(WARN, handlerFunctionName, GetIPAddress(request), "Unauthorized access", parts[1])
 				writer.Header().Set("Content-Type", "application/json")
 				if returnCollection {
 					writer.Write([]byte("[{\"status\":\"fail\", \"reason\":\"unauthorized\"}]"))
@@ -78,33 +73,4 @@ func RBAC(handler func(http.ResponseWriter, *http.Request), privilege string, re
 		}
 		handleFunc(writer, request)
 	}
-}
-
-func Logging(logType LogType, reason string, service string) {
-	logFIle := "../../logs/" + service + "/"
-	switch logType{
-	case INFO:
-		logFIle += "infoLogs"
-	case WARN:
-		logFIle += "warnLogs"
-	case SUCCESS:
-		logFIle += "successLogs"
-	case ERROR:
-		logFIle += "errorLogs"
-	}
-	logFIle += ".txt"
-	file, err := os.OpenFile(logFIle, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0666)
-	defer func(file *os.File) {
-		err := file.Close()
-		if err != nil {
-
-		}
-	}(file)
-	if err != nil {
-		fmt.Println(err)
-	}
-	log.SetOutput(file)
-	delimiter := "|"
-	oneLog := time.Now().UTC().String() + delimiter + logType.ToString() + delimiter + reason
-	log.Println(oneLog)
 }
