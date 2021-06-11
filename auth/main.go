@@ -82,7 +82,7 @@ func handlerFunc(handler *handler.AuthHandler) {
 	router.HandleFunc("/request-recovery", handler.RequestPassRecovery).Methods("POST") //frontend func
 	router.HandleFunc("/recover", handler.ChangePassword).Methods("POST")               //frontend func
 	router.HandleFunc("/validate/{id}/{uuid}", handler.ValidateUser).Methods("GET")     //frontend func
-	router.HandleFunc("/register", handler.Register).Methods("POST")
+	router.HandleFunc("/register", util.MSAuth(handler.Register, []string{"profile"})).Methods("POST")
 	router.HandleFunc("/update-user", handler.UpdateUser).Methods("POST")
 	router.HandleFunc("/privileges/{profileId}", handler.GetPrivileges).Methods("GET")
 	host, port := util.GetAuthHostAndPort()
@@ -103,5 +103,6 @@ func main() {
 	authRepo := initAuthRepo(db)
 	authService := initAuthService(authRepo)
 	authHandler := initAuthHandler(authService)
+	util.SetupMSAuth("auth")
 	handlerFunc(authHandler)
 }

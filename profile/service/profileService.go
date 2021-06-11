@@ -54,10 +54,12 @@ func (service *ProfileService) Register(dto dto.RegistrationDto) error {
 }
 
 func registerInAuth(postBody []byte) error {
-	responseBody := bytes.NewBuffer(postBody)
 	authHost, authPort := util.GetAuthHostAndPort()
-	_, err := http.Post(util.CrossServiceProtocol+"://"+authHost+":"+authPort+"/register", "application/json", responseBody)
+	_, err := util.CrossServiceRequest(http.MethodPost,
+		util.CrossServiceProtocol+"://"+authHost+":"+authPort+"/register", postBody,
+		map[string]string{"Content-Type": "application/json;"})
 	if err != nil {
+		fmt.Println("registerautherr")
 		fmt.Println(err)
 		return err
 	}
@@ -65,10 +67,12 @@ func registerInAuth(postBody []byte) error {
 }
 
 func registerInConnection(profileId uint, postBody []byte) error {
-	responseBody := bytes.NewBuffer(postBody)
 	connHost, connPort := util.GetConnectionHostAndPort()
-	_, err := http.Post(util.CrossServiceProtocol+"://"+connHost+":"+connPort+"/profile/"+util.Uint2String(profileId), "application/json", responseBody)
+	_, err := util.CrossServiceRequest(http.MethodPost,
+		util.CrossServiceProtocol+"://"+connHost+":"+connPort+"/profile/"+util.Uint2String(profileId), postBody,
+		map[string]string{"Content-Type": "application/json;"})
 	if err != nil {
+		fmt.Println("registerconnerr")
 		fmt.Println(err)
 		return err
 	}

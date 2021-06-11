@@ -108,5 +108,6 @@ func main() {
 	postRepo := initPostRepo(client)
 	postService := initService(postRepo)
 	postHandler := initHandler(postService)
+	util.SetupMSAuth("post")
 	handleFunc(postHandler)
 }

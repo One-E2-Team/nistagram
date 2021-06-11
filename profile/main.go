@@ -138,5 +138,6 @@ func main() {
 	profileRepo := initProfileRepo(db, client)
 	profileService := initService(profileRepo)
 	handler := initHandler(profileService)
+	util.SetupMSAuth("profile")
 	handleFunc(handler)
 }
