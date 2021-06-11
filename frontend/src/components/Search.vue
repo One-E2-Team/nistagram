@@ -1,11 +1,12 @@
 <template>
-  <v-form>
+  <v-form  v-model="valid" lazy-validation >
     <v-container>
       <v-row align="center" justify="center">
         <v-col cols="12" sm="9" md="5" >
           <v-text-field
             v-model="searchParams"
             label="Search .."
+            :rules="[rules.required]"
           ></v-text-field>
         </v-col>
 
@@ -42,21 +43,26 @@
 <script>
 import axios from 'axios'
 import * as comm from '../configuration/communication.js'
+import * as validator from '../plugins/validator.js'
 export default {
     name: "Search",
     data(){
         return{
+            valid : true,
+            rules : validator.rules,
             searchParams : '',
             searchType: 'accounts' // possible values (accounts|locations|hashtags)
     }},
     methods:{
         search(){
-            if (this.searchType == 'locations'){
-                this.searchLocation()
-            } else if (this.searchType == 'hashtags'){
-                this.searchHashTags()
-            } else if (this.searchType == 'accounts'){
-                this.searchAccounts();
+            if(this.$refs.form.validate()){
+              if (this.searchType == 'locations'){
+                  this.searchLocation()
+              } else if (this.searchType == 'hashtags'){
+                  this.searchHashTags()
+              } else if (this.searchType == 'accounts'){
+                  this.searchAccounts();
+              }
             }
         },
         searchLocation(){

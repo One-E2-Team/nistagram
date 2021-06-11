@@ -380,7 +380,7 @@ import * as validator from '../plugins/validator.js'
           alert('Enter valid interests!');
           return;
         }
-        if (this.$refs.form3.validate()){
+        if (this.$refs.form1.validate() && this.$refs.form2.validate() && this.$refs.form3.validate()){
           let data = {
             username: this.person.username,
             password: this.credentials.password,
