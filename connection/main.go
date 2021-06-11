@@ -73,8 +73,17 @@ func handleFunc(handler *handler.Handler) {
 	router.HandleFunc("/connection/following/request", handler.GetAllFollowRequests).Methods("GET") //frontend func
 	router.HandleFunc("/connection/following/request/{profileId}", handler.DeclineFollowRequest).Methods("DELETE") //frontend func
 	fmt.Println("Starting server..")
-	_, port := util.GetConnectionHostAndPort()
-	http.ListenAndServe(":" + port, router)
+	host, port := util.GetConnectionHostAndPort()
+	var err error
+	if util.DockerChecker() {
+		err = http.ListenAndServeTLS(":" + port,"../cert.pem","../key.pem", router)
+	} else {
+		err = http.ListenAndServe(host + ":"+port, router)
+	}
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 }
 
 func main() {

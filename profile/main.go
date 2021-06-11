@@ -97,8 +97,17 @@ func handleFunc(handler *handler.Handler) {
 	router.HandleFunc("/get-by-id/{id}", handler.GetProfileByID).Methods("GET")
 	router.HandleFunc("/test", handler.Test).Methods("GET")
 	fmt.Println("Starting server..")
-	_, port := util.GetProfileHostAndPort()
-	http.ListenAndServe(":"+port, router)
+	host, port := util.GetProfileHostAndPort()
+	var err error
+	if util.DockerChecker() {
+		err = http.ListenAndServeTLS(host + ":" + port,"../cert.pem","../key.pem", router)
+	} else {
+		err = http.ListenAndServe(":"+port, router)
+	}
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 }
 
 func main() {

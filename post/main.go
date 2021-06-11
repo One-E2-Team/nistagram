@@ -76,9 +76,17 @@ func handleFunc(handler *handler.Handler) {
 	router.HandleFunc("/{postType}/{id}",handler.DeletePost).Methods("DELETE")
 	router.HandleFunc("/{postType}/{id}",handler.UpdatePost).Methods("PUT")
 	fmt.Printf("Starting server..")
-	_, port := util.GetPostHostAndPort()
-	http.ListenAndServe(":"+port, router)
-
+	host, port := util.GetPostHostAndPort()
+	var err error
+	if util.DockerChecker() {
+		err = http.ListenAndServeTLS(":" + port,"../cert.pem","../key.pem", router)
+	} else {
+		err = http.ListenAndServe(host + ":"+port, router)
+	}
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 }
 
 func closeConnection(client *mongo.Client){

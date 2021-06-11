@@ -3,25 +3,32 @@ services:
 
     apigateway:
         container_name: apigateway_krakend
-        image: devopsfaith/krakend
+        build:
+            context: .
+            dockerfile: Krakend.dockerfile
         restart: always
         networks: 
             - net_apigateway
         volumes: 
             - ./conf/krakend.json:/etc/krakend/krakend.json
-            - ./conf/certs/localhost.cert.pem:/certs/localhost.cert.pem
-            - ./conf/certs/localhost.key.pem:/certs/localhost.key.pem
+            - ./conf/certs/pem/localhost.cert.pem:/certs/pem/localhost.cert.pem
+            - ./conf/certs/key/localhost.key.pem:/certs/key/localhost.key.pem
         ports: 
             - 81:80
 
     static:
         container_name: static_srv_nginx
-        image: nginx
+        build:
+            context: .
+            dockerfile: BuildStatic.dockerfile
         restart: always
         networks: 
             - net_apigateway
         volumes: 
             - "../nistagramstaticdata/data:/usr/share/nginx/html/data:ro"
+            - ./conf/certs/pem/static.cert.pem:/etc/nginx/ssl/static.cert.pem
+            - ./conf/certs/key/static.key.pem:/etc/nginx/ssl/static.key.pem
+            - ./conf/static.default.conf:/etc/nginx/conf.d/default.conf
 
     profile:
         container_name: profile_ms
@@ -37,6 +44,8 @@ services:
             dockerfile: Build.dockerfile
         volumes:
             - ./common_pass.txt:/nistagram/common_pass.txt:ro
+            - ./conf/certs/key/profile.key.pem:/nistagram/key.pem
+            - ./conf/certs/pem/profile.cert.pem:/nistagram/cert.pem
         networks: 
             - net_apigateway
             - net_db_relational
@@ -57,6 +66,9 @@ services:
             args:
                 ARG_TARGET_MS_GO: auth
             dockerfile: Build.dockerfile
+        volumes:
+            - ./conf/certs/key/auth.key.pem:/nistagram/key.pem
+            - ./conf/certs/pem/auth.cert.pem:/nistagram/cert.pem
         networks: 
             - net_apigateway
             - net_db_relational
@@ -75,6 +87,9 @@ services:
             args:
                 ARG_TARGET_MS_GO: connection
             dockerfile: Build.dockerfile
+        volumes:
+            - ./conf/certs/key/connection.key.pem:/nistagram/key.pem
+            - ./conf/certs/pem/connection.cert.pem:/nistagram/cert.pem
         networks: 
             - net_apigateway
             - net_db_graph
@@ -95,6 +110,8 @@ services:
                 ARG_TARGET_MS_GO: post
         volumes:
             - "../nistagramstaticdata:/nistagramstaticdata"
+            - ./conf/certs/key/post.key.pem:/nistagram/key.pem
+            - ./conf/certs/pem/post.cert.pem:/nistagram/cert.pem
 
         networks:
             - net_apigateway
@@ -118,15 +135,15 @@ services:
               target: /var/lib/mysql
             - "./conf/dev/mysql:/docker-entrypoint-initdb.d"
 
-    cache_rbac_:
-        container_name: cache_redis1
-        image: redis
-        restart: always
-        networks: 
-            - net_
-        volumes: 
-            - ./conf/redis.conf:/usr/local/etc/redis/redis.conf
-        command: redis-server /usr/local/etc/redis/redis.conf
+#    cache_rbac_:
+#        container_name: cache_redis1
+#        image: redis
+#        restart: always
+#        networks: 
+#            - net_
+#        volumes: 
+#            - ./conf/redis.conf:/usr/local/etc/redis/redis.conf
+#        command: redis-server /usr/local/etc/redis/redis.conf
 
     graphdb_connection:
         container_name: graphdb_neo4j
@@ -180,20 +197,20 @@ services:
         ports:
             - 8080:8080
 
-    redis-commander:
-        container_name: redis-commander
-        image: rediscommander/redis-commander
-        restart: always
-        environment:
-            - REDIS_HOST=cache_rbac_
-            - REDIS_PORT=6379
-            - REDIS_PASSWORD=helloworld
-        ports:
-            - 8081:8081
-        networks: 
-            - net_
-        depends_on: 
-            - cache_rbac_
+#    redis-commander:
+#        container_name: redis-commander
+#        image: rediscommander/redis-commander
+#        restart: always
+#        environment:
+#            - REDIS_HOST=cache_rbac_
+#            - REDIS_PORT=6379
+#            - REDIS_PASSWORD=helloworld
+#        ports:
+#            - 8081:8081
+#        networks: 
+#            - net_
+#        depends_on: 
+#            - cache_rbac_
 
 
 networks: 
@@ -201,7 +218,7 @@ networks:
     net_db_relational:
     net_db_graph:
     net_mongo:
-    net_:
+#    net_:
 
 volumes: 
     data_profile:
