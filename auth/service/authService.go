@@ -18,17 +18,17 @@ type AuthService struct {
 func (service *AuthService) LogIn(dto dto.LogInDTO) (*model.User, error) {
 	user, err := service.AuthRepository.GetUserByEmail(dto.Email)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("'"+dto.Email+"' " + err.Error())
 	}
 	if !user.IsValidated {
-		return nil, fmt.Errorf("USER_NOT_VALIDATED")
+		return nil, fmt.Errorf(util.GetLoggingStringFromID(user.ProfileId) + " NOT VALIDATED")
 	}
 	if user.IsDeleted {
-		return nil, fmt.Errorf("USER_DELETED")
+		return nil, fmt.Errorf(util.GetLoggingStringFromID(user.ProfileId) + " DELETED")
 	}
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(dto.Password))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf(util.GetLoggingStringFromID(user.ProfileId) + " " + err.Error())
 	}
 	return user, nil
 }
@@ -68,7 +68,7 @@ func (service *AuthService) RequestPassRecovery(email string) error {
 		return err
 	}
 	if !user.IsValidated {
-		return fmt.Errorf("USER_NOT_VALIDATED")
+		return fmt.Errorf("NOT VALIDATED")
 	}
 	user.ValidationUid = uuid.NewString()
 	user.ValidationExpire = time.Now().Add(20 * time.Minute)
@@ -76,7 +76,6 @@ func (service *AuthService) RequestPassRecovery(email string) error {
 	if err != nil {
 		return err
 	}
-	//TODO: change host, port
 	frontHost, frontPort := util.GetFrontHostAndPort()
 	var message = "Visit this link in the next 20 minutes to change your password: " + util.FrontProtocol + "://" + frontHost + ":" + frontPort + "/web#/reset-password?id=" +
 		util.Uint2String(user.ProfileId) + "&str=" + user.ValidationUid
@@ -89,8 +88,17 @@ func (service *AuthService) ChangePassword(dto dto.RecoveryDTO) error {
 	if err != nil {
 		return err
 	}
-	if !user.IsValidated || user.IsDeleted || user.ValidationUid != dto.Uuid || time.Now().Unix() > user.ValidationExpire.Unix() {
-		return fmt.Errorf("BAD_RECOVERY_DATA")
+	if !user.IsValidated {
+		return fmt.Errorf(util.GetLoggingStringFromID(user.ProfileId) + " NOT VALIDATED")
+	}
+	if user.IsDeleted {
+		return fmt.Errorf(util.GetLoggingStringFromID(user.ProfileId) + " DELETED")
+	}
+	if user.ValidationUid != dto.Uuid {
+		return fmt.Errorf(util.GetLoggingStringFromID(user.ProfileId) + " BAD UUID")
+	}
+	if time.Now().Unix() > user.ValidationExpire.Unix() {
+		return fmt.Errorf(util.GetLoggingStringFromID(user.ProfileId) + " VALIDATION DATE EXPIRED")
 	}
 	user.ValidationExpire = time.Now()
 	user.ValidationUid = ""

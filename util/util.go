@@ -23,7 +23,7 @@ func SendMail(sendTo string, subject string, mailMessage string) {
 	fmt.Println("Email Sent Successfully!")
 }
 
-func Uint2String(input uint) string{
+func Uint2String(input uint) string {
 	return strconv.FormatUint(uint64(input), 10)
 }
 
@@ -35,5 +35,3 @@ func String2Uint(input string) uint {
 	}
 	return uint(u64)
 }
-
-

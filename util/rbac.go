@@ -3,8 +3,12 @@ package util
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
+	"reflect"
+	"runtime"
+	"strings"
 )
 
 func RBAC(handler func(http.ResponseWriter, *http.Request), privilege string, returnCollection bool) func(http.ResponseWriter, *http.Request) {
@@ -15,11 +19,20 @@ func RBAC(handler func(http.ResponseWriter, *http.Request), privilege string, re
 		} else {
 			return func(writer http.ResponseWriter, request *http.Request) {
 				writer.WriteHeader(http.StatusOK)
+				handlerFunctionName := runtime.FuncForPC(reflect.ValueOf(handler).Pointer()).Name()
+				parts := strings.Split(handlerFunctionName, "/")
+				Logging(WARN, handlerFunctionName, GetIPAddress(request), "Unauthorized access", parts[1])
 				writer.Header().Set("Content-Type", "application/json")
 				if returnCollection {
-					writer.Write([]byte("[{\"status\":\"fail\", \"reason\":\"unauthorized\"}]"))
+					_, err := writer.Write([]byte("[{\"status\":\"fail\", \"reason\":\"unauthorized\"}]"))
+					if err != nil {
+						return
+					}
 				} else {
-					writer.Write([]byte("{\"status\":\"fail\", \"reason\":\"unauthorized\"}"))
+					_, err := writer.Write([]byte("{\"status\":\"fail\", \"reason\":\"unauthorized\"}"))
+					if err != nil {
+						return
+					}
 				}
 			}
 		}
@@ -37,7 +50,12 @@ func RBAC(handler func(http.ResponseWriter, *http.Request), privilege string, re
 				fmt.Println(err)
 				handleFunc = finalHandler(false)
 			} else {
-				defer resp.Body.Close()
+				defer func(Body io.ReadCloser) {
+					err := Body.Close()
+					if err != nil {
+
+					}
+				}(resp.Body)
 				body, err1 := ioutil.ReadAll(resp.Body)
 				if err1 != nil {
 					fmt.Println(err1)

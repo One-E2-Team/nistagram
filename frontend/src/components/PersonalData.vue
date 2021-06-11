@@ -55,29 +55,36 @@ import * as comm from '../configuration/communication.js'
 export default {
 name: "PersonalData",
 props: ['username'],
-data: () => ({
+data() {
+  return {
     profile: {}
-}),
+}},
 methods: {
-
+  getPersonalData(){
+    axios({
+            method: "get",
+            url: comm.protocol + '://' + comm.server + '/api/profile/get/' + this.username,
+        }).then(response => {
+            if(response.status==200){
+                this.profile = response.data;
+                this.$emit('loaded-user', this.profile.ID)
+            }else{
+              this.$router.push({name: 'NotFound'})
+            }
+        }).catch(reason => {
+            console.log(reason);
+            this.$router.push({name: 'NotFound'})
+        });
+      }
 },
 created(){
-    
-    axios({
-        method: "get",
-        url: comm.protocol + '://' + comm.server + '/api/profile/get/' + this.username,
-    }).then(response => {
-        if(response.status==200){
-            this.profile = response.data;
-            this.$emit('loaded-user', this.profile.ID)
-        }else{
-          this.$router.push({name: 'NotFound'})
+    this.getPersonalData();
+},
+watch:{
+        username: function() { 
+          this.getPersonalData()
         }
-    }).catch(reason => {
-        console.log(reason);
-        this.$router.push({name: 'NotFound'})
-    });
-}
+    }
 
 }
 </script>

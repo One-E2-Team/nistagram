@@ -121,13 +121,14 @@ import Search from '../components/Search.vue'
     });
     },
 
-    data: () => ({
+    data() {
+      return {
       posts : [],
       searchType: "posts", //possible values: {accounts, posts}
       server: comm.server,
       protocol: comm.protocol,
       usernames:[]
-    }),
+    }},
 
     methods: {
       loadSearchResult(searchResult){

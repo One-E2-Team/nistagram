@@ -57,16 +57,22 @@
     import * as comm from '../configuration/communication.js'
     import * as validator from '../plugins/validator.js'
   export default {
-    data: () => ({
+    data() {return {
       show: false,
-      valid: true,    
+      valid: true,
       email: '',
       password: '',
-
       rules: validator.rules
-    }),
-
+    }},
+    mounted(){
+       if (this.isAvailable()){
+          this.$router.push({name: 'NotFound'})
+        }
+    },
     methods: {
+      isAvailable(){
+        return comm.isUserLogged()
+      },
       login () {
         if (this.$refs.form.validate()){
             let credentials = {
@@ -82,15 +88,14 @@
                 comm.setJWTToken(response.data);
                 this.$router.push({name: "HomePage"})
                 this.$root.$emit('loggedUser')
-                //axios.defaults.headers.common['Authorization'] = 'Bearer ' + comm.getJWTToken().token;
               }
-            }) //TODO: redirect
+            })
         }
       },
       requestRecovery() {
         let mail = this.email;
-        if(mail === ''){
-          alert('You must enter email!');
+        if (this.rules.email(mail) !== true){
+          alert('E-mail must be valid');
           return;
         }
         axios({

@@ -19,8 +19,9 @@ type AuthHandler struct {
 func (handler *AuthHandler) LogIn(w http.ResponseWriter, r *http.Request) {
 	var req dto.LogInDTO
 	err := json.NewDecoder(r.Body).Decode(&req)
+	methodPath := "nistagram/auth/handler.LogIn"
 	if err != nil {
-		fmt.Println(err)
+		util.Logging(util.ERROR, methodPath, "", err.Error(), "auth")
 		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
@@ -28,7 +29,7 @@ func (handler *AuthHandler) LogIn(w http.ResponseWriter, r *http.Request) {
 	var user *model.User
 	user, err = handler.AuthService.LogIn(req)
 	if err != nil {
-		fmt.Println(err)
+		util.Logging(util.WARN, methodPath, util.GetIPAddress(r), err.Error(), "auth")
 		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
@@ -36,7 +37,7 @@ func (handler *AuthHandler) LogIn(w http.ResponseWriter, r *http.Request) {
 
 	token, err := util.CreateToken(user.ProfileId, "auth_service")
 	if err != nil {
-		fmt.Println(err)
+		util.Logging(util.ERROR, methodPath, "", err.Error(), "auth")
 		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
@@ -50,13 +51,14 @@ func (handler *AuthHandler) LogIn(w http.ResponseWriter, r *http.Request) {
 	}
 	respJson, err := json.Marshal(resp)
 	if err != nil {
-		fmt.Println(err)
+		util.Logging(util.ERROR, methodPath, "", err.Error(), "auth")
 		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(respJson)
+	util.Logging(util.SUCCESS, methodPath, util.GetIPAddress(r), "Successful login for "+util.GetLoggingStringFromID(user.ProfileId), "auth")
 	w.Header().Set("Content-Type", "application/json")
 }
 
@@ -82,45 +84,48 @@ func (handler *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 }
 
-
 func (handler *AuthHandler) RequestPassRecovery(w http.ResponseWriter, r *http.Request) {
 	var email string
+	methodPath := "nistagram/auth/handler.RequestPassRecovery"
 	err := json.NewDecoder(r.Body).Decode(&email)
 	if err != nil {
-		fmt.Println(err)
+		util.Logging(util.ERROR, methodPath, "", err.Error(), "auth")
 		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 	err = handler.AuthService.RequestPassRecovery(email)
 	if err != nil {
-		fmt.Println(err)
+		util.Logging(util.WARN, methodPath, util.GetIPAddress(r), "'"+email+"' "+err.Error(), "auth")
 		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+	util.Logging(util.INFO, methodPath, util.GetIPAddress(r), "Successful requested recovery for '"+email+"'", "auth")
 	_, _ = w.Write([]byte("Check your email!"))
 	w.Header().Set("Content-Type", "text/plain")
 }
 
 func (handler *AuthHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	var recoveryDTO dto.RecoveryDTO
+	methodPath := "nistagram/auth/handler.ChangePassword"
 	err := json.NewDecoder(r.Body).Decode(&recoveryDTO)
 	if err != nil {
-		fmt.Println(err)
+		util.Logging(util.ERROR, methodPath, "", err.Error(), "auth")
 		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 	err = handler.AuthService.ChangePassword(recoveryDTO)
 	if err != nil {
-		fmt.Println(err)
+		util.Logging(util.WARN, methodPath, util.GetIPAddress(r), err.Error(), "auth")
 		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+	util.Logging(util.INFO, methodPath, util.GetIPAddress(r), "Successful password change for profileId: '"+recoveryDTO.Id+"'", "auth")
 	_, _ = w.Write([]byte("Password successfully changed!"))
 	w.Header().Set("Content-Type", "text/plain")
 }
@@ -157,7 +162,6 @@ func (handler *AuthHandler) ValidateUser(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	//TODO: parametrize host
 	frontHost, frontPort := util.GetFrontHostAndPort()
 	_, err = fmt.Fprintf(w, "<html><head><script>window.location.href = \""+util.FrontProtocol+"://"+
 		frontHost+":"+frontPort+"/web#/log-in\";</script></head><body></body></html>")
@@ -192,7 +196,6 @@ func (handler *AuthHandler) GetPrivileges(writer http.ResponseWriter, request *h
 	}
 }
 
-
 func safeRegisterDTO(dto dto.RegisterDTO) dto.RegisterDTO {
 	dto.Username = sanitize(dto.Username)
 	dto.Email = sanitize(dto.Email)
@@ -206,5 +209,5 @@ func safeUpdateUserDto(dto dto.UpdateUserDTO) dto.UpdateUserDTO {
 }
 
 func sanitize(str string) string {
-	return  template.HTMLEscapeString(str)
+	return template.HTMLEscapeString(str)
 }

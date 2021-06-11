@@ -46,6 +46,7 @@ services:
             - ./common_pass.txt:/nistagram/common_pass.txt:ro
             - ./conf/certs/key/profile.key.pem:/nistagram/key.pem
             - ./conf/certs/pem/profile.cert.pem:/nistagram/cert.pem
+            - ../logs/profile:/logs/profile
         networks: 
             - net_apigateway
             - net_db_relational
@@ -69,6 +70,7 @@ services:
         volumes:
             - ./conf/certs/key/auth.key.pem:/nistagram/key.pem
             - ./conf/certs/pem/auth.cert.pem:/nistagram/cert.pem
+            - ../logs/auth:/logs/auth
         networks: 
             - net_apigateway
             - net_db_relational
@@ -90,6 +92,7 @@ services:
         volumes:
             - ./conf/certs/key/connection.key.pem:/nistagram/key.pem
             - ./conf/certs/pem/connection.cert.pem:/nistagram/cert.pem
+            - ../logs/connection:/logs/connection
         networks: 
             - net_apigateway
             - net_db_graph
@@ -112,6 +115,7 @@ services:
             - "../nistagramstaticdata:/nistagramstaticdata"
             - ./conf/certs/key/post.key.pem:/nistagram/key.pem
             - ./conf/certs/pem/post.cert.pem:/nistagram/cert.pem
+            - ../logs/post:/logs/post
 
         networks:
             - net_apigateway

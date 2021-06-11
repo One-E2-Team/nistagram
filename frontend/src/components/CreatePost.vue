@@ -106,7 +106,7 @@
 
     name: 'CreatePost',
 
-    data: () => ({
+    data() {return {
       alert : false,
       alertText : '',
       valid: true,
@@ -125,8 +125,11 @@
       isHighlighted: false,
       isCloseFriendsOnly: false,
       files : [],
-    }),
-
+    }},
+    mounted(){
+      if( !comm.isUserLogged() )
+        this.$router.push({name: 'NotFound'})
+    },
     methods: {
       resetForm () {
         Object.keys(this.form).forEach(f => {
@@ -137,6 +140,9 @@
         if(this.files.length == 0){
           this.alert = true;
            this.alertText = "Please choose at least one picture or video."
+        } else if(this.postTypes != 'Post' && this.postTypes != 'Story' ){
+          this.alert = true;
+          this.alertText = "Post type must be selected"
         }
         else{
           this.alert = false;

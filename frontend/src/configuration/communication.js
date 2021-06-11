@@ -28,6 +28,10 @@ export function getLoggedUserID() {
   return 0;
 }
 
+export function isUserLogged() {
+  return getLoggedUserID() != 0;
+}
+
 export function getLoggedUserUsername() {
   if (getJWTToken()) {
     return getJWTToken().username;
@@ -44,7 +48,6 @@ export function setLoggedUserUsername(u) {
 export function logOut() {
   sessionStorage.removeItem("JWT");
   console.log(sessionStorage.getItem("JWT"));
-  window.location.href = '/';
 }
 
 export function getUrlVars() {

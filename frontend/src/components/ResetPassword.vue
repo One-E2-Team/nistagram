@@ -68,11 +68,9 @@ import axios from 'axios'
         show: false,
         password1: '',
         password2: '',
-        rules: {
-          required: validator.rules.required,
-          min: validator.rules.min,
-          passwordMatch: () => (this.password1 === this.password2) || 'Password must match'
-        },
+        rules: validator.rules,
+        passwordMatch: () => (this.password1 === this.password2) || 'Password must match'
+        
       }
     },
     methods:{

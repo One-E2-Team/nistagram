@@ -24,30 +24,26 @@ type Handler struct {
 	PostService *service.PostService
 }
 
-func (handler *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
+func (handler *Handler) GetAll(w http.ResponseWriter, _ *http.Request) {
 	result := handler.PostService.GetAll()
 	//json.NewEncoder(w).Encode(&result)
 
 	js, err := json.Marshal(result)
 	if err != nil {
-		w.Write([]byte("{\"success\":\"error\"}"))
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 	}
-	w.Write(js)
-
-	//w.Write([]byte("{\"success\":\"ok\"}"))
+	_, _ = w.Write(js)
 	w.Header().Set("Content-Type", "application/json")
 }
 
-func (handler Handler) GetPublic(w http.ResponseWriter, r *http.Request) {
+func (handler Handler) GetPublic(w http.ResponseWriter, _ *http.Request) {
 	result := handler.PostService.GetPublic()
 
 	js, err := json.Marshal(result)
 	if err != nil {
-		w.Write([]byte("{\"success\":\"error\"}"))
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 	}
-	w.Write(js)
-
-	//w.Write([]byte("{\"success\":\"ok\"}"))
+	_, _ = w.Write(js)
 	w.Header().Set("Content-Type", "application/json")
 }
 
@@ -56,7 +52,7 @@ func (handler Handler) GetMyPosts(w http.ResponseWriter, r *http.Request) {
 	loggedUserId := util.GetLoggedUserIDFromToken(r)
 	if loggedUserId == 0 {
 		fmt.Println("User is not logged in..")
-		w.Write([]byte("{\"success\":\"error\"}"))
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 
@@ -64,9 +60,12 @@ func (handler Handler) GetMyPosts(w http.ResponseWriter, r *http.Request) {
 
 	js, err := json.Marshal(result)
 	if err != nil {
-		w.Write([]byte("{\"success\":\"error\"}"))
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 	}
-	w.Write(js)
+	_, err = w.Write(js)
+	if err != nil {
+		return
+	}
 
 	//w.Write([]byte("{\"success\":\"ok\"}"))
 	w.Header().Set("Content-Type", "application/json")
@@ -77,7 +76,7 @@ func (handler Handler) GetPostsForHomePage(w http.ResponseWriter, r *http.Reques
 	loggedUserId := util.GetLoggedUserIDFromToken(r)
 	if loggedUserId == 0 {
 		fmt.Println("User is not logged in..")
-		w.Write([]byte("{\"success\":\"error\"}"))
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 
@@ -93,7 +92,12 @@ func (handler Handler) GetPostsForHomePage(w http.ResponseWriter, r *http.Reques
 		fmt.Println(err)
 	}
 	fmt.Println("Body: ", body)
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+
+		}
+	}(resp.Body)
 	err = json.Unmarshal(body, &followingProfiles)
 
 	if err != nil {
@@ -104,11 +108,9 @@ func (handler Handler) GetPostsForHomePage(w http.ResponseWriter, r *http.Reques
 
 	js, err := json.Marshal(result)
 	if err != nil {
-		w.Write([]byte("{\"success\":\"error\"}"))
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 	}
-	w.Write(js)
-
-	//w.Write([]byte("{\"success\":\"ok\"}"))
+	_, _ = w.Write(js)
 	w.Header().Set("Content-Type", "application/json")
 }
 
@@ -133,7 +135,12 @@ func (handler Handler) GetProfilesPosts(w http.ResponseWriter, r *http.Request) 
 			fmt.Println(err)
 		}
 		fmt.Println("Body: ", body)
-		defer resp.Body.Close()
+		defer func(Body io.ReadCloser) {
+			err := Body.Close()
+			if err != nil {
+
+			}
+		}(resp.Body)
 		err = json.Unmarshal(body, &followingProfiles)
 
 		if err != nil {
@@ -145,9 +152,9 @@ func (handler Handler) GetProfilesPosts(w http.ResponseWriter, r *http.Request) 
 
 	js, err := json.Marshal(result)
 	if err != nil {
-		w.Write([]byte("{\"success\":\"error\"}"))
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 	}
-	w.Write(js)
+	_, _ = w.Write(js)
 	w.Header().Set("Content-Type", "application/json")
 }
 
@@ -160,7 +167,10 @@ func (handler *Handler) SearchPublicByLocation(w http.ResponseWriter, r *http.Re
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(&result)
+	err := json.NewEncoder(w).Encode(&result)
+	if err != nil {
+		return
+	}
 }
 
 func (handler *Handler) SearchPublicByHashTag(w http.ResponseWriter, r *http.Request) {
@@ -172,25 +182,35 @@ func (handler *Handler) SearchPublicByHashTag(w http.ResponseWriter, r *http.Req
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(&result)
+	err := json.NewEncoder(w).Encode(&result)
+	if err != nil {
+		return
+	}
 }
 
 func (handler *Handler) Create(w http.ResponseWriter, r *http.Request) {
-
-	fmt.Println("In function create..")
-
 	profileId := util.GetLoggedUserIDFromToken(r)
-	if profileId == 0 {
-		fmt.Println("User is not logged in..")
-		w.Write([]byte("{\"success\":\"error\"}"))
+	methodPath := "nistagram/post/handler.Create"
+	err := r.ParseMultipartForm(0)
+	if err != nil {
+		util.Logging(util.ERROR, methodPath, "", err.Error(), "post")
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 
-	err := r.ParseMultipartForm(0)
-
+	var postDto dto.PostDto
+	data := r.MultipartForm.Value["data"]
+	err = json.Unmarshal([]byte(data[0]), &postDto)
 	if err != nil {
-		fmt.Println(err)
-		w.Write([]byte("{\"success\":\"error\"}"))
+		util.Logging(util.ERROR, methodPath, "", err.Error(), "post")
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
+		return
+	}
+
+	postType := model.GetPostType(postDto.PostType)
+	if postType == model.NONE {
+		util.Logging(util.ERROR, methodPath, util.GetIPAddress(r), "Wrong post type", "post")
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 
@@ -210,76 +230,76 @@ func (handler *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	for i := 0; i < len(files); i++ {
 		file, err := files[i].Open()
 		if err != nil {
-			fmt.Println(err)
-			w.Write([]byte("{\"success\":\"error\"}"))
+			util.Logging(util.ERROR, methodPath, "", err.Error(), "post")
+			_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 			return
 		}
 		uid, err := uuid.NewV4()
 		if err != nil {
-			fmt.Println(err)
+			util.Logging(util.ERROR, methodPath, "", err.Error(), "post")
+			_, _ = w.Write([]byte("{\"success\":\"error\"}"))
+			return
 		}
 		fn := strings.Split(files[i].Filename, ".")
 		mediaNames = append(mediaNames, uid.String()+"."+fn[1])
 		f, err := os.OpenFile("../../nistagramstaticdata/data/"+uid.String()+"."+fn[1], os.O_WRONLY|os.O_CREATE, 0666)
 		if err != nil {
-			fmt.Println(err)
-			w.Write([]byte("{\"success\":\"error\"}"))
+			util.Logging(util.ERROR, methodPath, "", err.Error(), "post")
+			_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 			return
 		}
-		io.Copy(f, file)
-		f.Close()
-		file.Close()
-	}
-
-	var postDto dto.PostDto
-	data := r.MultipartForm.Value["data"]
-	fmt.Println(data)
-	err = json.Unmarshal([]byte(data[0]), &postDto)
-	if err != nil {
-		fmt.Println(err)
-		w.Write([]byte("{\"success\":\"error\"}"))
-		return
-	}
-
-	postType := model.GetPostType(postDto.PostType)
-
-	if postType == model.NONE {
-		w.Write([]byte("{\"success\":\"error\"}"))
-		return
+		_, err = io.Copy(f, file)
+		if err != nil {
+			return
+		}
+		err = f.Close()
+		if err != nil {
+			return
+		}
+		err = file.Close()
+		if err != nil {
+			return
+		}
 	}
 
 	profileHost, profilePort := util.GetProfileHostAndPort()
-
 	resp, err := http.Get(util.CrossServiceProtocol + "://" + profileHost + ":" + profilePort + "/get-by-id/" + util.Uint2String(profileId))
 	if err != nil {
-		fmt.Println(err)
+		util.Logging(util.ERROR, methodPath, "", err.Error(), "post")
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
+		return
 	}
 	var profile dto.ProfileDto
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println(err)
+		util.Logging(util.ERROR, methodPath, "", err.Error(), "post")
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
+		return
 	}
-	fmt.Println("Body: ", body)
-	defer resp.Body.Close()
-	err = json.Unmarshal(body, &profile)
 
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+
+		}
+	}(resp.Body)
+	err = json.Unmarshal(body, &profile)
 	if err != nil {
-		fmt.Println(err)
+		util.Logging(util.ERROR, methodPath, "", err.Error(), "post")
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
+		return
 	}
 	profile.ProfileId = profileId
-	fmt.Println("Profile dto: ", profile)
-
 	err = handler.PostService.CreatePost(postType, postDto, mediaNames, profile)
-
 	if err != nil {
-		fmt.Println(err)
-		w.Write([]byte("{\"success\":\"error\"}"))
+		util.Logging(util.ERROR, methodPath, "", err.Error(), "post")
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	} else {
 		w.WriteHeader(http.StatusCreated)
 	}
-
-	w.Write([]byte("{\"success\":\"ok\"}"))
+	util.Logging(util.SUCCESS, methodPath, util.GetIPAddress(r), "Success in creating post, "+util.GetLoggingStringFromID(profileId), "post")
+	_, _ = w.Write([]byte("{\"success\":\"ok\"}"))
 	w.Header().Set("Content-Type", "application/json")
 
 }
@@ -305,7 +325,10 @@ func (handler *Handler) GetPost(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(&result)
+	err = json.NewEncoder(w).Encode(&result)
+	if err != nil {
+		return
+	}
 }
 
 func (handler *Handler) DeletePost(w http.ResponseWriter, r *http.Request) {
@@ -327,7 +350,7 @@ func (handler *Handler) DeletePost(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte("{\"success\":\"ok\"}"))
+	_, _ = w.Write([]byte("{\"success\":\"ok\"}"))
 }
 
 func (handler *Handler) UpdatePost(w http.ResponseWriter, r *http.Request) {
@@ -338,7 +361,7 @@ func (handler *Handler) UpdatePost(w http.ResponseWriter, r *http.Request) {
 	err = json.NewDecoder(r.Body).Decode(&postDto)
 
 	postDto = safePostDto(postDto)
-	if err != nil || postType == model.NONE{
+	if err != nil || postType == model.NONE {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -353,7 +376,7 @@ func (handler *Handler) UpdatePost(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte("{\"success\":\"ok\"}"))
+	_, _ = w.Write([]byte("{\"success\":\"ok\"}"))
 }
 
 func (handler *Handler) DeleteUserPosts(w http.ResponseWriter, r *http.Request) {
@@ -378,7 +401,7 @@ func (handler *Handler) ChangeUsername(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&input)
 
 	input.Username = template.HTMLEscapeString(input.Username)
-	if err != nil{
+	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -418,11 +441,10 @@ func (handler *Handler) ChangePrivacy(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-
 func safePostDto(postDto dto.PostDto) dto.PostDto {
 	postDto.Description = template.HTMLEscapeString(postDto.Description)
 	taggedUsers := postDto.TaggedUsers
-	for i := 0; i < len(postDto.TaggedUsers) ; i++ {
+	for i := 0; i < len(postDto.TaggedUsers); i++ {
 		taggedUsers[i] = template.HTMLEscapeString(postDto.TaggedUsers[i])
 	}
 	postDto.TaggedUsers = taggedUsers

@@ -93,11 +93,11 @@
     });
     },
 
-    data: () => ({
+    data() {return {
       posts : null,
       server: comm.server,
       protocol: comm.protocol
-    }),
+    }},
 
     methods: {
       

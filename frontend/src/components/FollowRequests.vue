@@ -50,9 +50,9 @@ import axios from 'axios'
 import * as comm from '../configuration/communication.js'
 export default {
     name: "FollowRequests",
-    data: () => ({
+    data() {return {
         requests: [],
-    }),
+    }},
     created() {
     },
     methods: {
