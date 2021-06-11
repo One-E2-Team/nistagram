@@ -240,7 +240,7 @@
                 <v-combobox
                   v-model="person.interests"
                   :items="interests"
-                  :rules="[ rules.required , moreThanOne ] "
+                  :rules="[ rules.required , rules.oneOrMoreElement ] "
                   chips
                   clearable
                   label="Your interests"
@@ -325,7 +325,6 @@ import * as validator from '../plugins/validator.js'
       rules: validator.rules,
       passwordMatch: () => (this.credentials.password === this.password2) || 'Password must match',
       menu: false,
-      moreThanOne : () => this.person.interests.length > 0 || 'You need to insert at least one element'
     }},
 
     mounted(){
