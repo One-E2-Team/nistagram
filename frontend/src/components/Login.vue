@@ -40,7 +40,6 @@
                 Log in
                 </v-btn>
                 <v-btn
-                :disabled="rules.email"
                 color="warning"
                 elevation="8"
                 @click="requestRecovery"
@@ -60,10 +59,9 @@
   export default {
     data() {return {
       show: false,
-      valid: true,    
+      valid: true,
       email: '',
       password: '',
-
       rules: validator.rules
     }},
     mounted(){
@@ -96,8 +94,8 @@
       },
       requestRecovery() {
         let mail = this.email;
-        if(mail === ''){
-          alert('You must enter email!');
+        if (this.rules.email(mail) !== true){
+          alert('E-mail must be valid');
           return;
         }
         axios({
