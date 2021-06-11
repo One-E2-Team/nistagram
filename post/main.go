@@ -3,9 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/gorilla/mux"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"net/http"
 	"nistagram/post/handler"
 	"nistagram/post/repository"
@@ -13,6 +10,10 @@ import (
 	"nistagram/util"
 	"os"
 	"time"
+
+	"github.com/gorilla/mux"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func initDB() *mongo.Client {
@@ -79,9 +80,15 @@ func handleFunc(handler *handler.Handler) {
 	router.HandleFunc("/{postType}/{id}", handler.DeletePost).Methods("DELETE")
 	router.HandleFunc("/{postType}/{id}", handler.UpdatePost).Methods("PUT")
 	fmt.Printf("Starting server..")
-	_, port := util.GetPostHostAndPort()
-	err := http.ListenAndServe(":"+port, router)
+	host, port := util.GetPostHostAndPort()
+	var err error
+	if util.DockerChecker() {
+		err = http.ListenAndServeTLS(":"+port, "../cert.pem", "../key.pem", router)
+	} else {
+		err = http.ListenAndServe(host+":"+port, router)
+	}
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
 }

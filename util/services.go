@@ -3,10 +3,10 @@ package util
 import "os"
 
 const MicroservicesProtocol = "https"
-const CrossServiceProtocol = "http"
-const FrontProtocol = "http"
+const CrossServiceProtocol = "https"
+const FrontProtocol = "https"
 
-func dockerChecker() bool {
+func DockerChecker() bool {
 	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD") // dev production environment
 	_, ok1 := os.LookupEnv("DOCKER_ENV_SET_DEV") // dev front environment
 	return ok || ok1
@@ -14,7 +14,7 @@ func dockerChecker() bool {
 
 func GetAuthHostAndPort() (string, string) {
 	var authHost, authPort = "localhost", "8000" // dev.db environment
-	if dockerChecker() {
+	if DockerChecker() {
 		authHost = "auth"
 		authPort = "8080"
 	}
@@ -23,7 +23,7 @@ func GetAuthHostAndPort() (string, string) {
 
 func GetConnectionHostAndPort() (string, string) {
 	var connHost, connPort = "localhost", "8085" // dev.db environment
-	if dockerChecker() {
+	if DockerChecker() {
 		connHost = "connection"
 		connPort = "8080"
 	}
@@ -32,7 +32,7 @@ func GetConnectionHostAndPort() (string, string) {
 
 func GetProfileHostAndPort() (string, string) {
 	var profileHost, profilePort = "localhost", "8083" // dev.db environment
-	if dockerChecker() {
+	if DockerChecker() {
 		profileHost = "profile"
 		profilePort = "8080"
 	}
@@ -41,7 +41,7 @@ func GetProfileHostAndPort() (string, string) {
 
 func GetPostHostAndPort() (string, string) {
 	var postHost, postPort = "localhost", "8086" // dev.db environment
-	if dockerChecker() {
+	if DockerChecker() {
 		postHost = "post"
 		postPort = "8080"
 	}

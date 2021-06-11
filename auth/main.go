@@ -85,8 +85,13 @@ func handlerFunc(handler *handler.AuthHandler) {
 	router.HandleFunc("/register", handler.Register).Methods("POST")
 	router.HandleFunc("/update-user", handler.UpdateUser).Methods("POST")
 	router.HandleFunc("/privileges/{profileId}", handler.GetPrivileges).Methods("GET")
-	_, port := util.GetAuthHostAndPort()
-	err := http.ListenAndServe(":"+port, router)
+	host, port := util.GetAuthHostAndPort()
+	var err error
+	if util.DockerChecker() {
+		err = http.ListenAndServeTLS(host + ":" + port,"../cert.pem","../key.pem", router)
+	} else {
+		err = http.ListenAndServe(":"+port, router)
+	}
 	if err != nil {
 		fmt.Println(err)
 		return

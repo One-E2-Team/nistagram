@@ -85,7 +85,7 @@
           "extra_config": {},
           "disable_host_sanitize": false,
           "host": [
-            "https://profile:8080"
+            "profile:8080"
           ]
         }
       ]
@@ -117,7 +117,7 @@
           "method": "POST",
           "extra_config": {},
           "host": [
-            "https://post:8080"
+            "post:8080"
           ],
           "disable_host_sanitize": false
         }
@@ -147,7 +147,7 @@
           "method": "POST",
           "extra_config": {},
           "host": [
-            "https://auth:8080"
+            "auth:8080"
           ],
           "disable_host_sanitize": false
         }
@@ -177,6 +177,7 @@
           "method": "GET",
           "extra_config": {},
           "host": [
+            "static:80",
             "https://static"
           ],
           "disable_host_sanitize": false
@@ -207,7 +208,7 @@
           "method": "GET",
           "extra_config": {},
           "host": [
-            "https://post:8080"
+            "post:8080"
           ],
           "is_collection": true,
           "disable_host_sanitize": false
@@ -238,7 +239,7 @@
           "method": "POST",
           "extra_config": {},
           "host": [
-            "https://auth:8080"
+            "auth:8080"
           ],
           "disable_host_sanitize": false
         }
@@ -268,7 +269,7 @@
           "method": "POST",
           "extra_config": {},
           "host": [
-            "https://auth:8080"
+            "auth:8080"
           ],
           "disable_host_sanitize": false
         }
@@ -298,7 +299,7 @@
           "method": "GET",
           "extra_config": {},
           "host": [
-            "https://auth:8080"
+            "auth:8080"
           ],
           "disable_host_sanitize": false
         }
@@ -328,7 +329,7 @@
           "method": "GET",
           "extra_config": {},
           "host": [
-            "https://profile:8080"
+            "profile:8080"
           ],
           "is_collection": true,
           "disable_host_sanitize": false
@@ -359,7 +360,7 @@
           "method": "GET",
           "extra_config": {},
           "host": [
-            "https://profile:8080"
+            "profile:8080"
           ],
           "disable_host_sanitize": false
         }
@@ -392,7 +393,7 @@
           "method": "GET",
           "extra_config": {},
           "host": [
-            "https://profile:8080"
+            "profile:8080"
           ],
           "disable_host_sanitize": false
         }
@@ -428,7 +429,7 @@
           "method": "PUT",
           "extra_config": {},
           "host": [
-            "https://profile:8080"
+            "profile:8080"
           ],
           "disable_host_sanitize": false
         }
@@ -458,7 +459,7 @@
           "method": "GET",
           "extra_config": {},
           "host": [
-            "https://post:8080"
+            "post:8080"
           ],
           "disable_host_sanitize": false,
           "is_collection": true,
@@ -493,7 +494,7 @@
           "method": "GET",
           "extra_config": {},
           "host": [
-            "https://post:8080"
+            "post:8080"
           ],
           "disable_host_sanitize": false,
           "is_collection": true,
@@ -528,7 +529,7 @@
           "method": "PUT",
           "extra_config": {},
           "host": [
-            "https://profile:8080"
+            "profile:8080"
           ],
           "disable_host_sanitize": false
         }
@@ -558,7 +559,7 @@
           "method": "GET",
           "extra_config": {},
           "host": [
-            "https://profile:8080"
+            "profile:8080"
           ],
           "disable_host_sanitize": false,
           "is_collection": true,
@@ -590,7 +591,7 @@
           "method": "GET",
           "extra_config": {},
           "host": [
-            "https://profile:8080"
+            "profile:8080"
           ],
           "disable_host_sanitize": false
         }
@@ -623,7 +624,7 @@
           "method": "GET",
           "extra_config": {},
           "host": [
-            "https://connection:8080"
+            "connection:8080"
           ],
           "disable_host_sanitize": false
         }
@@ -656,7 +657,7 @@
           "method": "POST",
           "extra_config": {},
           "host": [
-            "https://connection:8080"
+            "connection:8080"
           ],
           "disable_host_sanitize": false
         }
@@ -689,7 +690,7 @@
           "method": "POST",
           "extra_config": {},
           "host": [
-            "https://connection:8080"
+            "connection:8080"
           ],
           "disable_host_sanitize": false
         }
@@ -722,7 +723,7 @@
           "method": "PUT",
           "extra_config": {},
           "host": [
-            "https://connection:8080"
+            "connection:8080"
           ],
           "disable_host_sanitize": false
         }
@@ -755,7 +756,7 @@
           "method": "GET",
           "extra_config": {},
           "host": [
-            "https://connection:8080"
+            "connection:8080"
           ],
           "disable_host_sanitize": false,
           "is_collection": true,
@@ -790,7 +791,7 @@
           "method": "DELETE",
           "extra_config": {},
           "host": [
-            "https://connection:8080"
+            "connection:8080"
           ],
           "disable_host_sanitize": false
         }
@@ -820,7 +821,7 @@
           "method": "GET",
           "extra_config": {},
           "host": [
-            "https://static"
+            "static:80"
           ],
           "disable_host_sanitize": false
         }
@@ -850,7 +851,7 @@
           "method": "GET",
           "extra_config": {},
           "host": [
-            "https://static"
+            "static:80"
           ],
           "disable_host_sanitize": false
         }
@@ -880,7 +881,7 @@
           "method": "GET",
           "extra_config": {},
           "host": [
-            "https://static"
+            "static:80"
           ],
           "disable_host_sanitize": false
         }
@@ -910,7 +911,7 @@
           "method": "GET",
           "extra_config": {},
           "host": [
-            "https://static"
+            "static:80"
           ],
           "disable_host_sanitize": false
         }
@@ -940,7 +941,7 @@
           "method": "GET",
           "extra_config": {},
           "host": [
-            "https://static"
+            "static:80"
           ],
           "disable_host_sanitize": false
         }
@@ -970,7 +971,7 @@
           "method": "GET",
           "extra_config": {},
           "host": [
-            "https://static"
+            "static:80"
           ],
           "disable_host_sanitize": false
         }
@@ -1000,7 +1001,7 @@
           "method": "GET",
           "extra_config": {},
           "host": [
-            "https://post:8080"
+            "post:8080"
           ],
           "disable_host_sanitize": false,
           "is_collection": true,
@@ -1032,7 +1033,7 @@
           "method": "GET",
           "extra_config": {},
           "host": [
-            "https://post:8080"
+            "post:8080"
           ],
           "disable_host_sanitize": false,
           "is_collection": true,
@@ -1067,7 +1068,7 @@
           "method": "GET",
           "extra_config": {},
           "host": [
-            "https://post:8080"
+            "post:8080"
           ],
           "disable_host_sanitize": false,
           "is_collection": true,
