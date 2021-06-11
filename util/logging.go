@@ -2,9 +2,11 @@ package util
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -56,6 +58,11 @@ func getLogFileString(logType LogType) string{
 	return ""
 }
 
+func encodeInputString(input string) string{
+	input = strings.ReplaceAll(input, "|", "%file_separator%")
+	return input
+}
+
 func Logging(logType LogType, resourceMethod string, resourceIP string, content string, service string) {
 	logFileService := "../../logs/" + service + "/"
 	logFile := logFileService
@@ -63,23 +70,37 @@ func Logging(logType LogType, resourceMethod string, resourceIP string, content 
 	logFile += ".txt"
 
 	file, err := os.OpenFile(logFile, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0666)
-	defer func(file *os.File) {
-		err := file.Close()
-		if err != nil {
 
-		}
-	}(file)
 	if err != nil {
 		fmt.Println(err)
 	}
 	log.SetOutput(file)
 	delimiter := "|"
-	oneLog := time.Now().UTC().String() + delimiter + logType.ToString() + delimiter + resourceMethod + delimiter + resourceIP + delimiter + content
+	oneLog := delimiter + time.Now().UTC().String() + delimiter + logType.ToString() + delimiter +
+		resourceMethod + delimiter + encodeInputString(resourceIP) + delimiter +
+		encodeInputString(content) + delimiter
 	log.Println(oneLog)
 
 	stat, err := file.Stat()
 
 	if(stat.Size() > 1024){ //should use LogSize here
-		os.Rename(logFile, logFileService + getLogFileString(logType) + time.Now().UTC().String() + ".txt")
+		file.Close()
+		newFile, err := os.OpenFile(  logFileService + "/archive/" + getLogFileString(logType) + time.Now().UTC().String() + ".txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0666)
+		defer newFile.Close()
+		if err != nil{
+			fmt.Println(err)
+		}
+
+		file, err = os.OpenFile(logFile, os.O_RDONLY, 0444)
+
+		_, err = io.Copy(newFile, file)
+		if err != nil{
+			fmt.Println(err)
+			return
+		}
+		if err := os.Truncate(file.Name(), 0); err != nil {
+			fmt.Printf("Failed to truncate: %v", err)
+		}
 	}
+	file.Close()
 }
