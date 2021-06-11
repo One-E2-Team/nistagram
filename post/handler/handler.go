@@ -30,15 +30,9 @@ func (handler *Handler) GetAll(w http.ResponseWriter, _ *http.Request) {
 
 	js, err := json.Marshal(result)
 	if err != nil {
-		_, err = w.Write([]byte("{\"success\":\"error\"}"))
-		if err != nil {
-			return
-		}
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 	}
-	_, err = w.Write(js)
-	if err != nil {
-		return
-	}
+	_, _ = w.Write(js)
 	w.Header().Set("Content-Type", "application/json")
 }
 
@@ -47,15 +41,9 @@ func (handler Handler) GetPublic(w http.ResponseWriter, _ *http.Request) {
 
 	js, err := json.Marshal(result)
 	if err != nil {
-		_, err = w.Write([]byte("{\"success\":\"error\"}"))
-		if err != nil {
-			return
-		}
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 	}
-	_, err = w.Write(js)
-	if err != nil {
-		return
-	}
+	_, _ = w.Write(js)
 	w.Header().Set("Content-Type", "application/json")
 }
 
@@ -64,10 +52,7 @@ func (handler Handler) GetMyPosts(w http.ResponseWriter, r *http.Request) {
 	loggedUserId := util.GetLoggedUserIDFromToken(r)
 	if loggedUserId == 0 {
 		fmt.Println("User is not logged in..")
-		_, err := w.Write([]byte("{\"success\":\"error\"}"))
-		if err != nil {
-			return
-		}
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 
@@ -75,9 +60,12 @@ func (handler Handler) GetMyPosts(w http.ResponseWriter, r *http.Request) {
 
 	js, err := json.Marshal(result)
 	if err != nil {
-		w.Write([]byte("{\"success\":\"error\"}"))
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 	}
-	w.Write(js)
+	_, err = w.Write(js)
+	if err != nil {
+		return
+	}
 
 	//w.Write([]byte("{\"success\":\"ok\"}"))
 	w.Header().Set("Content-Type", "application/json")
@@ -88,7 +76,7 @@ func (handler Handler) GetPostsForHomePage(w http.ResponseWriter, r *http.Reques
 	loggedUserId := util.GetLoggedUserIDFromToken(r)
 	if loggedUserId == 0 {
 		fmt.Println("User is not logged in..")
-		w.Write([]byte("{\"success\":\"error\"}"))
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 
@@ -104,7 +92,12 @@ func (handler Handler) GetPostsForHomePage(w http.ResponseWriter, r *http.Reques
 		fmt.Println(err)
 	}
 	fmt.Println("Body: ", body)
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+
+		}
+	}(resp.Body)
 	err = json.Unmarshal(body, &followingProfiles)
 
 	if err != nil {
@@ -115,11 +108,9 @@ func (handler Handler) GetPostsForHomePage(w http.ResponseWriter, r *http.Reques
 
 	js, err := json.Marshal(result)
 	if err != nil {
-		w.Write([]byte("{\"success\":\"error\"}"))
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 	}
-	w.Write(js)
-
-	//w.Write([]byte("{\"success\":\"ok\"}"))
+	_, _ = w.Write(js)
 	w.Header().Set("Content-Type", "application/json")
 }
 
@@ -144,7 +135,12 @@ func (handler Handler) GetProfilesPosts(w http.ResponseWriter, r *http.Request) 
 			fmt.Println(err)
 		}
 		fmt.Println("Body: ", body)
-		defer resp.Body.Close()
+		defer func(Body io.ReadCloser) {
+			err := Body.Close()
+			if err != nil {
+
+			}
+		}(resp.Body)
 		err = json.Unmarshal(body, &followingProfiles)
 
 		if err != nil {
@@ -156,9 +152,9 @@ func (handler Handler) GetProfilesPosts(w http.ResponseWriter, r *http.Request) 
 
 	js, err := json.Marshal(result)
 	if err != nil {
-		w.Write([]byte("{\"success\":\"error\"}"))
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 	}
-	w.Write(js)
+	_, _ = w.Write(js)
 	w.Header().Set("Content-Type", "application/json")
 }
 
@@ -171,7 +167,10 @@ func (handler *Handler) SearchPublicByLocation(w http.ResponseWriter, r *http.Re
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(&result)
+	err := json.NewEncoder(w).Encode(&result)
+	if err != nil {
+		return
+	}
 }
 
 func (handler *Handler) SearchPublicByHashTag(w http.ResponseWriter, r *http.Request) {
@@ -183,7 +182,10 @@ func (handler *Handler) SearchPublicByHashTag(w http.ResponseWriter, r *http.Req
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(&result)
+	err := json.NewEncoder(w).Encode(&result)
+	if err != nil {
+		return
+	}
 }
 
 func (handler *Handler) Create(w http.ResponseWriter, r *http.Request) {
@@ -192,7 +194,7 @@ func (handler *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseMultipartForm(0)
 	if err != nil {
 		util.Logging(util.ERROR, methodPath, "", err.Error(), "post")
-		w.Write([]byte("{\"success\":\"error\"}"))
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 
@@ -201,14 +203,14 @@ func (handler *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal([]byte(data[0]), &postDto)
 	if err != nil {
 		util.Logging(util.ERROR, methodPath, "", err.Error(), "post")
-		w.Write([]byte("{\"success\":\"error\"}"))
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 
 	postType := model.GetPostType(postDto.PostType)
 	if postType == model.NONE {
 		util.Logging(util.ERROR, methodPath, util.GetIPAddress(r), "Wrong post type", "post")
-		w.Write([]byte("{\"success\":\"error\"}"))
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 
@@ -229,13 +231,13 @@ func (handler *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		file, err := files[i].Open()
 		if err != nil {
 			util.Logging(util.ERROR, methodPath, "", err.Error(), "post")
-			w.Write([]byte("{\"success\":\"error\"}"))
+			_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 			return
 		}
 		uid, err := uuid.NewV4()
 		if err != nil {
 			util.Logging(util.ERROR, methodPath, "", err.Error(), "post")
-			w.Write([]byte("{\"success\":\"error\"}"))
+			_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 			return
 		}
 		fn := strings.Split(files[i].Filename, ".")
@@ -243,47 +245,61 @@ func (handler *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		f, err := os.OpenFile("../../nistagramstaticdata/data/"+uid.String()+"."+fn[1], os.O_WRONLY|os.O_CREATE, 0666)
 		if err != nil {
 			util.Logging(util.ERROR, methodPath, "", err.Error(), "post")
-			w.Write([]byte("{\"success\":\"error\"}"))
+			_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 			return
 		}
-		io.Copy(f, file)
-		f.Close()
-		file.Close()
+		_, err = io.Copy(f, file)
+		if err != nil {
+			return
+		}
+		err = f.Close()
+		if err != nil {
+			return
+		}
+		err = file.Close()
+		if err != nil {
+			return
+		}
 	}
 
 	profileHost, profilePort := util.GetProfileHostAndPort()
 	resp, err := http.Get(util.CrossServiceProtocol + "://" + profileHost + ":" + profilePort + "/get-by-id/" + util.Uint2String(profileId))
 	if err != nil {
 		util.Logging(util.ERROR, methodPath, "", err.Error(), "post")
-		w.Write([]byte("{\"success\":\"error\"}"))
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 	var profile dto.ProfileDto
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		util.Logging(util.ERROR, methodPath, "", err.Error(), "post")
-		w.Write([]byte("{\"success\":\"error\"}"))
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+
+		}
+	}(resp.Body)
 	err = json.Unmarshal(body, &profile)
 	if err != nil {
 		util.Logging(util.ERROR, methodPath, "", err.Error(), "post")
-		w.Write([]byte("{\"success\":\"error\"}"))
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 	profile.ProfileId = profileId
 	err = handler.PostService.CreatePost(postType, postDto, mediaNames, profile)
 	if err != nil {
 		util.Logging(util.ERROR, methodPath, "", err.Error(), "post")
-		w.Write([]byte("{\"success\":\"error\"}"))
+		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	} else {
 		w.WriteHeader(http.StatusCreated)
 	}
 	util.Logging(util.SUCCESS, methodPath, util.GetIPAddress(r), "Success in creating post, "+util.GetLoggingStringFromID(profileId), "post")
-	w.Write([]byte("{\"success\":\"ok\"}"))
+	_, _ = w.Write([]byte("{\"success\":\"ok\"}"))
 	w.Header().Set("Content-Type", "application/json")
 
 }
@@ -309,7 +325,10 @@ func (handler *Handler) GetPost(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(&result)
+	err = json.NewEncoder(w).Encode(&result)
+	if err != nil {
+		return
+	}
 }
 
 func (handler *Handler) DeletePost(w http.ResponseWriter, r *http.Request) {
@@ -331,7 +350,7 @@ func (handler *Handler) DeletePost(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte("{\"success\":\"ok\"}"))
+	_, _ = w.Write([]byte("{\"success\":\"ok\"}"))
 }
 
 func (handler *Handler) UpdatePost(w http.ResponseWriter, r *http.Request) {
@@ -357,7 +376,7 @@ func (handler *Handler) UpdatePost(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte("{\"success\":\"ok\"}"))
+	_, _ = w.Write([]byte("{\"success\":\"ok\"}"))
 }
 
 func (handler *Handler) DeleteUserPosts(w http.ResponseWriter, r *http.Request) {

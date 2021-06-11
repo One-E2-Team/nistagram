@@ -40,6 +40,7 @@
                 Log in
                 </v-btn>
                 <v-btn
+                :disabled="rules.email"
                 color="warning"
                 elevation="8"
                 @click="requestRecovery"

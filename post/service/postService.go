@@ -12,37 +12,37 @@ type PostService struct {
 	PostRepository *repository.PostRepository
 }
 
-func (service *PostService) GetAll() ([]model.Post){
+func (service *PostService) GetAll() []model.Post {
 	return service.PostRepository.GetAll()
 }
 
-func (service *PostService) GetPublic() ([]model.Post){
+func (service *PostService) GetPublic() []model.Post {
 	return service.PostRepository.GetPublic()
 }
 
-func (service *PostService) GetProfilesPosts(followingProfiles []uint, targetUsername string) []model.Post{
+func (service *PostService) GetProfilesPosts(followingProfiles []uint, targetUsername string) []model.Post {
 	return service.PostRepository.GetProfilesPosts(followingProfiles, targetUsername)
 }
 
-func (service *PostService) GetPublicPostByLocation(location string) ([]model.Post){
+func (service *PostService) GetPublicPostByLocation(location string) []model.Post {
 	return service.PostRepository.GetPublicPostByLocation(location)
 }
 
-func (service *PostService) GetPublicPostByHashTag(hashTag string) ([]model.Post){
+func (service *PostService) GetPublicPostByHashTag(hashTag string) []model.Post {
 	return service.PostRepository.GetPublicPostByHashTag(hashTag)
 }
 
-func (service *PostService) GetMyPosts(loggedUserId uint) ([]model.Post){
+func (service *PostService) GetMyPosts(loggedUserId uint) []model.Post {
 	return service.PostRepository.GetMyPosts(loggedUserId)
 }
 
-func (service *PostService) GetPostsForHomePage(followingProfiles []uint) []model.Post{
+func (service *PostService) GetPostsForHomePage(followingProfiles []uint) []model.Post {
 	return service.PostRepository.GetPostsForHomePage(followingProfiles)
 }
 
-func (service *PostService) CreatePost(postType model.PostType,post dto.PostDto, mediaNames []string, profile dto.ProfileDto) error {
+func (service *PostService) CreatePost(postType model.PostType, post dto.PostDto, mediaNames []string, profile dto.ProfileDto) error {
 	var medias []model.Media
-	for i:=0;i<len(mediaNames);i++ {
+	for i := 0; i < len(mediaNames); i++ {
 		m := model.Media{FilePath: mediaNames[i], WebSite: ""}
 		medias = append(medias, m)
 	}
@@ -56,16 +56,16 @@ func (service *PostService) CreatePost(postType model.PostType,post dto.PostDto,
 	return service.PostRepository.Create(&newPost)
 }
 
-func (service *PostService) ReadPost(id primitive.ObjectID, postType model.PostType) (model.Post,error) {
-	return service.PostRepository.Read(id,postType)
+func (service *PostService) ReadPost(id primitive.ObjectID, postType model.PostType) (model.Post, error) {
+	return service.PostRepository.Read(id, postType)
 }
 
-func (service *PostService) DeletePost(id primitive.ObjectID, postType model.PostType)  error {
-	return service.PostRepository.Delete(id,postType)
+func (service *PostService) DeletePost(id primitive.ObjectID, postType model.PostType) error {
+	return service.PostRepository.Delete(id, postType)
 }
 
-func (service *PostService) UpdatePost(id primitive.ObjectID,postType model.PostType,post dto.PostDto) error {
-	return service.PostRepository.Update(id,postType,post)
+func (service *PostService) UpdatePost(id primitive.ObjectID, postType model.PostType, post dto.PostDto) error {
+	return service.PostRepository.Update(id, postType, post)
 }
 
 func (service *PostService) DeleteUserPosts(profileId uint) error {
@@ -73,9 +73,9 @@ func (service *PostService) DeleteUserPosts(profileId uint) error {
 }
 
 func (service *PostService) ChangeUsername(profileId uint, username string) error {
-	return service.PostRepository.ChangeUsername(profileId,username)
+	return service.PostRepository.ChangeUsername(profileId, username)
 }
 
 func (service *PostService) ChangePrivacy(profileId uint, isPrivate bool) error {
-	return service.PostRepository.ChangePrivacy(profileId, isPrivate);
+	return service.PostRepository.ChangePrivacy(profileId, isPrivate)
 }

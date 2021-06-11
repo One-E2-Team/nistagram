@@ -106,18 +106,21 @@ func (service *ProfileService) ChangeProfileSettings(dto dto.ProfileSettingsDTO,
 	return err
 }
 
-func (service *ProfileService) ChangePersonalData(dto dto.PersonalDataDTO, loggedUserId uint) error {
+func (service *ProfileService) ChangePersonalData(dto dto.PersonalDataDTO, loggedUserId uint) (string, string, error) {
 	profile, err := service.ProfileRepository.GetProfileByID(loggedUserId)
 	if err != nil {
-		return err
+		return "", "", err
 	}
+	oldUsername, oldEmail := "", ""
 	callAuth := false
 	callPost := false
 	if profile.Email != dto.Email {
+		oldEmail = profile.Email
 		callAuth = true
 	}
 	if profile.Username != dto.Username {
 		//TODO: change data in other ms
+		oldUsername = profile.Username
 		callAuth = true
 		callPost = true
 	}
@@ -132,7 +135,7 @@ func (service *ProfileService) ChangePersonalData(dto dto.PersonalDataDTO, logge
 	profile.PersonalData.Telephone = dto.Telephone
 	err = service.ProfileRepository.UpdateProfile(profile)
 	if err != nil {
-		return err
+		return "", "", err
 	}
 	if callAuth {
 		postBody, _ := json.Marshal(map[string]string{
@@ -145,17 +148,17 @@ func (service *ProfileService) ChangePersonalData(dto dto.PersonalDataDTO, logge
 		_, err = http.Post(util.CrossServiceProtocol+"://"+authHost+":"+authPort+"/update-user", "application/json", responseBody)
 		if err != nil {
 			fmt.Println(err)
-			return err
+			return "", "", err
 		}
 	}
 	if callPost {
 		err = service.changeUsernameInPostService(loggedUserId, dto.Username)
 		if err != nil {
-			return err
+			return "", "", err
 		}
 	}
 	err = service.ProfileRepository.UpdatePersonalData(profile.PersonalData)
-	return err
+	return oldUsername, oldEmail, err
 }
 
 func (service *ProfileService) GetAllInterests() ([]string, error) {
@@ -205,10 +208,10 @@ func (service *ProfileService) changePrivacyInPostService(isPrivate bool, logged
 		IsPrivate bool `json:"isPrivate"`
 	}
 	input := Privacy{IsPrivate: isPrivate}
-	json, _ := json.Marshal(input)
+	jsonPrivacy, _ := json.Marshal(input)
 	client := &http.Client{}
 	req, err := http.NewRequest(http.MethodPut, util.CrossServiceProtocol+"://"+postHost+":"+postPort+"/user/"+
-		util.Uint2String(loggedUserId)+"/privacy", bytes.NewBuffer(json))
+		util.Uint2String(loggedUserId)+"/privacy", bytes.NewBuffer(jsonPrivacy))
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -225,10 +228,10 @@ func (service *ProfileService) changeUsernameInPostService(loggedUserId uint, us
 		Username string `json:"username"`
 	}
 	input := UsernameDto{Username: username}
-	json, _ := json.Marshal(input)
+	jsonUsername, _ := json.Marshal(input)
 	client := &http.Client{}
 	req, err := http.NewRequest(http.MethodPut, util.CrossServiceProtocol+"://"+postHost+":"+postPort+"/user/"+
-		util.Uint2String(loggedUserId)+"/username", bytes.NewBuffer(json))
+		util.Uint2String(loggedUserId)+"/username", bytes.NewBuffer(jsonUsername))
 	if err != nil {
 		fmt.Println(err)
 		return err

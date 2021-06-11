@@ -18,7 +18,7 @@ type AuthService struct {
 func (service *AuthService) LogIn(dto dto.LogInDTO) (*model.User, error) {
 	user, err := service.AuthRepository.GetUserByEmail(dto.Email)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("'"+dto.Email+"' " + err.Error())
 	}
 	if !user.IsValidated {
 		return nil, fmt.Errorf(util.GetLoggingStringFromID(user.ProfileId) + " NOT VALIDATED")
