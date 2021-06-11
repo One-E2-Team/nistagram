@@ -35,7 +35,7 @@
     <v-stepper-items class="text-center">
       <!-- Step 1  component-->
       <v-stepper-content step="1">
-        <v-form ref="form1" v-model="valid" lazy-validation>
+        <v-form ref="form1" v-model="valid1" lazy-validation>
           <v-container >
             <v-row align="center" justify="center">
               <v-col cols="12" sm="6" >
@@ -76,7 +76,7 @@
             <v-row align="center" justify="center">
               <v-col cols="12" sm="6">
                 <v-btn
-                :disabled="!valid"
+                :disabled="!valid1"
                 color="primary"
                 class="d-flex justify-space-around mb-6"
                 @click="continueTo2">
@@ -90,7 +90,7 @@
 
       <!-- Step 2 content -->
       <v-stepper-content step="2" >
-        <v-form ref="form2" v-model="valid" lazy-validation class="text-center">
+        <v-form ref="form2" v-model="valid2" lazy-validation class="text-center">
           <v-container >
             <v-row align="center" justify="center">
               <v-col cols="12" sm="8" >
@@ -182,14 +182,14 @@
               <v-col cols="12" sm="6" class="d-flex justify-space-around mb-6">
                 <v-btn
                 color="primary"
-                :disabled="!valid"
+                :disabled="!valid2"
                 @click="continueTo3">
                 Continue
                 </v-btn>
               <v-btn
               color="normal"
               class="d-flex justify-space-around mb-6"
-              @click="e1=1">
+              @click="e1=1;">
               Back
               </v-btn>
             </v-col>
@@ -201,7 +201,7 @@
 
       <!--Step3 content -->
       <v-stepper-content step="3">
-        <v-form ref="form3" v-model="valid" lazy-validation class="text-center">
+        <v-form ref="form3" v-model="valid3" lazy-validation class="text-center">
           <v-container >
             <v-row align="center" justify="center">
               <v-col cols="12" sm="8" >
@@ -268,7 +268,6 @@
               <v-col cols="12" sm="6" class="d-flex justify-space-around mb-6">
                 <v-btn
                 color="primary"
-                :disabled="!valid"
                 @click="register">
                 Register
                 </v-btn>
@@ -302,7 +301,9 @@ import * as validator from '../plugins/validator.js'
       alertText : '',
       e1: 1,
       show: false,
-      valid: true,
+      valid1: true,
+      valid2: true,
+      valid3: true,
       credentials: {
         email: '',
         password: '',
@@ -324,7 +325,7 @@ import * as validator from '../plugins/validator.js'
       rules: validator.rules,
       passwordMatch: () => (this.credentials.password === this.password2) || 'Password must match',
       menu: false,
-      moreThanOne : () => this.person.length > 0 || 'You need to insert at least one element'
+      moreThanOne : () => this.person.interests.length > 0 || 'You need to insert at least one element'
     }},
 
     mounted(){
@@ -350,21 +351,36 @@ import * as validator from '../plugins/validator.js'
       isAvailable(){
         return comm.isUserLogged()
       },
-      continueTo2 () {
+      continueTo2() {
         if (this.$refs.form1.validate()){
-            this.e1 = 2 
+            this.e1 = 2;
         }
       },
-      continueTo3(){
+      continueTo3() {
         if (this.$refs.form2.validate()){
-            this.e1 = 3
+            this.e1 = 3;
         }
       },
-      remove (item) {
-        this.person.interests.splice(this.person.interests.indexOf(item), 1)
-        this.person.interests = [...this.person.interests]
+      remove(item) {
+        this.person.interests.splice(this.person.interests.indexOf(item), 1);
+        this.person.interests = [...this.person.interests];
       },
-      register (){
+      correctInterests() {
+        if (this.person.interests.length == 0) {
+          return false;
+        }
+        for (let item of this.person.interests){
+          if(!this.interests.includes(item)){
+            return false;
+          }
+        }
+        return true;
+      },
+      register() {
+        if (!this.correctInterests()) {
+          alert('Enter valid interests!');
+          return;
+        }
         if (this.$refs.form3.validate()){
           let data = {
             username: this.person.username,
