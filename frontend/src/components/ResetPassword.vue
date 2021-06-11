@@ -68,16 +68,13 @@ import axios from 'axios'
         show: false,
         password1: '',
         password2: '',
-        rules: {
-          required: validator.rules.required,
-          min: validator.rules.min,
-          passwordMatch: () => (this.password1 === this.password2) || 'Password must match'
-        },
+        rules: validator.rules,
+        passwordMatch: () => (this.password1 === this.password2) || 'Password must match'
+        
       }
     },
     methods:{
       resetPassword(){
-        //TODO: add valitation for password
         if (this.$refs.form.validate()){
           let id = comm.getUrlVars()['id'];
           let str = comm.getUrlVars()['str'];

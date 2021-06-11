@@ -65,7 +65,7 @@
               <v-col cols="12" sm="6">
                 <v-text-field
                     v-model="password2"
-                    :rules="[passworMatch, rules.required]"
+                    :rules="[passwordMatch, rules.required]"
                     :type="'password'"
                     label="Confirm password"
                     hint="Password must match"
@@ -182,6 +182,7 @@
               <v-col cols="12" sm="6" class="d-flex justify-space-around mb-6">
                 <v-btn
                 color="primary"
+                :disabled="!valid"
                 @click="continueTo3">
                 Continue
                 </v-btn>
@@ -239,6 +240,7 @@
                 <v-combobox
                   v-model="person.interests"
                   :items="interests"
+                  :rules="[ rules.required , moreThanOne ] "
                   chips
                   clearable
                   label="Your interests"
@@ -266,6 +268,7 @@
               <v-col cols="12" sm="6" class="d-flex justify-space-around mb-6">
                 <v-btn
                 color="primary"
+                :disabled="!valid"
                 @click="register">
                 Register
                 </v-btn>
@@ -294,12 +297,12 @@ import * as comm from '../configuration/communication.js'
 import * as validator from '../plugins/validator.js'
 
   export default {
-    data: () => ({
+    data() {return {
       alert: false,
       alertText : '',
       e1: 1,
       show: false,
-      valid: false,
+      valid: true,
       credentials: {
         email: '',
         password: '',
@@ -320,8 +323,9 @@ import * as validator from '../plugins/validator.js'
       password2: '',
       rules: validator.rules,
       passwordMatch: () => (this.credentials.password === this.password2) || 'Password must match',
-      menu: false
-    }),
+      menu: false,
+      moreThanOne : () => this.person.length > 0 || 'You need to insert at least one element'
+    }},
 
     mounted(){
        if (this.isAvailable()){
@@ -361,43 +365,44 @@ import * as validator from '../plugins/validator.js'
         this.person.interests = [...this.person.interests]
       },
       register (){
-        let data = {
-          username: this.person.username,
-          password: this.credentials.password,
-          name: this.person.name,
-          surname: this.person.surname,
-          email: this.credentials.email,
-          telephone: this.person.telephone,
-          gender: this.person.gender,
-          birthDate: this.person.birthDate,
-          isPrivate: this.isPrivate,
-          biography: this.person.biography,
-          webSite: this.person.webSite,
-          interestedIn: this.person.interests
-        }
-        //TODO: must enter at least 1 interest
-        axios({
-          method: "post",
-          url: comm.protocol + "://" + comm.server +"/api/profile/",
-          data: JSON.stringify(data),
-        }).then((response) => {
-          if (response.status == 200) {
-            if(response.data.message == 'ok'){
-                alert('Check your email!');
-                this.alert = false;
-            }
-           if(response.data.message=="Invalid data."){
-              this.alert = true;
-                if(response.data.errors.includes("Password")){
-                  this.alertText = "Password is too weak. Please choose another password."
-                }
-           }
-           if(response.data.message == "Server error while registering."){
-                  this.alert = true;
-                  this.alertText = "Chosen e-mail already exists.Please choose another mail."
-              }
+        if (this.$refs.form3.validate()){
+          let data = {
+            username: this.person.username,
+            password: this.credentials.password,
+            name: this.person.name,
+            surname: this.person.surname,
+            email: this.credentials.email,
+            telephone: this.person.telephone,
+            gender: this.person.gender,
+            birthDate: this.person.birthDate,
+            isPrivate: this.isPrivate,
+            biography: this.person.biography,
+            webSite: this.person.webSite,
+            interestedIn: this.person.interests
           }
-        })
+          axios({
+            method: "post",
+            url: comm.protocol + "://" + comm.server +"/api/profile/",
+            data: JSON.stringify(data),
+          }).then((response) => {
+            if (response.status == 200) {
+              if(response.data.message == 'ok'){
+                  alert('Check your email!');
+                  this.alert = false;
+              }
+            if(response.data.message=="Invalid data."){
+                this.alert = true;
+                  if(response.data.errors.includes("Password")){
+                    this.alertText = "Password is too weak. Please choose another password."
+                  }
+            }
+            if(response.data.message == "Server error while registering."){
+                    this.alert = true;
+                    this.alertText = "Chosen e-mail already exists.Please choose another mail."
+                }
+            }
+          })
+        }
       }
   }
 }

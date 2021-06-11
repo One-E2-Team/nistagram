@@ -58,13 +58,13 @@ export default {
         FollowRequests,
     },
     props: ['username'],
-    data: () => ({
+    data() {return {
       isMyProfile: false,
       profileId: 1,
       posts: [],
       server: comm.server,
       protocol: comm.protocol
-    }),
+    }},
     methods: {
         follow(){
             axios({

@@ -55,9 +55,10 @@ import * as comm from '../configuration/communication.js'
 export default {
 name: "PersonalData",
 props: ['username'],
-data: () => ({
+data() {
+  return {
     profile: {}
-}),
+}},
 methods: {
   getPersonalData(){
     axios({

@@ -57,14 +57,14 @@
     import * as comm from '../configuration/communication.js'
     import * as validator from '../plugins/validator.js'
   export default {
-    data: () => ({
+    data() {return {
       show: false,
       valid: true,    
       email: '',
       password: '',
 
       rules: validator.rules
-    }),
+    }},
     mounted(){
        if (this.isAvailable()){
           this.$router.push({name: 'NotFound'})
@@ -89,9 +89,8 @@
                 comm.setJWTToken(response.data);
                 this.$router.push({name: "HomePage"})
                 this.$root.$emit('loggedUser')
-                //axios.defaults.headers.common['Authorization'] = 'Bearer ' + comm.getJWTToken().token;
               }
-            }) //TODO: redirect
+            })
         }
       },
       requestRecovery() {
