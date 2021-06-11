@@ -29,7 +29,7 @@ func (handler *AuthHandler) LogIn(w http.ResponseWriter, r *http.Request) {
 	var user *model.User
 	user, err = handler.AuthService.LogIn(req)
 	if err != nil {
-		util.Logging(util.ERROR, methodPath, util.GetIPAddress(r), err.Error(), "auth")
+		util.Logging(util.WARN, methodPath, util.GetIPAddress(r), err.Error(), "auth")
 		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
@@ -96,13 +96,13 @@ func (handler *AuthHandler) RequestPassRecovery(w http.ResponseWriter, r *http.R
 	}
 	err = handler.AuthService.RequestPassRecovery(email)
 	if err != nil {
-		util.Logging(util.ERROR, methodPath, util.GetIPAddress(r), "'" + email + "' " + err.Error(), "auth")
+		util.Logging(util.WARN, methodPath, util.GetIPAddress(r), "'"+email+"' "+err.Error(), "auth")
 		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	util.Logging(util.INFO, methodPath, util.GetIPAddress(r), "Success in requested recovery for '"+email+"'", "auth")
+	util.Logging(util.INFO, methodPath, util.GetIPAddress(r), "Successful requested recovery for '"+email+"'", "auth")
 	_, _ = w.Write([]byte("Check your email!"))
 	w.Header().Set("Content-Type", "text/plain")
 }
@@ -119,13 +119,13 @@ func (handler *AuthHandler) ChangePassword(w http.ResponseWriter, r *http.Reques
 	}
 	err = handler.AuthService.ChangePassword(recoveryDTO)
 	if err != nil {
-		util.Logging(util.ERROR, methodPath, util.GetIPAddress(r), err.Error(), "auth")
+		util.Logging(util.WARN, methodPath, util.GetIPAddress(r), err.Error(), "auth")
 		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	util.Logging(util.SUCCESS, methodPath, util.GetIPAddress(r), "Success in changing password for profileId: '"+recoveryDTO.Id+"'", "auth")
+	util.Logging(util.INFO, methodPath, util.GetIPAddress(r), "Successful password change for profileId: '"+recoveryDTO.Id+"'", "auth")
 	_, _ = w.Write([]byte("Password successfully changed!"))
 	w.Header().Set("Content-Type", "text/plain")
 }
@@ -162,7 +162,6 @@ func (handler *AuthHandler) ValidateUser(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	//TODO: parametrize host
 	frontHost, frontPort := util.GetFrontHostAndPort()
 	_, err = fmt.Fprintf(w, "<html><head><script>window.location.href = \""+util.FrontProtocol+"://"+
 		frontHost+":"+frontPort+"/web#/log-in\";</script></head><body></body></html>")

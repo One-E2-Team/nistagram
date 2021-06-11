@@ -26,10 +26,7 @@ func (handler *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusOK)
-		_, err := w.Write([]byte("{\"message\":\"Server error while decoding.\"}"))
-		if err != nil {
-			return
-		}
+		_, _ = w.Write([]byte("{\"message\":\"Server error while decoding.\"}"))
 		return
 	}
 
@@ -98,49 +95,27 @@ func (handler *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusOK)
-		_, err = w.Write([]byte("{\"message\":\"Invalid data.\",\n"))
-		if err != nil {
-			return
-		}
-		_, err = w.Write([]byte("\"errors\":\""))
-		if err != nil {
-			return
-		}
+		_, _ = w.Write([]byte("{\"message\":\"Invalid data.\",\n"))
+		_, _ = w.Write([]byte("\"errors\":\""))
 		for _, e := range err.(validator.ValidationErrors) {
-			_, err = w.Write([]byte(e.Field()))
-			if err != nil {
-				return
-			}
-			_, err = w.Write([]byte(" "))
-			if err != nil {
-				return
-			}
+			_, _ = w.Write([]byte(e.Field()))
+			_, _ = w.Write([]byte(" "))
 		}
-		_, err = w.Write([]byte("\"}"))
-		if err != nil {
-			return
-		}
+		_, _ = w.Write([]byte("\"}"))
 		return
 	}
 
-	fmt.Println(req)
 	req = safeRegistrationDto(req)
 	err = handler.ProfileService.Register(req)
 
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusOK)
-		_, err = w.Write([]byte("{\"message\":\"Server error while registering.\"}"))
-		if err != nil {
-			return
-		}
+		_, _ = w.Write([]byte("{\"message\":\"Server error while registering.\"}"))
 	} else {
 		w.WriteHeader(http.StatusCreated)
 		w.Header().Set("Content-Type", "application/json")
-		_, err = w.Write([]byte("{\"message\":\"ok\"}"))
-		if err != nil {
-			return
-		}
+		_, _ = w.Write([]byte("{\"message\":\"ok\"}"))
 	}
 	return
 }
@@ -189,11 +164,8 @@ func (handler *Handler) ChangeProfileSettings(w http.ResponseWriter, r *http.Req
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	util.Logging(util.SUCCESS, methodPath, util.GetIPAddress(r), "Success in changing profile settings, "+util.GetLoggingStringFromID(userId), "profile")
-	_, err = w.Write([]byte("{\"success\":\"ok\"}"))
-	if err != nil {
-		return
-	}
+	util.Logging(util.INFO, methodPath, util.GetIPAddress(r), "Successful profile settings changed, "+util.GetLoggingStringFromID(userId), "profile")
+	_, _ = w.Write([]byte("{\"success\":\"ok\"}"))
 	w.Header().Set("Content-Type", "application/json")
 }
 
@@ -208,18 +180,23 @@ func (handler *Handler) ChangePersonalData(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	userId := util.GetLoggedUserIDFromToken(r)
-	err = handler.ProfileService.ChangePersonalData(req, userId)
+	oldUsername, oldEmail, err := handler.ProfileService.ChangePersonalData(req, userId)
 	if err != nil {
 		util.Logging(util.ERROR, methodPath, util.GetIPAddress(r), err.Error(), "profile")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	util.Logging(util.SUCCESS, methodPath, util.GetIPAddress(r), "Success in changing personal data, "+util.GetLoggingStringFromID(userId), "profile")
-	_, err = w.Write([]byte("{\"success\":\"ok\"}"))
-	if err != nil {
-		return
+	util.Logging(util.INFO, methodPath, util.GetIPAddress(r), "Successful personal data changed, "+util.GetLoggingStringFromID(userId), "profile")
+	if oldUsername != "" {
+		util.Logging(util.INFO, methodPath, util.GetIPAddress(r), util.GetLoggingStringFromID(userId)+
+			" changed username: "+oldUsername+"->"+req.Username, "profile")
 	}
+	if oldEmail != "" {
+		util.Logging(util.INFO, methodPath, util.GetIPAddress(r), util.GetLoggingStringFromID(userId)+
+			" changed email: "+oldEmail+"->"+req.Email, "profile")
+	}
+	_, _ = w.Write([]byte("{\"success\":\"ok\"}"))
 	w.Header().Set("Content-Type", "application/json")
 }
 
