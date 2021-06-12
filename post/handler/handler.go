@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
-	uuid "github.com/nu7hatch/gouuid"
+	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"html/template"
@@ -234,15 +234,11 @@ func (handler *Handler) Create(w http.ResponseWriter, r *http.Request) {
 			_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 			return
 		}
-		uid, err := uuid.NewV4()
-		if err != nil {
-			util.Logging(util.ERROR, methodPath, "", err.Error(), "post")
-			_, _ = w.Write([]byte("{\"success\":\"error\"}"))
-			return
-		}
+		uid := uuid.NewString()
+
 		fn := strings.Split(files[i].Filename, ".")
-		mediaNames = append(mediaNames, uid.String()+"."+fn[1])
-		f, err := os.OpenFile("../../nistagramstaticdata/data/"+uid.String()+"."+fn[1], os.O_WRONLY|os.O_CREATE, 0666)
+		mediaNames = append(mediaNames, uid + "."+fn[1])
+		f, err := os.OpenFile("../../nistagramstaticdata/data/"+uid + "."+fn[1], os.O_WRONLY|os.O_CREATE, 0666)
 		if err != nil {
 			util.Logging(util.ERROR, methodPath, "", err.Error(), "post")
 			_, _ = w.Write([]byte("{\"success\":\"error\"}"))
