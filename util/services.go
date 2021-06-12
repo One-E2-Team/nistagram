@@ -49,11 +49,7 @@ func GetPostHostAndPort() (string, string) {
 }
 
 func GetFrontHostAndPort() (string, string) {
-	var frontHost, frontPort = "localhost", "3000" //dev environment
-	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD")   // dev production environment
-	if ok {
-		frontPort = "81"
-	}
+	var frontHost, frontPort = "localhost", "81"
 	return frontHost, frontPort
 }
 
