@@ -7,7 +7,8 @@
       md="8"
       lg="6"
     >
-      <v-card ref="form"  v-model="valid" lazy-validation>
+      <v-form ref="form"  v-model="valid" lazy-validation>
+      <v-card >
         <v-card-text>
           <v-text-field
             v-model="description"
@@ -64,7 +65,6 @@
           <v-spacer></v-spacer>
           <v-slide-x-reverse-transition>
             <v-tooltip
-              v-if="formHasErrors"
               left
             >
               <template v-slot:activator="{ on, attrs }">
@@ -84,12 +84,13 @@
           <v-btn
             color="primary"
             text
-            @click="submit"
+            @click="submit()"
           >
             Submit
           </v-btn>
         </v-card-actions>
     </v-card>
+      </v-form>
     </v-col>
   </v-row>
 </template>
@@ -103,8 +104,6 @@
     name: 'CreatePost',
 
     data() {return {
-      alert : false,
-      alertText : '',
       valid: true,
       description: '',
       rules: validator.rules,
@@ -126,9 +125,15 @@
     },
     methods: {
       resetForm () {
-        Object.keys(this.form).forEach(f => {
-          this.$refs[f].reset()
-        })
+        this.valid= true
+        this.description= ''
+        this.selectedPostType= null
+        this.location= ''
+        this.hashTags= ''
+        
+        this.isHighlighted= false
+        this.isCloseFriendsOnly= false
+        this.files = []
       },
       submit () {
         if(this.$refs.form.validate() !== true )
