@@ -19,13 +19,23 @@
             <v-col cols="12" sm="4">
             <v-text-field
                 v-model="password"
-                :append-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
-                :rules="[rules.required, rules.min]"
-                :type="show ? 'text' : 'password'"
+                :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                :rules="[rules.required]"
+                :type="showPassword ? 'text' : 'password'"
                 label="Password"
-                hint="At least 8 characters"
-                counter
-                @click:append="show = !show"
+                @click:append="showPassword = !showPassword"
+                ></v-text-field>
+            </v-col>
+        </v-row>
+        <v-row align="center" justify="center">
+            <v-col cols="12" sm="4">
+            <v-text-field
+                v-model="secureCode"
+                :append-icon="showSecureCode ? 'mdi-eye' : 'mdi-eye-off'"
+                :rules="[rules.required]"
+                :type="showSecureCode ? 'text' : 'password'"
+                label="Secure code"
+                @click:append="showSecureCode = !showSecureCode"
                 ></v-text-field>
             </v-col>
         </v-row>
@@ -58,10 +68,12 @@
     import * as validator from '../plugins/validator.js'
   export default {
     data() {return {
-      show: false,
+      showPassword: false,
+      showSecureCode: false,
       valid: true,
       email: '',
       password: '',
+      secureCode: '',
       rules: validator.rules
     }},
     mounted(){
@@ -77,7 +89,8 @@
         if (this.$refs.form.validate()){
             let credentials = {
                 "email" : this.email,
-                "password" : this.password
+                "password" : this.password,
+                "secureCode" : this.secureCode
             }
             axios({
                 method: "post",
