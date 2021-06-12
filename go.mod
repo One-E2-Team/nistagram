@@ -7,11 +7,11 @@ require (
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/go-redis/redis/v8 v8.10.0
 	github.com/google/uuid v1.2.0
-	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/neo4j/neo4j-go-driver/v4 v4.3.0
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d
+	github.com/pquerna/otp v1.3.0
 	go.mongodb.org/mongo-driver v1.5.3
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
