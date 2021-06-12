@@ -68,7 +68,8 @@ func handleFunc(handler *handler.Handler) {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/profile/{id}", util.MSAuth(handler.AddProfile, []string{"profile"})).Methods("POST")
 	router.HandleFunc("/connection/following/all/{id}", handler.GetFollowedProfiles).Methods("GET")
-	router.HandleFunc("/connection/following/show/{id}", handler.GetFollowedProfilesNotMuted).Methods("GET")
+	router.HandleFunc("/connection/following/show/{id}",
+		util.MSAuth(handler.GetFollowedProfilesNotMuted, []string{"post"})).Methods("GET")
 	router.HandleFunc("/connection/following/properties/{followerId}/{profileId}", handler.GetConnection).Methods("GET")
 	router.HandleFunc("/connection/following/update", handler.UpdateConnection).Methods("PUT") //frontend func
 	router.HandleFunc("/connection/following/my-properties/{profileId}",
@@ -100,7 +101,7 @@ func main() {
 	defer (*db).Close()
 	connectionRepo := initConnectionRepo(db)
 	connectionService := initService(connectionRepo)
-	handler := initHandler(connectionService)
-	util.SetupMSAuth("connection")
-	handleFunc(handler)
+	connectionHandler := initHandler(connectionService)
+	_ = util.SetupMSAuth("connection")
+	handleFunc(connectionHandler)
 }

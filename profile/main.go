@@ -117,7 +117,8 @@ func handleFunc(handler *handler.Handler) {
 		util.RBAC(handler.GetMyProfileSettings, "READ_PROFILE_DATA", false)).Methods("GET") // frontend func
 	router.HandleFunc("/my-personal-data",
 		util.RBAC(handler.GetMyPersonalData, "READ_PROFILE_DATA", false)).Methods("GET") // frontend func
-	router.HandleFunc("/get-by-id/{id}", handler.GetProfileByID).Methods("GET")
+	router.HandleFunc("/get-by-id/{id}",
+		util.MSAuth(handler.GetProfileByID, []string{"connection", "post"})).Methods("GET")
 	router.HandleFunc("/test", handler.Test).Methods("GET")
 	fmt.Println("Starting server..")
 	host, port := util.GetProfileHostAndPort()
@@ -137,7 +138,7 @@ func main() {
 	db, client := initDBs()
 	profileRepo := initProfileRepo(db, client)
 	profileService := initService(profileRepo)
-	handler := initHandler(profileService)
-	util.SetupMSAuth("profile")
-	handleFunc(handler)
+	profileHandler := initHandler(profileService)
+	_ = util.SetupMSAuth("profile")
+	handleFunc(profileHandler)
 }

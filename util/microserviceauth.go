@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-var ms_jwt string
+var msJwt string
 
 const MSExpiresIn = 86400000
 const MSTokenSecret = "token_secret"
@@ -25,7 +25,7 @@ func SetupMSAuth(ms string) error {
 	}}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	var err error
-	ms_jwt, err = token.SignedString([]byte(MSTokenSecret))
+	msJwt, err = token.SignedString([]byte(MSTokenSecret))
 	return err
 }
 
@@ -62,7 +62,7 @@ func CrossServiceRequest(method string, path string, data []byte, headers map[st
 		fmt.Println(err)
 		return nil, err
 	}
-	req.Header.Set("Authorization", "Bearer " + ms_jwt)
+	req.Header.Set("Authorization", "Bearer "+msJwt)
 	for key, value := range headers {
 		req.Header.Set(key, value)
 	}
@@ -78,10 +78,7 @@ func MSAuth(handler func(http.ResponseWriter, *http.Request), microservices []st
 			return func(writer http.ResponseWriter, request *http.Request) {
 				writer.WriteHeader(http.StatusOK)
 				writer.Header().Set("Content-Type", "application/json")
-				_, err := writer.Write([]byte("{\"status\":\"fail\", \"reason\":\"unauthorized\"}"))
-				if err != nil {
-					return
-				}
+				_, _ = writer.Write([]byte("{\"status\":\"fail\", \"reason\":\"unauthorized\"}"))
 			}
 		}
 	}

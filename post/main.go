@@ -46,8 +46,6 @@ func initDB() *mongo.Client {
 			return client
 		}
 	}
-	return nil
-
 }
 
 func initPostRepo(client *mongo.Client) *repository.PostRepository {
@@ -73,9 +71,11 @@ func handleFunc(handler *handler.Handler) {
 		util.RBAC(handler.GetPostsForHomePage, "READ_NOT_ONLY_PUBLIC_POSTS", true)).Methods("GET") // frontend func
 	router.HandleFunc("/",
 		util.RBAC(handler.Create, "CREATE_POST", false)).Methods("POST") // frontend func
-	router.HandleFunc("/user/{loggedUserId}/privacy", handler.ChangePrivacy).Methods("PUT")
+	router.HandleFunc("/user/{loggedUserId}/privacy",
+		util.MSAuth(handler.ChangePrivacy, []string{"profile"})).Methods("PUT")
 	router.HandleFunc("/user", handler.DeleteUserPosts).Methods("DELETE")
-	router.HandleFunc("/user/{loggedUserId}/username", handler.ChangeUsername).Methods("PUT")
+	router.HandleFunc("/user/{loggedUserId}/username",
+		util.MSAuth(handler.ChangeUsername, []string{"profile"})).Methods("PUT")
 	router.HandleFunc("/{postType}/{id}", handler.GetPost).Methods("GET")
 	router.HandleFunc("/{postType}/{id}", handler.DeletePost).Methods("DELETE")
 	router.HandleFunc("/{postType}/{id}", handler.UpdatePost).Methods("PUT")
@@ -108,6 +108,6 @@ func main() {
 	postRepo := initPostRepo(client)
 	postService := initService(postRepo)
 	postHandler := initHandler(postService)
-	util.SetupMSAuth("post")
+	_ = util.SetupMSAuth("post")
 	handleFunc(postHandler)
 }
