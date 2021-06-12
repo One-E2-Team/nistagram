@@ -30,12 +30,12 @@
         <v-row align="center" justify="center">
             <v-col cols="12" sm="4">
             <v-text-field
-                v-model="secureCode"
-                :append-icon="showSecureCode ? 'mdi-eye' : 'mdi-eye-off'"
+                v-model="passCode"
+                :append-icon="showPassCode ? 'mdi-eye' : 'mdi-eye-off'"
                 :rules="[rules.required]"
-                :type="showSecureCode ? 'text' : 'password'"
-                label="Secure code"
-                @click:append="showSecureCode = !showSecureCode"
+                :type="showPassCode ? 'text' : 'password'"
+                label="Pass code"
+                @click:append="showPassCode = !showPassCode"
                 ></v-text-field>
             </v-col>
         </v-row>
@@ -69,11 +69,11 @@
   export default {
     data() {return {
       showPassword: false,
-      showSecureCode: false,
+      showPassCode: false,
       valid: true,
       email: '',
       password: '',
-      secureCode: '',
+      passCode: '',
       rules: validator.rules
     }},
     mounted(){
@@ -90,7 +90,7 @@
             let credentials = {
                 "email" : this.email,
                 "password" : this.password,
-                "secureCode" : this.secureCode
+                "passCode" : this.passCode
             }
             axios({
                 method: "post",

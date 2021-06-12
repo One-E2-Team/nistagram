@@ -156,9 +156,11 @@
           config: { headers: {...data.headers}}
         }).then(response => {
           console.log(response);
+          delete axios.defaults.headers.common["Authorization"];
           alert("Post is successfully created!")
         })
         .catch(response => {
+          delete axios.defaults.headers.common["Authorization"];
           console.log(response);
         });
     

@@ -69,6 +69,13 @@ const routes = [{
     props: true,
     component: () =>
       import ('./../views/Profile.vue')
+  },
+  {
+    path: '/totp/:qruuid',
+    name: 'TwoFactorAuth',
+    props: true,
+    component: () =>
+      import ('./../components/TwoFactorAuth.vue')
   }
 ]
 
