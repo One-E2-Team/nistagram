@@ -7,6 +7,7 @@
       </h1>
       <v-form
         ref="form"
+        v-model="valid" lazy-validation
       >
         <v-text-field
             v-model="person.username"
@@ -112,6 +113,7 @@ export default {
                 biography: '',
                 webSite: '',
             } , 
+            valid : true,
             rules: validator.rules,
             menu: false
         }
@@ -129,16 +131,18 @@ export default {
     },
     methods:{
         updateSettings(){
-            axios({
-            method: 'put',
-            url: comm.protocol + "://" + comm.server + "/api/profile/my-personal-data",
-            headers: comm.getHeader(),
-            data: JSON.stringify(this.person)
-            }).then(response => {
-                if(response.status == 200){
-                    comm.setLoggedUserUsername(this.person.username);
-                }
-            });
+            if (this.$refs.form.validate()){
+                axios({
+                method: 'put',
+                url: comm.protocol + "://" + comm.server + "/api/profile/my-personal-data",
+                headers: comm.getHeader(),
+                data: JSON.stringify(this.person)
+                }).then(response => {
+                    if(response.status == 200){
+                        comm.setLoggedUserUsername(this.person.username);
+                    }
+                });
+            }
         }
     }
 }
