@@ -71,7 +71,7 @@ const routes = [{
       import ('./../views/Profile.vue')
   },
   {
-    path: '/totp/:qruuid',
+    path: '/2fa-totp/:qruuid',
     name: 'TwoFactorAuth',
     props: true,
     component: () =>

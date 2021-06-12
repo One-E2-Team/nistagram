@@ -26,6 +26,7 @@ services:
             - net_apigateway
         volumes: 
             - "../nistagramstaticdata/data:/usr/share/nginx/html/data:ro"
+            - "../nistagramstaticdata/totp:/usr/share/nginx/html/totp:ro"
             - ./conf/certs/pem/static.cert.pem:/etc/nginx/ssl/static.cert.pem
             - ./conf/certs/key/static.key.pem:/etc/nginx/ssl/static.key.pem
             - ./conf/static.default.conf:/etc/nginx/conf.d/default.conf

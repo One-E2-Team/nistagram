@@ -275,7 +275,7 @@
       ]
     },
     {
-      "endpoint": "/api/auth/validate/{id}/{uuid}",
+      "endpoint": "/api/auth/validate/{id}/{uuid}/{qruuid}",
       "method": "GET",
       "output_encoding": "no-op",
       "extra_config": {
@@ -292,7 +292,7 @@
       },
       "backend": [
         {
-          "url_pattern": "/validate/{id}/{uuid}",
+          "url_pattern": "/validate/{id}/{uuid}/{qruuid}",
           "encoding": "no-op",
           "sd": "static",
           "method": "GET",
