@@ -3,10 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/go-redis/redis/v8"
-	"github.com/gorilla/mux"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
 	"net/http"
 	"nistagram/profile/handler"
 	"nistagram/profile/model"
@@ -15,6 +11,11 @@ import (
 	"nistagram/util"
 	"os"
 	"time"
+
+	"github.com/go-redis/redis/v8"
+	"github.com/gorilla/mux"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 func initDBs() (*gorm.DB, *redis.Client) {
@@ -116,12 +117,19 @@ func handleFunc(handler *handler.Handler) {
 		util.RBAC(handler.GetMyProfileSettings, "READ_PROFILE_DATA", false)).Methods("GET") // frontend func
 	router.HandleFunc("/my-personal-data",
 		util.RBAC(handler.GetMyPersonalData, "READ_PROFILE_DATA", false)).Methods("GET") // frontend func
-	router.HandleFunc("/get-by-id/{id}", handler.GetProfileByID).Methods("GET")
+	router.HandleFunc("/get-by-id/{id}",
+		util.MSAuth(handler.GetProfileByID, []string{"connection", "post"})).Methods("GET")
 	router.HandleFunc("/test", handler.Test).Methods("GET")
 	fmt.Println("Starting server..")
-	_, port := util.GetProfileHostAndPort()
-	err := http.ListenAndServe(":"+port, router)
+	host, port := util.GetProfileHostAndPort()
+	var err error
+	if util.DockerChecker() {
+		err = http.ListenAndServeTLS(host+":"+port, "../cert.pem", "../key.pem", router)
+	} else {
+		err = http.ListenAndServe(":"+port, router)
+	}
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
 }
@@ -130,6 +138,7 @@ func main() {
 	db, client := initDBs()
 	profileRepo := initProfileRepo(db, client)
 	profileService := initService(profileRepo)
-	handler := initHandler(profileService)
-	handleFunc(handler)
+	profileHandler := initHandler(profileService)
+	_ = util.SetupMSAuth("profile")
+	handleFunc(profileHandler)
 }

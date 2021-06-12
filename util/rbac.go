@@ -24,15 +24,9 @@ func RBAC(handler func(http.ResponseWriter, *http.Request), privilege string, re
 				Logging(WARN, handlerFunctionName, GetIPAddress(request), "Unauthorized access", parts[1])
 				writer.Header().Set("Content-Type", "application/json")
 				if returnCollection {
-					_, err := writer.Write([]byte("[{\"status\":\"fail\", \"reason\":\"unauthorized\"}]"))
-					if err != nil {
-						return
-					}
+					_, _ = writer.Write([]byte("[{\"status\":\"fail\", \"reason\":\"unauthorized\"}]"))
 				} else {
-					_, err := writer.Write([]byte("{\"status\":\"fail\", \"reason\":\"unauthorized\"}"))
-					if err != nil {
-						return
-					}
+					_, _ = writer.Write([]byte("{\"status\":\"fail\", \"reason\":\"unauthorized\"}"))
 				}
 			}
 		}
@@ -45,7 +39,9 @@ func RBAC(handler func(http.ResponseWriter, *http.Request), privilege string, re
 			handleFunc = finalHandler(false)
 		} else {
 			authHost, authPort := GetAuthHostAndPort()
-			resp, err := http.Get(CrossServiceProtocol + "://" + authHost + ":" + authPort + "/privileges/" + Uint2String(id))
+			resp, err := CrossServiceRequest(http.MethodGet,
+				CrossServiceProtocol+"://"+authHost+":"+authPort+"/privileges/"+Uint2String(id),
+				nil, map[string]string{})
 			if err != nil {
 				fmt.Println(err)
 				handleFunc = finalHandler(false)

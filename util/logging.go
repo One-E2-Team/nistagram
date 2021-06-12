@@ -44,7 +44,7 @@ func GetLoggingStringFromID(id uint) string {
 	return "profileId: '" + Uint2String(id) + "'"
 }
 
-func getLogFileString(logType LogType) string{
+func getLogFileString(logType LogType) string {
 	switch logType {
 	case INFO:
 		return "infoLogs"
@@ -58,7 +58,7 @@ func getLogFileString(logType LogType) string{
 	return ""
 }
 
-func encodeInputString(input string) string{
+func encodeInputString(input string) string {
 	input = strings.ReplaceAll(input, "|", "%file_separator%")
 	return input
 }
@@ -83,18 +83,27 @@ func Logging(logType LogType, resourceMethod string, resourceIP string, content 
 
 	stat, err := file.Stat()
 
-	if(stat.Size() > 1024){ //should use LogSize here
-		file.Close()
-		newFile, err := os.OpenFile(  logFileService + "/archive/" + getLogFileString(logType) + time.Now().UTC().String() + ".txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0666)
-		defer newFile.Close()
-		if err != nil{
-			fmt.Println(err)
+	if stat.Size() > 1024 { //TODO: should use LogSize here
+		err = file.Close()
+		if err != nil {
+			return
 		}
+		newFile, err := os.OpenFile(logFileService+"/archive/"+getLogFileString(logType)+
+			time.Now().UTC().String()+".txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0666)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		defer func(newFile *os.File) {
+			err := newFile.Close()
+			if err != nil {
+
+			}
+		}(newFile)
 
 		file, err = os.OpenFile(logFile, os.O_RDONLY, 0444)
-
 		_, err = io.Copy(newFile, file)
-		if err != nil{
+		if err != nil {
 			fmt.Println(err)
 			return
 		}
@@ -102,5 +111,8 @@ func Logging(logType LogType, resourceMethod string, resourceIP string, content 
 			fmt.Printf("Failed to truncate: %v", err)
 		}
 	}
-	file.Close()
+	err = file.Close()
+	if err != nil {
+		return
+	}
 }

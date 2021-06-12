@@ -3,6 +3,7 @@ package service
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"nistagram/connection/dto"
@@ -30,12 +31,19 @@ func (service *ConnectionService) GetConnection(followerId, profileId uint) *mod
 func getProfile(id uint) *model2.Profile {
 	var p model2.Profile
 	profileHost, profilePort := util.GetProfileHostAndPort()
-	resp, err := http.Get(util.CrossServiceProtocol + "://" + profileHost + ":" + profilePort + "/get-by-id/" + util.Uint2String(id))
+	resp, err := util.CrossServiceRequest(http.MethodGet,
+		util.CrossServiceProtocol+"://"+profileHost+":"+profilePort+"/get-by-id/"+util.Uint2String(id),
+		nil, map[string]string{})
 	if err != nil {
 		fmt.Println(err)
 		return nil
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+
+		}
+	}(resp.Body)
 	body, err1 := ioutil.ReadAll(resp.Body)
 	if err1 != nil {
 		fmt.Println(err1)
@@ -279,7 +287,9 @@ func (service *ConnectionService) GetAllFollowRequests(id uint) *[]dto.UserDTO {
 	for _, profileId := range *result {
 		var p model2.Profile
 		profileHost, profilePort := util.GetProfileHostAndPort()
-		resp, err := http.Get(util.CrossServiceProtocol + "://" + profileHost + ":" + profilePort + "/get-by-id/" + util.Uint2String(profileId))
+		resp, err := util.CrossServiceRequest(http.MethodGet,
+			util.CrossServiceProtocol+"://"+profileHost+":"+profilePort+"/get-by-id/"+util.Uint2String(profileId),
+			nil, map[string]string{})
 		if err != nil {
 			fmt.Println(err)
 			return nil

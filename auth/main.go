@@ -81,12 +81,20 @@ func handlerFunc(handler *handler.AuthHandler) {
 	router.HandleFunc("/login", handler.LogIn).Methods("POST")                          //frontend func
 	router.HandleFunc("/request-recovery", handler.RequestPassRecovery).Methods("POST") //frontend func
 	router.HandleFunc("/recover", handler.ChangePassword).Methods("POST")               //frontend func
-	router.HandleFunc("/validate/{id}/{uuid}", handler.ValidateUser).Methods("GET")     //frontend func
-	router.HandleFunc("/register", handler.Register).Methods("POST")
-	router.HandleFunc("/update-user", handler.UpdateUser).Methods("POST")
-	router.HandleFunc("/privileges/{profileId}", handler.GetPrivileges).Methods("GET")
-	_, port := util.GetAuthHostAndPort()
-	err := http.ListenAndServe(":"+port, router)
+	router.HandleFunc("/validate/{id}/{uuid}/{qruuid}", handler.ValidateUser).Methods("GET")     //frontend func
+	router.HandleFunc("/register",
+		util.MSAuth(handler.Register, []string{"profile"})).Methods("POST")
+	router.HandleFunc("/update-user",
+		util.MSAuth(handler.UpdateUser, []string{"profile"})).Methods("POST")
+	router.HandleFunc("/privileges/{profileId}",
+		util.MSAuth(handler.GetPrivileges, []string{"auth", "connection", "post", "profile"})).Methods("GET")
+	host, port := util.GetAuthHostAndPort()
+	var err error
+	if util.DockerChecker() {
+		err = http.ListenAndServeTLS(host+":"+port, "../cert.pem", "../key.pem", router)
+	} else {
+		err = http.ListenAndServe(":"+port, router)
+	}
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -98,5 +106,6 @@ func main() {
 	authRepo := initAuthRepo(db)
 	authService := initAuthService(authRepo)
 	authHandler := initAuthHandler(authService)
+	_ = util.SetupMSAuth("auth")
 	handlerFunc(authHandler)
 }

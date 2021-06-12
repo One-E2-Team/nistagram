@@ -1,7 +1,6 @@
 package service
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -54,9 +53,10 @@ func (service *ProfileService) Register(dto dto.RegistrationDto) error {
 }
 
 func registerInAuth(postBody []byte) error {
-	responseBody := bytes.NewBuffer(postBody)
 	authHost, authPort := util.GetAuthHostAndPort()
-	_, err := http.Post(util.CrossServiceProtocol+"://"+authHost+":"+authPort+"/register", "application/json", responseBody)
+	_, err := util.CrossServiceRequest(http.MethodPost,
+		util.CrossServiceProtocol+"://"+authHost+":"+authPort+"/register", postBody,
+		map[string]string{"Content-Type": "application/json;"})
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -65,9 +65,10 @@ func registerInAuth(postBody []byte) error {
 }
 
 func registerInConnection(profileId uint, postBody []byte) error {
-	responseBody := bytes.NewBuffer(postBody)
 	connHost, connPort := util.GetConnectionHostAndPort()
-	_, err := http.Post(util.CrossServiceProtocol+"://"+connHost+":"+connPort+"/profile/"+util.Uint2String(profileId), "application/json", responseBody)
+	_, err := util.CrossServiceRequest(http.MethodPost,
+		util.CrossServiceProtocol+"://"+connHost+":"+connPort+"/profile/"+util.Uint2String(profileId), postBody,
+		map[string]string{"Content-Type": "application/json;"})
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -143,9 +144,10 @@ func (service *ProfileService) ChangePersonalData(dto dto.PersonalDataDTO, logge
 			"email":     profile.Email,
 			"username":  profile.Username,
 		})
-		responseBody := bytes.NewBuffer(postBody)
 		authHost, authPort := util.GetAuthHostAndPort()
-		_, err = http.Post(util.CrossServiceProtocol+"://"+authHost+":"+authPort+"/update-user", "application/json", responseBody)
+		_, err = util.CrossServiceRequest(http.MethodPost,
+			util.CrossServiceProtocol+"://"+authHost+":"+authPort+"/update-user", postBody,
+			map[string]string{"Content-Type": "application/json;"})
 		if err != nil {
 			fmt.Println(err)
 			return "", "", err
@@ -209,16 +211,12 @@ func (service *ProfileService) changePrivacyInPostService(isPrivate bool, logged
 	}
 	input := Privacy{IsPrivate: isPrivate}
 	jsonPrivacy, _ := json.Marshal(input)
-	client := &http.Client{}
-	req, err := http.NewRequest(http.MethodPut, util.CrossServiceProtocol+"://"+postHost+":"+postPort+"/user/"+
-		util.Uint2String(loggedUserId)+"/privacy", bytes.NewBuffer(jsonPrivacy))
+	_, err := util.CrossServiceRequest(http.MethodPut,
+		util.CrossServiceProtocol+"://"+postHost+":"+postPort+"/user/"+util.Uint2String(loggedUserId)+"/privacy",
+		jsonPrivacy, map[string]string{"Content-Type": "application/json;"})
 	if err != nil {
 		fmt.Println(err)
-		return err
 	}
-	req.Header.Set("Content-Type", "application/json;")
-	_, err = client.Do(req)
-
 	return err
 }
 
@@ -229,15 +227,11 @@ func (service *ProfileService) changeUsernameInPostService(loggedUserId uint, us
 	}
 	input := UsernameDto{Username: username}
 	jsonUsername, _ := json.Marshal(input)
-	client := &http.Client{}
-	req, err := http.NewRequest(http.MethodPut, util.CrossServiceProtocol+"://"+postHost+":"+postPort+"/user/"+
-		util.Uint2String(loggedUserId)+"/username", bytes.NewBuffer(jsonUsername))
+	_, err := util.CrossServiceRequest(http.MethodPut,
+		util.CrossServiceProtocol+"://"+postHost+":"+postPort+"/user/"+util.Uint2String(loggedUserId)+"/username",
+		jsonUsername, map[string]string{"Content-Type": "application/json;"})
 	if err != nil {
 		fmt.Println(err)
-		return err
 	}
-	req.Header.Set("Content-Type", "application/json;")
-	_, err = client.Do(req)
-
 	return err
 }

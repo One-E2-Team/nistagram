@@ -26,7 +26,7 @@ func CreateToken(userId uint, issuer string) (string, error) {
 	return token.SignedString([]byte(TokenSecret))
 }
 
-func GetToken(header http.Header) (string, error) {
+func getToken(header http.Header) (string, error) {
 	reqToken := header.Get("Authorization")
 	splitToken := strings.Split(reqToken, "Bearer ")
 	if len(splitToken) != 2 {
@@ -36,7 +36,7 @@ func GetToken(header http.Header) (string, error) {
 }
 
 func GetLoggedUserIDFromToken(r *http.Request) uint {
-	tokenString, err := GetToken(r.Header)
+	tokenString, err := getToken(r.Header)
 	if err != nil {
 		fmt.Println(err)
 		return 0

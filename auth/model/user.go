@@ -9,6 +9,7 @@ type User struct {
 	gorm.Model
 	ProfileId        uint      `json:"profileId" gorm:"unique;not null"`
 	Password         string    `json:"password" gorm:"not null"`
+	TotpUrl			 string	    `json:"totpUrl"`
 	APIToken         string    `json:"apiToken"`
 	IsDeleted        bool      `json:"isDeleted" gorm:"not null"`
 	IsValidated      bool      `json:"isValidated" gorm:"not null"`

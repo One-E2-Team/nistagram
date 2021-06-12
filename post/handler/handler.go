@@ -81,10 +81,12 @@ func (handler Handler) GetPostsForHomePage(w http.ResponseWriter, r *http.Reques
 	}
 
 	connHost, connPort := util.GetConnectionHostAndPort()
-	resp, err := http.Get(util.CrossServiceProtocol + "://" + connHost + ":" + connPort + "/connection/following/show/" + util.Uint2String(loggedUserId))
-
+	resp, err := util.CrossServiceRequest(http.MethodGet,
+		util.CrossServiceProtocol+"://"+connHost+":"+connPort+"/connection/following/show/"+util.Uint2String(loggedUserId),
+		nil, map[string]string{})
 	if err != nil {
 		fmt.Println(err)
+		return
 	}
 	var followingProfiles []uint
 	body, err := io.ReadAll(resp.Body)
@@ -124,10 +126,12 @@ func (handler Handler) GetProfilesPosts(w http.ResponseWriter, r *http.Request) 
 	loggedUserId := util.GetLoggedUserIDFromToken(r)
 	if loggedUserId != 0 {
 		connHost, connPort := util.GetConnectionHostAndPort()
-		resp, err := http.Get(util.CrossServiceProtocol + "://" + connHost + ":" + connPort + "/connection/following/show/" + util.Uint2String(loggedUserId))
-
+		resp, err := util.CrossServiceRequest(http.MethodGet,
+			util.CrossServiceProtocol+"://"+connHost+":"+connPort+"/connection/following/show/"+util.Uint2String(loggedUserId),
+			nil, map[string]string{})
 		if err != nil {
 			fmt.Println(err)
+			return
 		}
 
 		body, err := io.ReadAll(resp.Body)
@@ -259,7 +263,9 @@ func (handler *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	profileHost, profilePort := util.GetProfileHostAndPort()
-	resp, err := http.Get(util.CrossServiceProtocol + "://" + profileHost + ":" + profilePort + "/get-by-id/" + util.Uint2String(profileId))
+	resp, err := util.CrossServiceRequest(http.MethodGet,
+		util.CrossServiceProtocol+"://"+profileHost+":"+profilePort+"/get-by-id/"+util.Uint2String(profileId),
+		nil, map[string]string{})
 	if err != nil {
 		util.Logging(util.ERROR, methodPath, "", err.Error(), "post")
 		_, _ = w.Write([]byte("{\"success\":\"error\"}"))

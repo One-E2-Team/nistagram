@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/gorilla/mux"
-	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 	"net/http"
 	"nistagram/connection/handler"
 	"nistagram/connection/repository"
@@ -11,6 +9,9 @@ import (
 	"nistagram/util"
 	"os"
 	"time"
+
+	"github.com/gorilla/mux"
+	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 )
 
 func initDB() *neo4j.Driver {
@@ -65,9 +66,10 @@ func initHandler(service *service.ConnectionService) *handler.Handler {
 
 func handleFunc(handler *handler.Handler) {
 	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/profile/{id}", handler.AddProfile).Methods("POST")
+	router.HandleFunc("/profile/{id}", util.MSAuth(handler.AddProfile, []string{"profile"})).Methods("POST")
 	router.HandleFunc("/connection/following/all/{id}", handler.GetFollowedProfiles).Methods("GET")
-	router.HandleFunc("/connection/following/show/{id}", handler.GetFollowedProfilesNotMuted).Methods("GET")
+	router.HandleFunc("/connection/following/show/{id}",
+		util.MSAuth(handler.GetFollowedProfilesNotMuted, []string{"post"})).Methods("GET")
 	router.HandleFunc("/connection/following/properties/{followerId}/{profileId}", handler.GetConnection).Methods("GET")
 	router.HandleFunc("/connection/following/update", handler.UpdateConnection).Methods("PUT") //frontend func
 	router.HandleFunc("/connection/following/my-properties/{profileId}",
@@ -81,8 +83,13 @@ func handleFunc(handler *handler.Handler) {
 	router.HandleFunc("/connection/following/request/{profileId}",
 		util.RBAC(handler.DeclineFollowRequest, "EDIT_CONNECTION_STATUS", false)).Methods("DELETE") //frontend func
 	fmt.Println("Starting server..")
-	_, port := util.GetConnectionHostAndPort()
-	err := http.ListenAndServe(":"+port, router)
+	host, port := util.GetConnectionHostAndPort()
+	var err error
+	if util.DockerChecker() {
+		err = http.ListenAndServeTLS(":"+port, "../cert.pem", "../key.pem", router)
+	} else {
+		err = http.ListenAndServe(host+":"+port, router)
+	}
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -94,6 +101,7 @@ func main() {
 	defer (*db).Close()
 	connectionRepo := initConnectionRepo(db)
 	connectionService := initService(connectionRepo)
-	handler := initHandler(connectionService)
-	handleFunc(handler)
+	connectionHandler := initHandler(connectionService)
+	_ = util.SetupMSAuth("connection")
+	handleFunc(connectionHandler)
 }
