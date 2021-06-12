@@ -36,8 +36,8 @@ func initDBs() (*gorm.DB, *redis.Client) {
 		if ok {
 			dbHost = "db_relational"
 			dbPort = "3306"
-			dbUsername = "root"
-			dbPassword = "root"
+			dbUsername = os.Getenv("DB_USERNAME")
+			dbPassword = os.Getenv("DB_PASSWORD")
 		}
 	}
 	for {

@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 )
 
 const ExpiresIn = 86400
-const TokenSecret = "token_secret"
+var TokenSecret = os.Getenv("PUBLIC_JWT_TOKEN_SECRET")
 
 type TokenClaims struct {
 	LoggedUserId uint `json:"loggedUserId"`

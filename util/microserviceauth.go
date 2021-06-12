@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"net/http"
+	"os"
 	"time"
 )
 
 var msJwt string
 
 const MSExpiresIn = 86400000
-const MSTokenSecret = "token_secret"
+var MSTokenSecret = os.Getenv("MICROSERVICE_JWT_TOKEN_SECRET")
 
 type MSTokenClaims struct {
 	Microservice string `json:"microservice"`

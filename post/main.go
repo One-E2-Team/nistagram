@@ -29,8 +29,8 @@ func initDB() *mongo.Client {
 		if ok {
 			dbHost = "mongo1"
 			dbPort = "27017"
-			dbUsername = "root"
-			dbPassword = "root"
+			dbUsername = os.Getenv("DB_USERNAME")
+			dbPassword = os.Getenv("DB_PASSWORD")
 		}
 	}
 

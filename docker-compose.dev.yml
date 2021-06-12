@@ -35,9 +35,11 @@ services:
         container_name: profile_ms
         restart: always
         environment: 
-            DB_USERNAME: root
-            DB_PASSWORD: root
+            DB_USERNAME: ${DB_PROFILE_USERNAME}
+            DB_PASSWORD: ${DB_PROFILE_PASSWORD}
             DOCKER_ENV_SET_DEV: ""
+            MICROSERVICE_JWT_TOKEN_SECRET: ${MICROSERVICE_JWT_TOKEN_SECRET}
+            PUBLIC_JWT_TOKEN_SECRET: ${PUBLIC_JWT_TOKEN_SECRET}
         build:
             context: .
             args:
@@ -58,12 +60,14 @@ services:
         container_name: auth_ms
         restart: always
         environment: 
-            DB_USERNAME: root
-            DB_PASSWORD: root
+            DB_USERNAME: ${DB_AUTH_USERNAME}
+            DB_PASSWORD: ${DB_AUTH_PASSWORD}
             DOCKER_ENV_SET_DEV: ""
             MAIL_USERNAME: ${MAIL_USERNAME}
             MAIL_PASSWORD: ${MAIL_PASSWORD}
             DB_SEC_ENC: ${DB_SEC_ENC}
+            MICROSERVICE_JWT_TOKEN_SECRET: ${MICROSERVICE_JWT_TOKEN_SECRET}
+            PUBLIC_JWT_TOKEN_SECRET: ${PUBLIC_JWT_TOKEN_SECRET}
         build:
             context: .
             args:
@@ -84,9 +88,11 @@ services:
         container_name: connection_ms
         restart: always
         environment: 
-            DB_USERNAME: root
-            DB_PASSWORD: root
+            DB_USERNAME: ${DB_CONNECTION_USERNAME}
+            DB_PASSWORD: ${DB_CONNECTION_PASSWORD}
             DOCKER_ENV_SET_DEV: ""
+            MICROSERVICE_JWT_TOKEN_SECRET: ${MICROSERVICE_JWT_TOKEN_SECRET}
+            PUBLIC_JWT_TOKEN_SECRET: ${PUBLIC_JWT_TOKEN_SECRET}
         build:
             context: .
             args:
@@ -106,9 +112,11 @@ services:
         container_name: post_ms
         restart: always
         environment:
-            DB_USERNAME: root
-            DB_PASSWORD: root
+            DB_USERNAME: ${DB_POST_USERNAME}
+            DB_PASSWORD: ${DB_POST_PASSWORD}
             DOCKER_ENV_SET_DEV: ""
+            MICROSERVICE_JWT_TOKEN_SECRET: ${MICROSERVICE_JWT_TOKEN_SECRET}
+            PUBLIC_JWT_TOKEN_SECRET: ${PUBLIC_JWT_TOKEN_SECRET}
         build:
             context: .
             dockerfile: Build.dockerfile
@@ -131,7 +139,7 @@ services:
         image: mysql
         restart: always
         environment: 
-            MYSQL_ROOT_PASSWORD: root
+            MYSQL_ROOT_PASSWORD: ${DB_PROFILE_PASSWORD}
         networks: 
             - net_db_relational
         ports:
@@ -159,7 +167,7 @@ services:
         environment: 
             - NEO4J_dbms_connector_bolt_advertised__address=0.0.0.0:7687
             - NEO4J_dbms_connector_bolt_listen__address=0.0.0.0:7687
-            - NEO4J_AUTH=none
+            - NEO4J_AUTH=${DB_CONNECTION_USERNAME}/${DB_CONNECTION_PASSWORD}
         networks: 
             - net_db_graph
         ports: 
@@ -175,8 +183,8 @@ services:
         image: mongo
         restart: always
         environment:
-            MONGO_INITDB_ROOT_USERNAME: root
-            MONGO_INITDB_ROOT_PASSWORD: root
+            MONGO_INITDB_ROOT_USERNAME: ${DB_POST_USERNAME}
+            MONGO_INITDB_ROOT_PASSWORD: ${DB_POST_PASSWORD}
         networks: 
             - net_mongo
         volumes: 
@@ -191,8 +199,8 @@ services:
             - 8082:8081
         environment:
             ME_CONFIG_MONGODB_SERVER: mongo1
-            ME_CONFIG_MONGODB_ADMINUSERNAME: root
-            ME_CONFIG_MONGODB_ADMINPASSWORD: root
+            ME_CONFIG_MONGODB_ADMINUSERNAME: ${DB_POST_USERNAME}
+            ME_CONFIG_MONGODB_ADMINPASSWORD: ${DB_POST_PASSWORD}
         networks: 
             - net_mongo
 

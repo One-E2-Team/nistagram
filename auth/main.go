@@ -33,8 +33,8 @@ func initDB() *gorm.DB {
 		if ok {
 			dbHost = "db_relational"
 			dbPort = "3306"
-			dbUsername = "root"
-			dbPassword = "root"
+			dbUsername = os.Getenv("DB_USERNAME")
+			dbPassword = os.Getenv("DB_PASSWORD")
 		}
 	}
 	for {

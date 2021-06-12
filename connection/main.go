@@ -21,24 +21,24 @@ func initDB() *neo4j.Driver {
 		err    error
 	)
 	time.Sleep(10 * time.Second)
-	var dbHost, dbPort = /*, dbusername, dbpassword*/ "localhost", "7687" //, "root", "root" // dev.db environment
+	var dbHost, dbPort, dbusername, dbpassword = "localhost", "7687", "neo4j", "neo4j" // dev.db environment
 	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD")                          // production environment
 	if ok {
 		dbHost = "graphdb_connection"
 		dbPort = "7687"
-		//dbusername = os.Getenv("DB_USERNAME")
-		//dbpassword = os.Getenv("DB_PASSWORD")
+		dbusername = os.Getenv("DB_USERNAME")
+		dbpassword = os.Getenv("DB_PASSWORD")
 	} else {
 		_, ok := os.LookupEnv("DOCKER_ENV_SET_DEV") // dev front environment
 		if ok {
 			dbHost = "graphdb_connection"
 			dbPort = "7687"
-			//dbusername = "root"
-			//dbpassword = "root"
+			dbusername = os.Getenv("DB_USERNAME")
+			dbpassword = os.Getenv("DB_PASSWORD")
 		}
 	}
 	for {
-		driver, err = neo4j.NewDriver("bolt://"+dbHost+":"+dbPort+"/neo4j", neo4j.NoAuth())
+		driver, err = neo4j.NewDriver("bolt://"+dbHost+":"+dbPort+"/neo4j", neo4j.BasicAuth(dbusername, dbpassword, "Neo4j"))
 
 		if err != nil {
 			fmt.Println("Cannot connect to database! Sleeping 10s and then retrying....")
