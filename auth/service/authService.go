@@ -33,7 +33,7 @@ func (service *AuthService) LogIn(dto dto.LogInDTO) (*model.User, error) {
 	if err != nil {
 		return nil, fmt.Errorf(util.GetLoggingStringFromID(user.ProfileId) + " " + err.Error())
 	}
-	if !util.ValidateTOTP(user.TotpUrl, dto.Passcode){
+	if !util.ValidateTOTP(user.TotpUrl.Data, dto.Passcode){
 		return nil, fmt.Errorf(util.GetLoggingStringFromID(user.ProfileId) + " entered wrong passcode.")
 	}
 	return user, nil
@@ -67,7 +67,7 @@ func (service *AuthService) Register(dto dto.RegisterDTO) error {
 	}
 	fmt.Println("Bytes written: ", n)
 
-	user := model.User{ProfileId: util.String2Uint(dto.ProfileIdString), Password: pass, TotpUrl: totpUrl, Email: dto.Email, Username: dto.Username,
+	user := model.User{ProfileId: util.String2Uint(dto.ProfileIdString), Password: pass, TotpUrl: util.EncryptedString{Data: totpUrl}, Email: dto.Email, Username: dto.Username,
 		ValidationUid: uuid.NewString(), Roles: []model.Role{*role}, IsDeleted: false, IsValidated: false, ValidationExpire: time.Now().Add(1 * time.Hour)}
 	err = service.AuthRepository.CreateUser(&user)
 	if err != nil {

@@ -63,6 +63,7 @@ services:
             DOCKER_ENV_SET_DEV: ""
             MAIL_USERNAME: ${MAIL_USERNAME}
             MAIL_PASSWORD: ${MAIL_PASSWORD}
+            DB_SEC_ENC: ${DB_SEC_ENC}
         build:
             context: .
             args:
