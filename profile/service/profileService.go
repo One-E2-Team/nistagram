@@ -200,6 +200,10 @@ func (service *ProfileService) GetProfileByID(id uint) (*model.Profile, error) {
 	return profile, nil
 }
 
+func (service *ProfileService) GetVerificationRequests() ([]model.VerificationRequest, error) {
+	return service.ProfileRepository.GetVerificationRequests()
+}
+
 func (service *ProfileService) Test(key string) error {
 	return service.ProfileRepository.InsertInRedis(key, "test")
 }

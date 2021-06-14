@@ -78,6 +78,14 @@ func (repo *ProfileRepository) GetAllInterests() ([]string, error) {
 	return interests, result.Error
 }
 
+func (repo *ProfileRepository) GetVerificationRequests() ([]model.VerificationRequest, error){
+	var requests []model.VerificationRequest
+	if err := repo.RelationalDatabase.Table("verification_requests").Find(&requests, "verification_status = 0").Error; err != nil {
+		return nil, err
+	}
+	return requests, nil
+}
+
 func (repo *ProfileRepository) InsertInRedis(key string, value string) error {
 	//model := model.Interest{
 	//	Model: gorm.Model{},
