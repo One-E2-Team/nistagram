@@ -1,13 +1,13 @@
 <template>
   <v-card
     class="mx-auto"
-    width="400"
+    :width="width"
   >
-    <post-modal :visible="showDialog" @close="showDialog=false"/>
+    <post-modal v-if="showTitle" :visible="showDialog" @close="showDialog=false"/>
     <v-list-item one-line>
       <v-list-item-content>
-        <v-list-item-title class="text-h6 d-flex justify-space-between ">
-          <label>Publisher username: {{publisher.username}} </label>
+        <v-list-item-title  v-if="showTitle" class="text-h6 d-flex justify-space-between ">
+          <label>Publisher username: {{post.publisher.username}} </label>
           <v-btn dark icon @click="showOptionDialog()">
             <v-icon color="blue">mdi-dots-horizontal</v-icon>
           </v-btn>
@@ -39,10 +39,12 @@ import PostModal from '../../modals/PostModal.vue'
 export default {
     components: { PostModal },
     name: "Post",
-    props: ['post','publisher'],
+    props: ['post','usage'],
     data(){
         return {
-            showDialog : false
+            showDialog : false,
+            width: 300,
+            showTitle: false
         }
     },
     methods:{
