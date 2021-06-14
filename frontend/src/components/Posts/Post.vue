@@ -40,9 +40,14 @@ export default {
     components: { PostModal },
     name: "Post",
     props: ['post','publisher'],
+    data(){
+        return {
+            showDialog : false
+        }
+    },
     methods:{
         showOptionDialog(){
-
+            this.showDialog = true
         }
     }
 }
