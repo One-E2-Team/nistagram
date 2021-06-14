@@ -281,6 +281,21 @@ func (handler *Handler) GetProfileByID(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (handler *Handler) GetVerificationRequests(w http.ResponseWriter, r *http.Request) {
+	requests, err := handler.ProfileService.GetVerificationRequests()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(requests)
+	if err != nil {
+		return
+	}
+	fmt.Println(requests, err)
+}
+
 func safeRegistrationDto(dto dto.RegistrationDto) dto.RegistrationDto {
 	dto.Username = template.HTMLEscapeString(dto.Username)
 	dto.Name = template.HTMLEscapeString(dto.Name)
