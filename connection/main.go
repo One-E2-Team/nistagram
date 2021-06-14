@@ -22,7 +22,7 @@ func initDB() *neo4j.Driver {
 	)
 	time.Sleep(10 * time.Second)
 	var dbHost, dbPort, dbusername, dbpassword = "localhost", "7687", "neo4j", "neo4j" // dev.db environment
-	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD")                          // production environment
+	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD")                                       // production environment
 	if ok {
 		dbHost = "graphdb_connection"
 		dbPort = "7687"

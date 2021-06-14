@@ -15,9 +15,9 @@ type Handler struct {
 	ConnectionService *service.ConnectionService
 }
 
-func (handler *Handler) AddProfile(w http.ResponseWriter, r *http.Request){
+func (handler *Handler) AddProfile(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	id, _ := strconv.ParseUint(vars["id"],10,32)
+	id, _ := strconv.ParseUint(vars["id"], 10, 32)
 	profile, ok := handler.ConnectionService.AddProfile(uint(id))
 	if ok {
 		w.WriteHeader(http.StatusOK)
@@ -28,11 +28,11 @@ func (handler *Handler) AddProfile(w http.ResponseWriter, r *http.Request){
 	}
 }
 
-func (handler *Handler) GetConnection(w http.ResponseWriter, r *http.Request){
+func (handler *Handler) GetConnection(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	id1, e1 := strconv.ParseUint(vars["followerId"],10,32)
-	id2, e2 := strconv.ParseUint(vars["profileId"],10,32)
-	if e1!=nil || e2!=nil {
+	id1, e1 := strconv.ParseUint(vars["followerId"], 10, 32)
+	id2, e2 := strconv.ParseUint(vars["profileId"], 10, 32)
+	if e1 != nil || e2 != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -42,10 +42,10 @@ func (handler *Handler) GetConnection(w http.ResponseWriter, r *http.Request){
 	json.NewEncoder(w).Encode(connection)
 }
 
-func (handler *Handler) GetConnectionPublic(w http.ResponseWriter, r *http.Request){
+func (handler *Handler) GetConnectionPublic(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	id1, e1 := strconv.ParseUint(vars["profileId"],10,32)
-	if e1!=nil {
+	id1, e1 := strconv.ParseUint(vars["profileId"], 10, 32)
+	if e1 != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -60,10 +60,10 @@ func (handler *Handler) GetConnectionPublic(w http.ResponseWriter, r *http.Reque
 	json.NewEncoder(w).Encode(connection)
 }
 
-func (handler *Handler) FollowRequest(w http.ResponseWriter, r *http.Request){
+func (handler *Handler) FollowRequest(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	id2, e2 := strconv.ParseUint(vars["profileId"],10,32)
-	if e2!=nil {
+	id2, e2 := strconv.ParseUint(vars["profileId"], 10, 32)
+	if e2 != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -82,10 +82,10 @@ func (handler *Handler) FollowRequest(w http.ResponseWriter, r *http.Request){
 	}
 }
 
-func (handler *Handler) FollowApprove(w http.ResponseWriter, r *http.Request){
+func (handler *Handler) FollowApprove(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	id1, e1 := strconv.ParseUint(vars["profileId"],10,32)
-	if e1!=nil{
+	id1, e1 := strconv.ParseUint(vars["profileId"], 10, 32)
+	if e1 != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -104,9 +104,9 @@ func (handler *Handler) FollowApprove(w http.ResponseWriter, r *http.Request){
 	}
 }
 
-func (handler *Handler) GetFollowedProfilesNotMuted(w http.ResponseWriter, r *http.Request){
+func (handler *Handler) GetFollowedProfilesNotMuted(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	id, _ := strconv.ParseUint(vars["id"],10,32)
+	id, _ := strconv.ParseUint(vars["id"], 10, 32)
 	conn := model.Connection{
 		PrimaryProfile:    uint(id),
 		SecondaryProfile:  0,
@@ -128,9 +128,9 @@ func (handler *Handler) GetFollowedProfilesNotMuted(w http.ResponseWriter, r *ht
 	json.NewEncoder(w).Encode(*profiles)
 }
 
-func (handler *Handler) GetFollowedProfiles(w http.ResponseWriter, r *http.Request){
+func (handler *Handler) GetFollowedProfiles(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	id, _ := strconv.ParseUint(vars["id"],10,32)
+	id, _ := strconv.ParseUint(vars["id"], 10, 32)
 	conn := model.Connection{
 		PrimaryProfile:    uint(id),
 		SecondaryProfile:  0,
@@ -172,7 +172,7 @@ func (handler *Handler) UpdateConnection(w http.ResponseWriter, r *http.Request)
 
 func (handler *Handler) DeclineFollowRequest(writer http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
-	followerId, e1 := strconv.ParseUint(vars["profileId"],10,32)
+	followerId, e1 := strconv.ParseUint(vars["profileId"], 10, 32)
 	if e1 != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
 	}

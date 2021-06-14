@@ -21,7 +21,7 @@ type AuthService struct {
 func (service *AuthService) LogIn(dto dto.LogInDTO) (*model.User, error) {
 	user, err := service.AuthRepository.GetUserByEmail(dto.Email)
 	if err != nil {
-		return nil, fmt.Errorf("'"+dto.Email+"' " + err.Error())
+		return nil, fmt.Errorf("'" + dto.Email + "' " + err.Error())
 	}
 	if !user.IsValidated {
 		return nil, fmt.Errorf(util.GetLoggingStringFromID(user.ProfileId) + " NOT VALIDATED")
@@ -33,7 +33,7 @@ func (service *AuthService) LogIn(dto dto.LogInDTO) (*model.User, error) {
 	if err != nil {
 		return nil, fmt.Errorf(util.GetLoggingStringFromID(user.ProfileId) + " " + err.Error())
 	}
-	if !util.ValidateTOTP(user.TotpUrl.Data, dto.Passcode){
+	if !util.ValidateTOTP(user.TotpUrl.Data, dto.Passcode) {
 		return nil, fmt.Errorf(util.GetLoggingStringFromID(user.ProfileId) + " entered wrong passcode.")
 	}
 	return user, nil
@@ -46,7 +46,7 @@ func (service *AuthService) Register(dto dto.RegisterDTO) error {
 		return err
 	}
 	totpUrl, img, err := util.GenerateTOTP(dto.Email)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 	var buf bytes.Buffer
@@ -54,15 +54,15 @@ func (service *AuthService) Register(dto dto.RegisterDTO) error {
 
 	uid := uuid.NewString()
 
-	file, err := os.OpenFile("../../nistagramstaticdata/totp/" + uid + ".png", os.O_WRONLY|os.O_CREATE, 0666)
+	file, err := os.OpenFile("../../nistagramstaticdata/totp/"+uid+".png", os.O_WRONLY|os.O_CREATE, 0666)
 	defer file.Close()
 
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
 	n, err := file.Write(buf.Bytes())
-	if err != nil{
+	if err != nil {
 		return err
 	}
 	fmt.Println("Bytes written: ", n)

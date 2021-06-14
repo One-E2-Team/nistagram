@@ -72,8 +72,8 @@ func (repo *ConnectionRepository) GetConnectedProfiles(conn model.Connection, ex
 	defer session.Close()
 	profileIDs, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
 		result, err := transaction.Run(
-			"MATCH (a:Profile)-[e:FOLLOWS]->(b:Profile) \n" +
-				"WHERE a.profileID = $primary AND e.block = FALSE " + additionalSelector + "\n" +
+			"MATCH (a:Profile)-[e:FOLLOWS]->(b:Profile) \n"+
+				"WHERE a.profileID = $primary AND e.block = FALSE "+additionalSelector+"\n"+
 				"RETURN b",
 			conn.ToMap())
 		var ret []uint
@@ -82,7 +82,7 @@ func (repo *ConnectionRepository) GetConnectedProfiles(conn model.Connection, ex
 			return ret, err
 		}
 
-		for ; result.Next(); {
+		for result.Next() {
 			ret = append(ret, uint(result.Record().Values[0].(dbtype.Node).Props["profileID"].(float64)))
 		}
 
@@ -95,12 +95,12 @@ func (repo *ConnectionRepository) GetConnectedProfiles(conn model.Connection, ex
 	return &ret
 }
 
-func (repo *ConnectionRepository) SelectOrCreateConnection(id1, id2 uint) *model.Connection{
+func (repo *ConnectionRepository) SelectOrCreateConnection(id1, id2 uint) *model.Connection {
 	conn, _ := repo.SelectConnection(id1, id2, true)
 	return conn
 }
 
-func (repo *ConnectionRepository) SelectConnection(id1, id2 uint, doCreate bool) (*model.Connection, bool){
+func (repo *ConnectionRepository) SelectConnection(id1, id2 uint, doCreate bool) (*model.Connection, bool) {
 	session := (*repo.DatabaseDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close()
 	conn := model.Connection{
@@ -121,8 +121,8 @@ func (repo *ConnectionRepository) SelectConnection(id1, id2 uint, doCreate bool)
 	fmt.Println(conn.ToMap())
 	resultingConn, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
 		result, err := transaction.Run(
-			"MATCH (a:Profile)-[e:FOLLOWS]->(b:Profile) \n" +
-				"WHERE a.profileID = $primary AND b.profileID = $secondary \n" +
+			"MATCH (a:Profile)-[e:FOLLOWS]->(b:Profile) \n"+
+				"WHERE a.profileID = $primary AND b.profileID = $secondary \n"+
 				"RETURN e",
 			conn.ToMap())
 		record, rerr := result.Single()
@@ -171,17 +171,17 @@ func (repo *ConnectionRepository) SelectConnection(id1, id2 uint, doCreate bool)
 	return &ret, true
 }
 
-func (repo *ConnectionRepository) UpdateConnection(conn *model.Connection) (*model.Connection, bool){
+func (repo *ConnectionRepository) UpdateConnection(conn *model.Connection) (*model.Connection, bool) {
 	session := (*repo.DatabaseDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close()
 	resultingConn, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
 		result, err := transaction.Run(
-			"MATCH (a:Profile)-[e:FOLLOWS]->(b:Profile) \n" +
-				"WHERE a.profileID = $primary AND b.profileID = $secondary \n" +
-				"SET e.muted = $muted, e.closeFriend = $closeFriend, e.notifyPost = $notifyPost, " +
-				"e.notifyStory = $notifyStory, e.notifyMessage = $notifyMessage, e.notifyComment = $notifyComment, " +
-				"e.connectionRequest = $connectionRequest, e.approved = $approved, e.messageRequest = $messageRequest, " +
-				"e.messageConnected = $messageConnected, e.block = $block \n" +
+			"MATCH (a:Profile)-[e:FOLLOWS]->(b:Profile) \n"+
+				"WHERE a.profileID = $primary AND b.profileID = $secondary \n"+
+				"SET e.muted = $muted, e.closeFriend = $closeFriend, e.notifyPost = $notifyPost, "+
+				"e.notifyStory = $notifyStory, e.notifyMessage = $notifyMessage, e.notifyComment = $notifyComment, "+
+				"e.connectionRequest = $connectionRequest, e.approved = $approved, e.messageRequest = $messageRequest, "+
+				"e.messageConnected = $messageConnected, e.block = $block \n"+
 				"RETURN e\n",
 			conn.ToMap())
 		if err != nil {
@@ -226,10 +226,11 @@ func (repo *ConnectionRepository) DeleteConnection(followerId, profileId uint) (
 	defer session.Close()
 	_, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
 		return transaction.Run(
-			"MATCH (a:Profile)-[e:FOLLOWS]->(b:Profile) \n" +
-				"WHERE a.profileID = $primary AND b.profileID = $secondary \n" +
+			"MATCH (a:Profile)-[e:FOLLOWS]->(b:Profile) \n"+
+				"WHERE a.profileID = $primary AND b.profileID = $secondary \n"+
 				"DELETE e",
-			conn.ToMap())})
+			conn.ToMap())
+	})
 	if err != nil {
 		return nil, false
 	}
@@ -256,8 +257,8 @@ func (repo *ConnectionRepository) GetAllFollowRequests(id uint) *[]uint {
 	defer session.Close()
 	profileIDs, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
 		result, err := transaction.Run(
-			"MATCH (a:Profile)-[e:FOLLOWS]->(b:Profile) \n" +
-				"WHERE b.profileID = $secondary AND e.connectionRequest = $connectionRequest AND e.approved = $approved \n" +
+			"MATCH (a:Profile)-[e:FOLLOWS]->(b:Profile) \n"+
+				"WHERE b.profileID = $secondary AND e.connectionRequest = $connectionRequest AND e.approved = $approved \n"+
 				"RETURN a",
 			conn.ToMap())
 		var ret []uint = make([]uint, 0)
@@ -266,7 +267,7 @@ func (repo *ConnectionRepository) GetAllFollowRequests(id uint) *[]uint {
 			return ret, err
 		}
 
-		for ; result.Next(); {
+		for result.Next() {
 			ret = append(ret, uint(result.Record().Values[0].(dbtype.Node).Props["profileID"].(float64)))
 		}
 
