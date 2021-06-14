@@ -1,5 +1,6 @@
 <template>
     <v-container>
+        <post-modal :visible="showFollowOption" @close="showFollowOption=false"/>
         <v-row align="left" >
             <v-col cols="12" sm="11" >
                 <personal-data v-on:loaded-user='profileLoaded($event)' style="height:200px" v-bind:username="username"/>
@@ -17,6 +18,9 @@
                 @click="redirectToCreatePost()"
                 >
                 Create post
+                </v-btn>
+                <v-btn v-if="!isMyProfile" class="mx-2" fab dark small color="cyan" @click="showFollowOptionDialog()">
+                    <v-icon>mdi-menu-down</v-icon>
                 </v-btn>
             </v-col>
         </v-row>
@@ -63,7 +67,8 @@ export default {
       profileId: 1,
       posts: [],
       server: comm.server,
-      protocol: comm.protocol
+      protocol: comm.protocol,
+      showFollowOption: false
     }},
     methods: {
         follow(){
@@ -102,8 +107,8 @@ export default {
             })
             }
         },
-        getProfileRequests(){
-
+        showFollowOptionDialog(){
+            this.showFollowOption = true
         },
         redirectToCreatePost(){
             this.$router.push({name:'Post'});
