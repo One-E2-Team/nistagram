@@ -79,7 +79,7 @@ func handleFunc(handler *handler.Handler) {
 	router.HandleFunc("/{postType}/{id}", handler.GetPost).Methods("GET")
 	router.HandleFunc("/{postType}/{id}", handler.DeletePost).Methods("DELETE")
 	router.HandleFunc("/{postType}/{id}", handler.UpdatePost).Methods("PUT")
-	fmt.Printf("Starting server..")
+	fmt.Println("Starting server..")
 	host, port := util.GetPostHostAndPort()
 	var err error
 	if util.DockerChecker() {

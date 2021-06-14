@@ -108,7 +108,7 @@ func Logging(logType LogType, resourceMethod string, resourceIP string, content 
 			return
 		}
 		if err := os.Truncate(file.Name(), 0); err != nil {
-			fmt.Printf("Failed to truncate: %v", err)
+			fmt.Println("Failed to truncate: %v", err)
 		}
 	}
 	err = file.Close()

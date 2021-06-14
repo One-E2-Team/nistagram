@@ -3,8 +3,8 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"html/template"
@@ -241,8 +241,8 @@ func (handler *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		uid := uuid.NewString()
 
 		fn := strings.Split(files[i].Filename, ".")
-		mediaNames = append(mediaNames, uid + "."+fn[1])
-		f, err := os.OpenFile("../../nistagramstaticdata/data/"+uid + "."+fn[1], os.O_WRONLY|os.O_CREATE, 0666)
+		mediaNames = append(mediaNames, uid+"."+fn[1])
+		f, err := os.OpenFile("../../nistagramstaticdata/data/"+uid+"."+fn[1], os.O_WRONLY|os.O_CREATE, 0666)
 		if err != nil {
 			util.Logging(util.ERROR, methodPath, "", err.Error(), "post")
 			_, _ = w.Write([]byte("{\"success\":\"error\"}"))

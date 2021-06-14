@@ -78,10 +78,10 @@ func initAuthHandler(service *service.AuthService) *handler.AuthHandler {
 func handlerFunc(handler *handler.AuthHandler) {
 	fmt.Println("Auth server started...")
 	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/login", handler.LogIn).Methods("POST")                          //frontend func
-	router.HandleFunc("/request-recovery", handler.RequestPassRecovery).Methods("POST") //frontend func
-	router.HandleFunc("/recover", handler.ChangePassword).Methods("POST")               //frontend func
-	router.HandleFunc("/validate/{id}/{uuid}/{qruuid}", handler.ValidateUser).Methods("GET")     //frontend func
+	router.HandleFunc("/login", handler.LogIn).Methods("POST")                               //frontend func
+	router.HandleFunc("/request-recovery", handler.RequestPassRecovery).Methods("POST")      //frontend func
+	router.HandleFunc("/recover", handler.ChangePassword).Methods("POST")                    //frontend func
+	router.HandleFunc("/validate/{id}/{uuid}/{qruuid}", handler.ValidateUser).Methods("GET") //frontend func
 	router.HandleFunc("/register",
 		util.MSAuth(handler.Register, []string{"profile"})).Methods("POST")
 	router.HandleFunc("/update-user",

@@ -1,8 +1,8 @@
 package dto
 
 type ProfileDto struct {
-	Username string `json:"username"`
-	ProfileId uint `json:"profileId"`
+	Username        string          `json:"username"`
+	ProfileId       uint            `json:"profileId"`
 	ProfileSettings ProfileSettings `json:"profileSettings"`
 }
 
