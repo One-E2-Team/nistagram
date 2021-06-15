@@ -90,7 +90,7 @@ const routes = [{
     component: () =>
       import ('./../components/VerificationRequests.vue')
   }
-
+]
 const router = new VueRouter({
   routes
 })
