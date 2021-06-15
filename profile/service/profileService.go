@@ -23,7 +23,8 @@ func (service *ProfileService) Register(dto dto.RegistrationDto) error {
 		personalData.AddItem(interest)
 	}
 	profile := model.Profile{Username: dto.Username, Email: dto.Email, ProfileSettings: profileSettings,
-		PersonalData: personalData, Biography: dto.Biography, Website: dto.WebSite, Type: model.REGULAR}
+		PersonalData: personalData, Biography: dto.Biography, Website: dto.WebSite, Type: model.REGULAR,
+		IsVerified: false}
 	err := service.ProfileRepository.CreateProfile(&profile)
 	if err != nil {
 		return err
@@ -166,6 +167,23 @@ func (service *ProfileService) ChangePersonalData(dto dto.PersonalDataDTO, logge
 func (service *ProfileService) GetAllInterests() ([]string, error) {
 	interests, err := service.ProfileRepository.GetAllInterests()
 	return interests, err
+}
+
+func (service *ProfileService) GetAllCategories() ([]string, error) {
+	categories, err := service.ProfileRepository.GetAllCategories()
+	return categories, err
+}
+
+func (service *ProfileService) CreateVerificationRequest(profileId uint, requestDTO dto.VerificationRequestDTO, fileName string) error {
+	category, err := service.ProfileRepository.GetCategoryByName(requestDTO.Category)
+	if err != nil{
+		fmt.Println(err)
+		return err
+	}
+	var verReq = model.VerificationRequest{ProfileID: profileId, Name: requestDTO.Name, Surname: requestDTO.Surname,
+		VerificationStatus: model.SENT, ImagePath: fileName, CategoryID: category.ID}
+	err = service.ProfileRepository.CreateVerificationRequest(&verReq)
+	return err
 }
 
 func (service *ProfileService) GetMyProfileSettings(loggedUserId uint) (dto.ProfileSettingsDTO, error) {
