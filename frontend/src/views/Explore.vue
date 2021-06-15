@@ -47,7 +47,7 @@
         <template v-if="searchType == 'posts'">
         <v-row justify="center" align="center" v-for="p in posts" :key="p._id">
             <v-col cols="12" sm="4" v-if="p.postType == 2">
-               <post v-bind:usage="'Profile'" v-bind:post="p" />
+               <post v-bind:usage="'Explore'" v-bind:post="p" />
              </v-col>
         </v-row>
         </template>

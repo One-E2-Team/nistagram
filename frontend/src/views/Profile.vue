@@ -45,14 +45,16 @@ export default {
         FollowRequests,
         Post},
     props: ['username'],
-    data() {return {
-      isMyProfile: false,
-      profileId: 1,
-      posts: [],
-      server: comm.server,
-      protocol: comm.protocol,
-      showFollowOption: false
-    }},
+    data() {
+        return {
+            isMyProfile: false,
+            profileId: 1,
+            posts: [],
+            server: comm.server,
+            protocol: comm.protocol,
+            showFollowOption: false,
+        }
+    },
     methods: {
         follow(){
             axios({
@@ -60,7 +62,7 @@ export default {
                 url: comm.protocol + '://' + comm.server + '/api/connection/following/request/' + this.profileId,
                 headers: comm.getHeader(),
             }).then(response => {
-              if(response.status==200){
+              if (response.status==200){
                   alert('Success');
               }
             })
@@ -68,18 +70,18 @@ export default {
         profileLoaded(loadedProfileID){
             this.profileId = loadedProfileID;
             this.isMyProfile = comm.getLoggedUserID() == loadedProfileID;
-            if(this.isMyProfile){
+            if (this.isMyProfile){
                 axios({
                 method: "get",
                 url: comm.protocol + '://' + comm.server + '/api/post/my',
                 headers: comm.getHeader(),
             }).then(response => {
-              if(response.status==200){
+              if (response.status==200){
                   this.posts = response.data.collection;
               }
             })
 
-            }else{
+            } else {
                 axios({
                 method: "get",
                 url: comm.protocol + '://' + comm.server + '/api/post/profile/' + this.username,
@@ -90,10 +92,10 @@ export default {
             })
             }
         },
-        showFollowOptionDialog(){
-            this.showFollowOption = true
+        showFollowOptionDialog() {
+            this.showFollowOption = true;
         },
-        redirectToCreatePost(){
+        redirectToCreatePost() {
             this.$router.push({name:'Post'});
         }
     },

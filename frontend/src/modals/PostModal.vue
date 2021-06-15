@@ -35,7 +35,7 @@
 <script>
 export default {
   props: ['visible'],
-  methods:{
+  methods: {
       report(){
           //TODO: send report axios
       },
@@ -49,11 +49,11 @@ export default {
   computed: {
     show: {
       get () {
-        return this.visible
+        return this.visible;
       },
       set (value) {
         if (!value) {
-          this.$emit('close')
+          this.$emit('close');
         }
       }
     }

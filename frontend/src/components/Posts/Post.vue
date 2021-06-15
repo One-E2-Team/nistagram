@@ -7,7 +7,7 @@
     <v-list-item one-line>
       <v-list-item-content>
         <v-list-item-title  v-if="showTitle" class="text-h6 d-flex justify-space-between ">
-          <label>Publisher username: {{post.publisher.username}} </label>
+          <label> {{post.publisherUsername}} </label>
           <v-btn dark icon @click="showOptionDialog()">
             <v-icon color="blue">mdi-dots-horizontal</v-icon>
           </v-btn>
@@ -29,7 +29,7 @@
     </v-carousel>
 
     <v-card-text class="text--primary">
-      <div>Post description: {{post.description}} </div>
+      <div> {{post.description}} </div>
     </v-card-text>
   </v-card>
 </template>
@@ -41,7 +41,7 @@ export default {
     components: { PostModal },
     name: "Post",
     props: ['post','usage'],
-    data(){
+    data() {
         return {
             showDialog : false,
             width: 300,
@@ -50,23 +50,29 @@ export default {
             server: comm.server,
         }
     },
-    methods:{
+    mounted() {
+      this.designView();
+    },
+    methods: {
         showOptionDialog(){
-            this.showDialog = true
+            this.showDialog = true;
+        },
+        designView() {
+          if (this.usage == 'Profile') {
+            this.width = 300;
+            this.showTitle = false;
+          } else if (this.usage == 'Explore') {
+            this.width = 300;
+            this.showTitle = false;
+          } else if(this.usage == 'HomePage') {
+            this.width = 600;
+            this.showTitle = true;
+          }
         }
     },
-    watch:{
+    watch: {
       usage(){
-        if(this.usage == 'Profile'){
-          this.width = 300
-          this.showTitle = false
-        }else if(this.usage == 'Explore'){
-          this.width = 300
-          this.showTitle = false
-        }else if(this.usage == 'HomePage'){
-          this.width = 600
-          this.showTitle = true
-        }
+        this.designView();
       }
     }
 }
