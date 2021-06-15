@@ -26,25 +26,7 @@
         </v-row>
         <v-row align="center" justify="center">
             <v-col cols="12" sm="4" v-for="p in posts" :key="p._id">
-                <v-card justify="center" align="center"
-                    outlined
-                    width="600"
-                >
-                <v-carousel>
-                
-                <v-template v-for="item in p.medias" :key="item.filePath" name="temp">
-                      <v-carousel-item
-                      reverse-transition="fade-transition"
-                      transition="fade-transition">
-                      <video autoplay loop width="600" height="500" :src=" protocol + '://' + server + '/static/data/' + item.filePath" v-if="item.filePath.includes('mp4')">
-                        Your browser does not support the video tag.
-                      </video>
-                      <img width="600" height="500" :src=" protocol + '://' + server + '/static/data/' + item.filePath" v-if="!item.filePath.includes('mp4')">
-
-                      </v-carousel-item>
-                </v-template>
-             </v-carousel>
-                </v-card>
+               <post v-bind:usage="'Explore'" v-bind:post="p" />
             </v-col>
         </v-row>
     </v-container>
@@ -53,14 +35,16 @@
 <script>
 import PersonalData from '../components/PersonalData.vue'
 import FollowRequests from '../components/FollowRequests.vue'
+import Post from '../components/Posts/Post.vue'
 import axios from 'axios'
 import * as comm from '../configuration/communication.js'
+import Post from '../components/Posts/Post.vue'
 
 export default {
     components: {
         PersonalData,
         FollowRequests,
-    },
+        Post},
     props: ['username'],
     data() {return {
       isMyProfile: false,

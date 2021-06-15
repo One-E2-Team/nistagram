@@ -51,6 +51,20 @@ export default {
         showOptionDialog(){
             this.showDialog = true
         }
+    },
+    watch:{
+      usage(){
+        if(usage == 'Profile'){
+          this.width = 300
+          this.showTitle = false
+        }else if(usage == 'Explore'){
+          this.width = 300
+          this.showTitle = false
+        }else if(usage == 'HomePage'){
+          this.width = 600
+          this.showTitle = true
+        }
+      }
     }
 }
 </script>
