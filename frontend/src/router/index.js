@@ -76,18 +76,14 @@ const routes = [{
     component: () =>
       import ('./../components/TwoFactorAuth.vue')
   },
+
   {
     path: '/createVerificationRequest',
     name: 'CreateVerificationRequest',
     component: () =>
       import ('./../components/CreateVerificationRequest.vue')
   },
-  {
-    path: '/dummy',
-    name: 'PostCard',
-    component: () =>
-      import ('./../components/Posts/Post.vue')
-  },
+
   {
     path: '/verificationRequests',
     name: 'VerificationRequests',
@@ -95,7 +91,6 @@ const routes = [{
       import ('./../components/VerificationRequests.vue')
   }
 ]
-
 const router = new VueRouter({
   routes
 })
