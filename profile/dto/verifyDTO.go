@@ -1,6 +1,6 @@
 package dto
 
 type VerifyDTO struct {
-	VerificationId      string  `json:"verificationId"`
+	VerificationId      uint  `json:"verificationId"`
 	Status    			bool    `json:"status"`
 }
