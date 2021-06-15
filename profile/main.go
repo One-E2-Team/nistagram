@@ -110,8 +110,10 @@ func handleFunc(handler *handler.Handler) {
 	router.HandleFunc("/get/{username}", handler.GetProfileByUsername).Methods("GET") // frontend func
 	router.HandleFunc("/interests", handler.GetAllInterests).Methods("GET")           // frontend func
 	router.HandleFunc("/categories", handler.GetAllCategories).Methods("GET")			// frontend func
-	router.HandleFunc("/verification-request", handler.CreateVerificationRequest).Methods("POST")		// frontend func
-	router.HandleFunc("/verification-request", handler.UpdateVerificationRequest).Methods("PUT")
+	router.HandleFunc("/verification-request",
+		util.RBAC(handler.CreateVerificationRequest, "CREATE_VERIFICATION_REQUEST", false)).Methods("POST")		// frontend func
+	router.HandleFunc("/verification-request",
+		util.RBAC(handler.UpdateVerificationRequest, "UPDATE_VERIFICATION_REQUEST", false)).Methods("PUT")			//frontend func
 	router.HandleFunc("/change-profile-settings",
 		util.RBAC(handler.ChangeProfileSettings, "EDIT_PROFILE_DATA", false)).Methods("PUT") // frontend func
 	router.HandleFunc("/change-personal-data",

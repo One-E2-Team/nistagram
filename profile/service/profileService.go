@@ -181,8 +181,32 @@ func (service *ProfileService) CreateVerificationRequest(profileId uint, request
 		return err
 	}
 	var verReq = model.VerificationRequest{ProfileID: profileId, Name: requestDTO.Name, Surname: requestDTO.Surname,
-		VerificationStatus: model.SENT, ImagePath: fileName, CategoryID: category.ID}
+		VerificationStatus: model.SENT, ImagePath: fileName, Category: *category}
 	err = service.ProfileRepository.CreateVerificationRequest(&verReq)
+	return err
+}
+
+func (service *ProfileService) UpdateVerificationRequest(verifyDTO dto.VerifyDTO) error {
+	request, err := service.ProfileRepository.GetVerificationRequestById(verifyDTO.VerificationId)
+	if err != nil{
+		return err
+	}
+	if verifyDTO.Status{
+		request.VerificationStatus = model.VERIFIED
+		err = service.ProfileRepository.UpdateVerificationRequest(*request)
+		if err != nil{
+			return err
+		}
+		profile,err := service.ProfileRepository.GetProfileByID(request.ProfileID)
+		if err != nil{
+			return err
+		}
+		profile.IsVerified = true
+		err = service.ProfileRepository.UpdateProfile(profile)
+	}else{
+		err = service.ProfileRepository.DeleteVerificationRequest(request)
+	}
+
 	return err
 }
 
