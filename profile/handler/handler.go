@@ -229,7 +229,24 @@ func (handler *Handler) ChangeProfileSettings(w http.ResponseWriter, r *http.Req
 }
 
 func (handler *Handler) UpdateVerificationRequest(w http.ResponseWriter, r *http.Request) {
+	var req dto.VerifyDTO
+	w.Header().Set("Content-Type", "application/json")
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil{
+		fmt.Println(err)
+		w.Write([]byte("{\"success\":\"error\"}"))
+		return
+	}
 
+	err = handler.ProfileService.UpdateVerificationRequest(req)
+
+	if err != nil{
+		fmt.Println(err)
+		w.Write([]byte("{\"success\":\"error\"}"))
+		return
+	}
+
+	w.Write([]byte("{\"success\":\"ok\"}"))
 }
 
 func (handler *Handler) ChangePersonalData(w http.ResponseWriter, r *http.Request) {

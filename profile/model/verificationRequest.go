@@ -9,5 +9,6 @@ type VerificationRequest struct {
 	Surname      	   string             `json:"surname"`
 	VerificationStatus VerificationStatus `json:"verificationStatus"`
 	ImagePath          string             `json:"imagePath"`
-	CategoryID         uint
+	CategoryID		   uint
+	Category 		   Category 		  `json:"category"`
 }

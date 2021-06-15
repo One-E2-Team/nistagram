@@ -87,6 +87,12 @@ const routes = [{
     name: 'PostCard',
     component: () =>
       import ('./../components/Posts/Post.vue')
+  },
+  {
+    path: '/verificationRequests',
+    name: 'VerificationRequests',
+    component: () =>
+      import ('./../components/VerificationRequests.vue')
   }
 ]
 
