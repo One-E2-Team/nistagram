@@ -175,14 +175,14 @@ func (service *ProfileService) GetAllCategories() ([]string, error) {
 }
 
 func (service *ProfileService) CreateVerificationRequest(profileId uint, requestDTO dto.VerificationRequestDTO, fileName string) error {
-	categoryId, err := service.ProfileRepository.GetCategoryByName(requestDTO.Category)
+	category, err := service.ProfileRepository.GetCategoryByName(requestDTO.Category)
 	if err != nil{
 		fmt.Println(err)
 		return err
 	}
 	var verReq = model.VerificationRequest{ProfileID: profileId, Name: requestDTO.Name, Surname: requestDTO.Surname,
-		VerificationStatus: 0, ImagePath: fileName, CategoryID: categoryId.ID}
-	err = service.ProfileRepository.CreateVerificationRequest(verReq)
+		VerificationStatus: model.SENT, ImagePath: fileName, CategoryID: category.ID}
+	err = service.ProfileRepository.CreateVerificationRequest(&verReq)
 	return err
 }
 

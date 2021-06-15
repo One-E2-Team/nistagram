@@ -78,9 +78,9 @@ func (repo *ProfileRepository) GetAllInterests() ([]string, error) {
 	return interests, result.Error
 }
 
-func (repo *ProfileRepository) GetCategoryByName(name string) (model.Category, error) {
-	var category model.Category
-	result := repo.RelationalDatabase.Table("interests").Find(&category, "name =", name)
+func (repo *ProfileRepository) GetCategoryByName(name string) (*model.Category, error) {
+	category := &model.Category{}
+	result := repo.RelationalDatabase.Table("categories").First(&category, "name = ?", name)
 	return category, result.Error
 }
 
@@ -98,7 +98,7 @@ func (repo *ProfileRepository) GetVerificationRequests() ([]model.VerificationRe
 	return requests, nil
 }
 
-func (repo *ProfileRepository) CreateVerificationRequest(verReq model.VerificationRequest) error{
+func (repo *ProfileRepository) CreateVerificationRequest(verReq *model.VerificationRequest) error{
 	result := repo.RelationalDatabase.Create(verReq)
 	if result.RowsAffected == 0 {
 		return fmt.Errorf("Verification request not created")

@@ -125,6 +125,7 @@ func (handler *Handler) Register(w http.ResponseWriter, r *http.Request) {
 func (handler *Handler) CreateVerificationRequest(w http.ResponseWriter, r *http.Request) {
 	profileId := util.GetLoggedUserIDFromToken(r)
 	err := r.ParseMultipartForm(0)
+	w.Header().Set("Content-Type", "application/json")
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -173,6 +174,9 @@ func (handler *Handler) CreateVerificationRequest(w http.ResponseWriter, r *http
 		w.Write([]byte("{\"message\":\"error\"}"))
 		return
 	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("{\"message\":\"ok\"}"))
 }
 
 func (handler *Handler) Search(w http.ResponseWriter, r *http.Request) {

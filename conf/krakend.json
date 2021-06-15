@@ -1158,7 +1158,8 @@
         }
       ],
       "headers_to_pass": [
-        "Authorization"
+        "Authorization",
+        "Content-Type"
       ]
     }
   ],
