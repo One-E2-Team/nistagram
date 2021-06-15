@@ -1,6 +1,8 @@
 package model
 
-import "strings"
+import (
+	"strings"
+)
 
 type PostType int
 
@@ -18,4 +20,15 @@ func GetPostType(postType string) PostType {
 		return STORY
 	}
 	return NONE
+}
+
+func (e PostType) ToString() string {
+	switch e {
+	case POST:
+		return "POST"
+	case STORY:
+		return "STORY"
+	default:
+		return "NONE"
+	}
 }

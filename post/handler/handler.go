@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"golang.org/x/crypto/openpgp/errors"
 	"html/template"
 	"io"
 	"mime/multipart"
@@ -23,6 +24,7 @@ import (
 type Handler struct {
 	PostService *service.PostService
 }
+
 
 func (handler *Handler) GetAll(w http.ResponseWriter, _ *http.Request) {
 	result := handler.PostService.GetAll()
@@ -195,7 +197,7 @@ func (handler *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	methodPath := "nistagram/post/handler.Create"
 	if err := r.ParseMultipartForm(0); err != nil {
 		util.Logging(util.ERROR, methodPath, "", err.Error(), "post")
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -204,17 +206,9 @@ func (handler *Handler) Create(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.Unmarshal([]byte(data[0]), &postDto); err != nil {
 		util.Logging(util.ERROR, methodPath, "", err.Error(), "post")
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-
-	postType := model.GetPostType(postDto.PostType)
-	if postType == model.NONE {
-		util.Logging(util.ERROR, methodPath, util.GetIPAddress(r), "Wrong post type", "post")
-		http.Error(w, "user is not logged in", http.StatusBadRequest)
-		return
-	}
-
 
 	var files []*multipart.FileHeader
 	for i := 0; ; i++ {
@@ -225,72 +219,30 @@ func (handler *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	var mediaNames []string
-	for i := 0; i < len(files); i++ {
-		file, err := files[i].Open()
-		if err != nil {
-			util.Logging(util.ERROR, methodPath, "", err.Error(), "post")
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+	mediaNames := generateMediaNames(files)
 
-		uid := uuid.NewString()
 
-		fn := strings.Split(files[i].Filename, ".")
-		mediaNames = append(mediaNames, uid+"."+fn[1])
-		f, err := os.OpenFile("../../nistagramstaticdata/data/"+uid+"."+fn[1], os.O_WRONLY|os.O_CREATE, 0666)
-		if err != nil {
-			util.Logging(util.ERROR, methodPath, "", err.Error(), "post")
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		if _, err = io.Copy(f, file); err != nil {
-			return
-		}
-		if err = f.Close(); err != nil {
-			return
-		}
-		if err = file.Close(); err != nil {
-			return
-		}
-	}
-
-	resp, err := getProfileByProfileId(profileId)
-	if err != nil {
-		util.Logging(util.ERROR, methodPath, "", err.Error(), "post")
-		w.WriteHeader(http.StatusInternalServerError)
+	switch err := handler.createPost(profileId,postDto,mediaNames); err{
+	case nil:
+		w.WriteHeader(http.StatusCreated)
+		util.Logging(util.SUCCESS, methodPath, util.GetIPAddress(r), "Success in creating post, "+util.GetLoggingStringFromID(profileId), "post")
+	case errors.InvalidArgumentError("input value"):
+		util.Logging(util.ERROR, methodPath, util.GetIPAddress(r), "Wrong post type", "post")
+		w.WriteHeader(http.StatusBadRequest)
 		return
-	}
-	var profile dto.ProfileDto
-	body, err := io.ReadAll(resp.Body)
-
-	if err != nil {
-		util.Logging(util.ERROR, methodPath, "", err.Error(), "post")
+	default:
+		util.Logging(util.ERROR, methodPath, util.GetIPAddress(r), "Wrong post type", "post")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	defer resp.Body.Close()
-
-	if err = json.Unmarshal(body, &profile); err != nil {
+	if err := insertIntoFiles(files, mediaNames); err != nil {
 		util.Logging(util.ERROR, methodPath, "", err.Error(), "post")
 		w.WriteHeader(http.StatusInternalServerError)
-		return
 	}
-
-	profile.ProfileId = profileId
-
-	if err = handler.PostService.CreatePost(postType, postDto, mediaNames, profile); err != nil {
-		util.Logging(util.ERROR, methodPath, "", err.Error(), "post")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusCreated)
-	util.Logging(util.SUCCESS, methodPath, util.GetIPAddress(r), "Success in creating post, "+util.GetLoggingStringFromID(profileId), "post")
-	w.Header().Set("Content-Type", "application/json")
 
 }
+
 
 func (handler *Handler) GetPost(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
@@ -447,4 +399,60 @@ func getProfileByProfileId(profileId uint) (*http.Response, error) {
 		util.CrossServiceProtocol+"://"+profileHost+":"+profilePort+"/get-by-id/"+util.Uint2String(profileId),
 		nil, map[string]string{})
 	return resp, err
+}
+
+
+func (handler *Handler) createPost(profileId uint,postDto dto.PostDto, mediaNames []string) error {
+	postType := model.GetPostType(postDto.PostType)
+	if postType == model.NONE {
+		return errors.InvalidArgumentError("input value")
+	}
+
+	var profile dto.ProfileDto
+	if resp, err := getProfileByProfileId(profileId); err != nil {
+		return err
+	}else{
+		body, _ := io.ReadAll(resp.Body)
+		defer resp.Body.Close()
+		if err := json.Unmarshal(body, &profile); err != nil {
+			return err
+		}
+	}
+
+	profile.ProfileId = profileId
+	if err := handler.PostService.CreatePost(postType, postDto, mediaNames, profile); err != nil {
+		return err
+	}
+	return nil
+}
+
+func generateMediaNames(files []*multipart.FileHeader) []string {
+	var mediaNames []string
+	for i := 0; i < len(files); i++ {
+		uid := uuid.NewString()
+		fn := strings.Split(files[i].Filename, ".")
+		mediaNames = append(mediaNames, uid+"."+fn[1])
+	}
+	return mediaNames
+}
+
+
+func insertIntoFiles(files []*multipart.FileHeader,mediaNames []string) error {
+	for i := 0; i < len(files); i++ {
+		file, err := files[i].Open()
+		if err != nil { return  err }
+
+		f, err := os.OpenFile("../../nistagramstaticdata/data/"+mediaNames[i], os.O_WRONLY|os.O_CREATE, 0666)
+		if err != nil { return err }
+		if _, err = io.Copy(f, file); err != nil {
+			return err
+		}
+		if err = f.Close(); err != nil {
+			return err
+		}
+		if err = file.Close(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
