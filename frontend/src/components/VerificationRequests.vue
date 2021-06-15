@@ -40,16 +40,7 @@
     name: 'VerificationRequests',
 
     mounted(){
-        axios({
-                method: "get",
-                url: this.protocol + "://" + this.server +"/api/profile/verification-requests",
-                headers: comm.getHeader(),
-            }).then((response) => {
-            this.requests = response.data.collection;
-    })
-    .catch((error) => {
-      console.log(error);
-    });
+       this.getRequests();
     },
 
     data() {return {
@@ -69,10 +60,11 @@
                 headers: comm.getHeader(),
             }).then((response) => {
             console.log(response.data);
-    })
-    .catch((error) => {
-      console.log(error);
-    });
+            this.getRequests();
+            })
+            .catch((error) => {
+            console.log(error);
+            });
       },
       reject(id){
           let data = {"verificationId" : id, "status" : false};
@@ -84,10 +76,23 @@
                 headers: comm.getHeader(),
             }).then((response) => {
             console.log(response.data);
-    })
-    .catch((error) => {
-      console.log(error);
-    });
+            this.getRequests();
+            })
+            .catch((error) => {
+            console.log(error);
+            });
+      },
+       getRequests(){
+           axios({
+                method: "get",
+                url: this.protocol + "://" + this.server +"/api/profile/verification-requests",
+                headers: comm.getHeader(),
+            }).then((response) => {
+            this.requests = response.data.collection;
+            })
+            .catch((error) => {
+            console.log(error);
+            });
       }
     }
   }

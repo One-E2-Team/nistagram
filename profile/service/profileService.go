@@ -204,7 +204,7 @@ func (service *ProfileService) UpdateVerificationRequest(verifyDTO dto.VerifyDTO
 		profile.IsVerified = true
 		err = service.ProfileRepository.UpdateProfile(profile)
 	}else{
-		err = service.ProfileRepository.DeleteVerificationRequest(*request)
+		err = service.ProfileRepository.DeleteVerificationRequest(request)
 	}
 
 	return err

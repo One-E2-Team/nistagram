@@ -122,7 +122,7 @@ func (repo *ProfileRepository) UpdateVerificationRequest(request model.Verificat
 	return nil
 }
 
-func (repo *ProfileRepository) DeleteVerificationRequest(request model.VerificationRequest) error {
+func (repo *ProfileRepository) DeleteVerificationRequest(request *model.VerificationRequest) error {
 	if err := repo.RelationalDatabase.Delete(request).Error; err != nil {
 		return err
 	}
