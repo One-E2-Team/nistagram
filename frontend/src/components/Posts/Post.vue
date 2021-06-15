@@ -36,6 +36,7 @@
 
 <script>
 import PostModal from '../../modals/PostModal.vue'
+import * as comm from '../../configuration/communication.js'
 export default {
     components: { PostModal },
     name: "Post",
@@ -44,7 +45,9 @@ export default {
         return {
             showDialog : false,
             width: 300,
-            showTitle: false
+            showTitle: false,
+            protocol: comm.protocol,
+            server: comm.server,
         }
     },
     methods:{
@@ -54,13 +57,13 @@ export default {
     },
     watch:{
       usage(){
-        if(usage == 'Profile'){
+        if(this.usage == 'Profile'){
           this.width = 300
           this.showTitle = false
-        }else if(usage == 'Explore'){
+        }else if(this.usage == 'Explore'){
           this.width = 300
           this.showTitle = false
-        }else if(usage == 'HomePage'){
+        }else if(this.usage == 'HomePage'){
           this.width = 600
           this.showTitle = true
         }

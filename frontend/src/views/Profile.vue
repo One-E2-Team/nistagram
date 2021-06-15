@@ -38,7 +38,6 @@ import FollowRequests from '../components/FollowRequests.vue'
 import Post from '../components/Posts/Post.vue'
 import axios from 'axios'
 import * as comm from '../configuration/communication.js'
-import Post from '../components/Posts/Post.vue'
 
 export default {
     components: {

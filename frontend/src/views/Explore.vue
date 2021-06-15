@@ -86,12 +86,11 @@ import axios from 'axios'
 import * as comm from '../configuration/communication.js'
 import Search from '../components/Search.vue'
 import Post from '../components/Posts/Post.vue'
-import Post from '../components/Posts/Post.vue'
   export default {
     name: 'Explore',
     components:{
-      Searc,
-        Posth
+      Search,
+      Post
     },
      mounted(){
         axios.get(comm.protocol + "://" + comm.server +"/api/post/public").then((response) => {
