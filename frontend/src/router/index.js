@@ -77,12 +77,6 @@ const routes = [{
     component: () =>
       import ('./../components/TwoFactorAuth.vue')
   },
-  {
-    path: '/dummy',
-    name: 'PostCard',
-    component: () =>
-      import ('./../components/Posts/Post.vue')
-  }
 ]
 
 const router = new VueRouter({
