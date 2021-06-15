@@ -2,7 +2,6 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
 import HomePage from '../components/HomePage'
-
 Vue.use(VueRouter)
 
 const routes = [{
@@ -76,7 +75,13 @@ const routes = [{
     props: true,
     component: () =>
       import ('./../components/TwoFactorAuth.vue')
-  }
+  },
+  {
+    path: '/createVerificationRequest',
+    name: 'CreateVerificationRequest',
+    component: () =>
+      import ('./../components/CreateVerificationRequest.vue')
+  },
 ]
 
 const router = new VueRouter({

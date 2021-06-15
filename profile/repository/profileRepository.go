@@ -78,12 +78,33 @@ func (repo *ProfileRepository) GetAllInterests() ([]string, error) {
 	return interests, result.Error
 }
 
+func (repo *ProfileRepository) GetCategoryByName(name string) (model.Category, error) {
+	var category model.Category
+	result := repo.RelationalDatabase.Table("interests").Find(&category, "name =", name)
+	return category, result.Error
+}
+
+func (repo *ProfileRepository) GetAllCategories() ([]string, error) {
+	var categories []string
+	result := repo.RelationalDatabase.Table("categories").Select("name").Find(&categories)
+	return categories, result.Error
+}
+
 func (repo *ProfileRepository) GetVerificationRequests() ([]model.VerificationRequest, error){
 	var requests []model.VerificationRequest
 	if err := repo.RelationalDatabase.Table("verification_requests").Find(&requests, "verification_status = 0").Error; err != nil {
 		return nil, err
 	}
 	return requests, nil
+}
+
+func (repo *ProfileRepository) CreateVerificationRequest(verReq model.VerificationRequest) error{
+	result := repo.RelationalDatabase.Create(verReq)
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("Verification request not created")
+	}
+	fmt.Println("Verification request created")
+	return nil
 }
 
 func (repo *ProfileRepository) InsertInRedis(key string, value string) error {

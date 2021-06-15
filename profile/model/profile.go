@@ -11,4 +11,5 @@ type Profile struct {
 	Biography       string          `json:"biography"`
 	Website         string          `json:"website"`
 	Type            ProfileType     `json:"type"`
+	IsVerified		bool			`json:"isVerified"`
 }

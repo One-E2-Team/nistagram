@@ -4,9 +4,11 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"gopkg.in/go-playground/validator.v9"
 	"html/template"
+	"io"
 	"net/http"
 	"nistagram/profile/dto"
 	"nistagram/profile/service"
@@ -120,6 +122,59 @@ func (handler *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+func (handler *Handler) CreateVerificationRequest(w http.ResponseWriter, r *http.Request) {
+	profileId := util.GetLoggedUserIDFromToken(r)
+	err := r.ParseMultipartForm(0)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("{\"message\":\"error\"}"))
+		return
+	}
+	var reqDto dto.VerificationRequestDTO
+	data := r.MultipartForm.Value["data"]
+	err = json.Unmarshal([]byte(data[0]), &reqDto)
+
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("{\"message\":\"error\"}"))
+		return
+	}
+
+	picture, picHeader, err := r.FormFile("picture")
+	uid := uuid.NewString()
+
+	fileSplitted := strings.Split(picHeader.Filename, ".")
+	fileName := uid + "." + fileSplitted[1]
+
+	err = handler.ProfileService.CreateVerificationRequest(profileId, reqDto, fileName)
+
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("{\"message\":\"error\"}"))
+		return
+	}
+
+	f, err := os.OpenFile("../../nistagramstaticdata/data/" + fileName, os.O_WRONLY|os.O_CREATE, 0666)
+	defer f.Close()
+	defer picture.Close()
+	if err != nil{
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("{\"message\":\"error\"}"))
+		return
+	}
+	_, err = io.Copy(f, picture)
+	if err != nil{
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("{\"message\":\"error\"}"))
+		return
+	}
+}
+
 func (handler *Handler) Search(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	result := handler.ProfileService.Search(template.HTMLEscapeString(vars["username"]))
@@ -167,6 +222,10 @@ func (handler *Handler) ChangeProfileSettings(w http.ResponseWriter, r *http.Req
 	util.Logging(util.INFO, methodPath, util.GetIPAddress(r), "Successful profile settings changed, "+util.GetLoggingStringFromID(userId), "profile")
 	_, _ = w.Write([]byte("{\"success\":\"ok\"}"))
 	w.Header().Set("Content-Type", "application/json")
+}
+
+func (handler *Handler) UpdateVerificationRequest(w http.ResponseWriter, r *http.Request) {
+
 }
 
 func (handler *Handler) ChangePersonalData(w http.ResponseWriter, r *http.Request) {
@@ -227,6 +286,21 @@ func (handler *Handler) GetAllInterests(w http.ResponseWriter, _ *http.Request) 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(interests)
+	if err != nil {
+		return
+	}
+}
+
+func (handler *Handler) GetAllCategories(w http.ResponseWriter, _ *http.Request) {
+	categories, err := handler.ProfileService.GetAllCategories()
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(categories)
 	if err != nil {
 		return
 	}

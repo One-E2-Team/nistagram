@@ -1114,6 +1114,49 @@
           "target": ""
         }
       ]
+    },
+    {
+      "endpoint": "/api/profile/categories",
+      "method": "GET",
+      "output_encoding": "json",
+      "extra_config": {},
+      "backend": [
+        {
+          "url_pattern": "/categories",
+          "encoding": "json",
+          "sd": "static",
+          "method": "GET",
+          "extra_config": {},
+          "host": [
+            "https://profile:8080"
+          ],
+          "disable_host_sanitize": false,
+          "is_collection": true,
+          "target": ""
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/profile/verification-request",
+      "method": "POST",
+      "output_encoding": "json",
+      "extra_config": {},
+      "backend": [
+        {
+          "url_pattern": "/verification-request",
+          "encoding": "json",
+          "sd": "static",
+          "method": "POST",
+          "extra_config": {},
+          "host": [
+            "https://profile:8080"
+          ],
+          "disable_host_sanitize": false
+        }
+      ],
+      "headers_to_pass": [
+        "Authorization"
+      ]
     }
   ],
   "read_timeout": "0s",
