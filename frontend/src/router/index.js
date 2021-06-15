@@ -76,6 +76,12 @@ const routes = [{
     props: true,
     component: () =>
       import ('./../components/TwoFactorAuth.vue')
+  },
+  {
+    path: '/dummy',
+    name: 'PostCard',
+    component: () =>
+      import ('./../components/Posts/Post.vue')
   }
 ]
 
