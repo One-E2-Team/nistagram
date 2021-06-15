@@ -205,3 +205,49 @@ func (handler *Handler) GetAllFollowRequests(writer http.ResponseWriter, request
 	writer.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(writer).Encode(*userDtos)
 }
+
+func (handler *Handler) BlockProfile(writer http.ResponseWriter, request *http.Request) {
+	followerId := util.GetLoggedUserIDFromToken(request)
+	if followerId == 0 {
+		writer.Write([]byte("{\"status\":\"error\"}"))
+		writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	vars := mux.Vars(request)
+	profileId := util.String2Uint(vars["profileId"])
+
+	_, ok := handler.ConnectionService.ToggleBlock(followerId, profileId)
+
+	if !ok {
+		writer.Write([]byte("{\"status\":\"error\"}"))
+		writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	writer.WriteHeader(http.StatusOK)
+	writer.Write([]byte("{\"status\":\"ok\"}"))
+	writer.Header().Set("Content-Type", "application/json")
+}
+
+func (handler *Handler) MuteProfile(writer http.ResponseWriter, request *http.Request) {
+	followerId := util.GetLoggedUserIDFromToken(request)
+	if followerId == 0 {
+		writer.Write([]byte("{\"status\":\"error\"}"))
+		writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	vars := mux.Vars(request)
+	profileId := util.String2Uint(vars["profileId"])
+
+	_, ok := handler.ConnectionService.ToggleMuted(followerId, profileId)
+
+	if !ok {
+		writer.Write([]byte("{\"status\":\"error\"}"))
+		writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	writer.WriteHeader(http.StatusOK)
+	writer.Write([]byte("{\"status\":\"ok\"}"))
+	writer.Header().Set("Content-Type", "application/json")
+}
