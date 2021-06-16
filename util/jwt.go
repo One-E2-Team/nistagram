@@ -10,6 +10,7 @@ import (
 )
 
 const ExpiresIn = 86400
+
 var TokenSecret = os.Getenv("PUBLIC_JWT_TOKEN_SECRET")
 
 type TokenClaims struct {

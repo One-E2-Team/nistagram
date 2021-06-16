@@ -18,29 +18,14 @@
                 >
                 Create post
                 </v-btn>
+                <profile-options-drop-menu v-if="!isMyProfile" v-bind:profileId="profileId" class="mx-2">
+                    <v-icon>mdi-menu-down</v-icon>
+                </profile-options-drop-menu>
             </v-col>
         </v-row>
-        <v-row align="center" justify="center">
+        <v-row>
             <v-col cols="12" sm="4" v-for="p in posts" :key="p._id">
-                <v-card justify="center" align="center"
-                    outlined
-                    width="600"
-                >
-                <v-carousel>
-                
-                <v-template v-for="item in p.medias" :key="item.filePath" name="temp">
-                      <v-carousel-item
-                      reverse-transition="fade-transition"
-                      transition="fade-transition">
-                      <video autoplay loop width="600" height="500" :src=" protocol + '://' + server + '/static/data/' + item.filePath" v-if="item.filePath.includes('mp4')">
-                        Your browser does not support the video tag.
-                      </video>
-                      <img width="600" height="500" :src=" protocol + '://' + server + '/static/data/' + item.filePath" v-if="!item.filePath.includes('mp4')">
-
-                      </v-carousel-item>
-                </v-template>
-             </v-carousel>
-                </v-card>
+               <post v-bind:usage="'Profile'" v-bind:post="p" />
             </v-col>
         </v-row>
     </v-container>
@@ -49,22 +34,27 @@
 <script>
 import PersonalData from '../components/PersonalData.vue'
 import FollowRequests from '../components/FollowRequests.vue'
+import Post from '../components/Posts/Post.vue'
 import axios from 'axios'
 import * as comm from '../configuration/communication.js'
-
+import ProfileOptionsDropMenu from '../components/DropMenu/ProfileOptionsDropMenu.vue'
 export default {
     components: {
         PersonalData,
         FollowRequests,
-    },
+        Post,
+        ProfileOptionsDropMenu},
     props: ['username'],
-    data() {return {
-      isMyProfile: false,
-      profileId: 1,
-      posts: [],
-      server: comm.server,
-      protocol: comm.protocol
-    }},
+    data() {
+        return {
+            isMyProfile: false,
+            profileId: 0,
+            posts: [],
+            server: comm.server,
+            protocol: comm.protocol,
+            showFollowOption: false,
+        }
+    },
     methods: {
         follow(){
             axios({
@@ -72,7 +62,7 @@ export default {
                 url: comm.protocol + '://' + comm.server + '/api/connection/following/request/' + this.profileId,
                 headers: comm.getHeader(),
             }).then(response => {
-              if(response.status==200){
+              if (response.status==200){
                   alert('Success');
               }
             })
@@ -80,18 +70,18 @@ export default {
         profileLoaded(loadedProfileID){
             this.profileId = loadedProfileID;
             this.isMyProfile = comm.getLoggedUserID() == loadedProfileID;
-            if(this.isMyProfile){
+            if (this.isMyProfile){
                 axios({
                 method: "get",
                 url: comm.protocol + '://' + comm.server + '/api/post/my',
                 headers: comm.getHeader(),
             }).then(response => {
-              if(response.status==200){
+              if (response.status==200){
                   this.posts = response.data.collection;
               }
             })
 
-            }else{
+            } else {
                 axios({
                 method: "get",
                 url: comm.protocol + '://' + comm.server + '/api/post/profile/' + this.username,
@@ -102,10 +92,10 @@ export default {
             })
             }
         },
-        getProfileRequests(){
-
+        showFollowOptionDialog() {
+            this.showFollowOption = true;
         },
-        redirectToCreatePost(){
+        redirectToCreatePost() {
             this.$router.push({name:'Post'});
         }
     },

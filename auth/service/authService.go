@@ -1,16 +1,13 @@
 package service
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
-	"image/png"
 	"nistagram/auth/dto"
 	"nistagram/auth/model"
 	"nistagram/auth/repository"
 	"nistagram/util"
-	"os"
 	"time"
 )
 
@@ -21,7 +18,7 @@ type AuthService struct {
 func (service *AuthService) LogIn(dto dto.LogInDTO) (*model.User, error) {
 	user, err := service.AuthRepository.GetUserByEmail(dto.Email)
 	if err != nil {
-		return nil, fmt.Errorf("'"+dto.Email+"' " + err.Error())
+		return nil, fmt.Errorf("'" + dto.Email + "' " + err.Error())
 	}
 	if !user.IsValidated {
 		return nil, fmt.Errorf(util.GetLoggingStringFromID(user.ProfileId) + " NOT VALIDATED")
@@ -33,9 +30,9 @@ func (service *AuthService) LogIn(dto dto.LogInDTO) (*model.User, error) {
 	if err != nil {
 		return nil, fmt.Errorf(util.GetLoggingStringFromID(user.ProfileId) + " " + err.Error())
 	}
-	if !util.ValidateTOTP(user.TotpUrl.Data, dto.Passcode){
+	/*if !util.ValidateTOTP(user.TotpUrl.Data, dto.Passcode) {
 		return nil, fmt.Errorf(util.GetLoggingStringFromID(user.ProfileId) + " entered wrong passcode.")
-	}
+	}*/
 	return user, nil
 }
 
@@ -45,8 +42,8 @@ func (service *AuthService) Register(dto dto.RegisterDTO) error {
 	if err != nil {
 		return err
 	}
-	totpUrl, img, err := util.GenerateTOTP(dto.Email)
-	if err != nil{
+	/*totpUrl, img, err := util.GenerateTOTP(dto.Email)
+	if err != nil {
 		return err
 	}
 	var buf bytes.Buffer
@@ -54,20 +51,20 @@ func (service *AuthService) Register(dto dto.RegisterDTO) error {
 
 	uid := uuid.NewString()
 
-	file, err := os.OpenFile("../../nistagramstaticdata/totp/" + uid + ".png", os.O_WRONLY|os.O_CREATE, 0666)
+	file, err := os.OpenFile("../../nistagramstaticdata/totp/"+uid+".png", os.O_WRONLY|os.O_CREATE, 0666)
 	defer file.Close()
 
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
 	n, err := file.Write(buf.Bytes())
-	if err != nil{
+	if err != nil {
 		return err
 	}
-	fmt.Println("Bytes written: ", n)
+	fmt.Println("Bytes written: ", n)*/
 
-	user := model.User{ProfileId: util.String2Uint(dto.ProfileIdString), Password: pass, TotpUrl: util.EncryptedString{Data: totpUrl}, Email: dto.Email, Username: dto.Username,
+	user := model.User{ProfileId: util.String2Uint(dto.ProfileIdString), Password: pass, /*TotpUrl: util.EncryptedString{Data: totpUrl}, */Email: dto.Email, Username: dto.Username,
 		ValidationUid: uuid.NewString(), Roles: []model.Role{*role}, IsDeleted: false, IsValidated: false, ValidationExpire: time.Now().Add(1 * time.Hour)}
 	err = service.AuthRepository.CreateUser(&user)
 	if err != nil {
@@ -76,7 +73,7 @@ func (service *AuthService) Register(dto dto.RegisterDTO) error {
 	//TODO: change host, port and html page
 	gatewayHost, gatewayPort := util.GetGatewayHostAndPort()
 	message := "Visit this link in the next 60 minutes to validate your account: " + util.MicroservicesProtocol +
-		"://" + gatewayHost + ":" + gatewayPort + "/api/auth/validate/" + util.Uint2String(user.ProfileId) + "/" + user.ValidationUid + "/" + uid
+		"://" + gatewayHost + ":" + gatewayPort + "/api/auth/validate/" + util.Uint2String(user.ProfileId) + "/" + user.ValidationUid //+ "/" + uid
 	go util.SendMail(dto.Email, "Account Validation", message)
 	return nil
 }

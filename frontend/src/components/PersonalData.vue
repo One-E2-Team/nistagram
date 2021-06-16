@@ -34,7 +34,21 @@
           >
             <v-list-item-content>
               <v-list-item-title class="text-h6 text-left">
-                {{profile.username}}
+                {{profile.username}} 
+                <v-tooltip right>
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-icon  v-bind="attrs" v-on="on" v-if="profile.isVerified">
+                      mdi-check-decagram 
+                    </v-icon>
+                   </template>
+                  <span>Verified</span>
+                </v-tooltip>
+                <v-btn small @click="verifyProfile()" class="ma-2" color="primary" dark v-if="!profile.isVerified && isMyProfile">
+                  Verify
+                  <v-icon dark right >
+                    mdi-checkbox-marked-circle
+                  </v-icon>
+                </v-btn>
               </v-list-item-title>
               <v-list-item-subtitle class="text-h6 text-left">Name : {{profile.personalData.name}}</v-list-item-subtitle>
               <v-list-item-subtitle class="text-h6 text-left">Surname : {{profile.personalData.surname}}</v-list-item-subtitle>
@@ -57,7 +71,8 @@ name: "PersonalData",
 props: ['username'],
 data() {
   return {
-    profile: {}
+    profile: {},
+    isMyProfile: true
 }},
 methods: {
   getPersonalData(){
@@ -67,6 +82,7 @@ methods: {
         }).then(response => {
             if(response.status==200){
                 this.profile = response.data;
+                this.isMyProfile = comm.getLoggedUserID() == this.profile.ID;
                 this.$emit('loaded-user', this.profile.ID)
             }else{
               this.$router.push({name: 'NotFound'})
@@ -75,7 +91,10 @@ methods: {
             console.log(reason);
             this.$router.push({name: 'NotFound'})
         });
-      }
+      },
+    verifyProfile(){
+      this.$router.push({name : "CreateVerificationRequest"});
+    }
 },
 created(){
     this.getPersonalData();

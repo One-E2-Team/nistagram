@@ -109,6 +109,11 @@ func handleFunc(handler *handler.Handler) {
 	router.HandleFunc("/search/{username}", handler.Search).Methods("GET")            // frontend func
 	router.HandleFunc("/get/{username}", handler.GetProfileByUsername).Methods("GET") // frontend func
 	router.HandleFunc("/interests", handler.GetAllInterests).Methods("GET")           // frontend func
+	router.HandleFunc("/categories", handler.GetAllCategories).Methods("GET")			// frontend func
+	router.HandleFunc("/verification-request",
+		util.RBAC(handler.CreateVerificationRequest, "CREATE_VERIFICATION_REQUEST", false)).Methods("POST")		// frontend func
+	router.HandleFunc("/verification-request",
+		util.RBAC(handler.UpdateVerificationRequest, "UPDATE_VERIFICATION_REQUEST", false)).Methods("PUT")			//frontend func
 	router.HandleFunc("/change-profile-settings",
 		util.RBAC(handler.ChangeProfileSettings, "EDIT_PROFILE_DATA", false)).Methods("PUT") // frontend func
 	router.HandleFunc("/change-personal-data",
@@ -117,6 +122,8 @@ func handleFunc(handler *handler.Handler) {
 		util.RBAC(handler.GetMyProfileSettings, "READ_PROFILE_DATA", false)).Methods("GET") // frontend func
 	router.HandleFunc("/my-personal-data",
 		util.RBAC(handler.GetMyPersonalData, "READ_PROFILE_DATA", false)).Methods("GET") // frontend func
+	router.HandleFunc("/verification-requests",
+		util.RBAC(handler.GetVerificationRequests, "READ_VERIFICATION_REQUESTS", true)).Methods("GET") // frontend func
 	router.HandleFunc("/get-by-id/{id}",
 		util.MSAuth(handler.GetProfileByID, []string{"connection", "post"})).Methods("GET")
 	router.HandleFunc("/test", handler.Test).Methods("GET")

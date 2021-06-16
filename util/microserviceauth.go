@@ -12,6 +12,7 @@ import (
 var msJwt string
 
 const MSExpiresIn = 86400000
+
 var MSTokenSecret = os.Getenv("MICROSERVICE_JWT_TOKEN_SECRET")
 
 type MSTokenClaims struct {

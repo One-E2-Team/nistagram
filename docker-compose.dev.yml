@@ -50,6 +50,7 @@ services:
             - ./conf/certs/key/profile.key.pem:/nistagram/key.pem
             - ./conf/certs/pem/profile.cert.pem:/nistagram/cert.pem
             - ../logs/profile:/logs/profile
+            - ../nistagramstaticdata:/nistagramstaticdata
         networks: 
             - net_apigateway
             - net_db_relational

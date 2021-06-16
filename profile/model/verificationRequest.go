@@ -4,8 +4,11 @@ import "gorm.io/gorm"
 
 type VerificationRequest struct {
 	gorm.Model
-	Profile Profile `gorm:"foreignKey:ID"`
+	ProfileID          uint
+	Name         	   string             `json:"name"`
+	Surname      	   string             `json:"surname"`
 	VerificationStatus VerificationStatus `json:"verificationStatus"`
-	Category Category `json:"category" gorm:"foreignKey:ID"`
-	ImagePath string `json:"imagePath"`
+	ImagePath          string             `json:"imagePath"`
+	CategoryID		   uint
+	Category 		   Category 		  `json:"category"`
 }

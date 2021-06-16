@@ -23,7 +23,8 @@ func (service *ProfileService) Register(dto dto.RegistrationDto) error {
 		personalData.AddItem(interest)
 	}
 	profile := model.Profile{Username: dto.Username, Email: dto.Email, ProfileSettings: profileSettings,
-		PersonalData: personalData, Biography: dto.Biography, Website: dto.WebSite, Type: model.REGULAR}
+		PersonalData: personalData, Biography: dto.Biography, Website: dto.WebSite, Type: model.REGULAR,
+		IsVerified: false}
 	err := service.ProfileRepository.CreateProfile(&profile)
 	if err != nil {
 		return err
@@ -168,6 +169,47 @@ func (service *ProfileService) GetAllInterests() ([]string, error) {
 	return interests, err
 }
 
+func (service *ProfileService) GetAllCategories() ([]string, error) {
+	categories, err := service.ProfileRepository.GetAllCategories()
+	return categories, err
+}
+
+func (service *ProfileService) CreateVerificationRequest(profileId uint, requestDTO dto.VerificationRequestDTO, fileName string) error {
+	category, err := service.ProfileRepository.GetCategoryByName(requestDTO.Category)
+	if err != nil{
+		fmt.Println(err)
+		return err
+	}
+	var verReq = model.VerificationRequest{ProfileID: profileId, Name: requestDTO.Name, Surname: requestDTO.Surname,
+		VerificationStatus: model.SENT, ImagePath: fileName, Category: *category}
+	err = service.ProfileRepository.CreateVerificationRequest(&verReq)
+	return err
+}
+
+func (service *ProfileService) UpdateVerificationRequest(verifyDTO dto.VerifyDTO) error {
+	request, err := service.ProfileRepository.GetVerificationRequestById(verifyDTO.VerificationId)
+	if err != nil{
+		return err
+	}
+	if verifyDTO.Status{
+		request.VerificationStatus = model.VERIFIED
+		err = service.ProfileRepository.UpdateVerificationRequest(*request)
+		if err != nil{
+			return err
+		}
+		profile,err := service.ProfileRepository.GetProfileByID(request.ProfileID)
+		if err != nil{
+			return err
+		}
+		profile.IsVerified = true
+		err = service.ProfileRepository.UpdateProfile(profile)
+	}else{
+		err = service.ProfileRepository.DeleteVerificationRequest(request)
+	}
+
+	return err
+}
+
 func (service *ProfileService) GetMyProfileSettings(loggedUserId uint) (dto.ProfileSettingsDTO, error) {
 	ret := dto.ProfileSettingsDTO{}
 	profile, err := service.ProfileRepository.GetProfileByID(loggedUserId)
@@ -198,6 +240,10 @@ func (service *ProfileService) GetProfileByID(id uint) (*model.Profile, error) {
 		return nil, err
 	}
 	return profile, nil
+}
+
+func (service *ProfileService) GetVerificationRequests() ([]model.VerificationRequest, error) {
+	return service.ProfileRepository.GetVerificationRequests()
 }
 
 func (service *ProfileService) Test(key string) error {

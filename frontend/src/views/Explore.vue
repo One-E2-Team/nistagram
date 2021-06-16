@@ -28,10 +28,10 @@
                       <v-carousel-item
                       reverse-transition="fade-transition"
                       transition="fade-transition">
-                      <video autoplay  width="600" height="500" :src=" protocol + '://' + server + '/static/data/' + item.filePath" v-if="item.filePath.includes('mp4')">
+                      <video autoplay  width="100" height="200" :src=" protocol + '://' + server + '/static/data/' + item.filePath" v-if="item.filePath.includes('mp4')">
                         Your browser does not support the video tag.
                       </video>
-                      <img width="600" height="500" :src=" protocol + '://' + server + '/static/data/' + item.filePath" v-if="!item.filePath.includes('mp4')">
+                      <img width="100" height="200" :src=" protocol + '://' + server + '/static/data/' + item.filePath" v-if="!item.filePath.includes('mp4')">
 
                       </v-carousel-item>
              </v-template>
@@ -45,29 +45,9 @@
           <v-col></v-col>
         </v-row>
         <template v-if="searchType == 'posts'">
-        <v-row justify="center" align="center" v-for="p in posts" :key="p._id">
-            <v-col cols="12" sm="4" v-if="p.postType == 2">
-                <v-card justify="center" align="center"
-                    outlined
-                    width="600"
-                >
-                <v-card-title>{{p.publisherUsername}}</v-card-title>
-                <v-carousel>
-             <v-template v-for="item in p.medias" :key="item.filePath">
-                      <v-carousel-item
-                      reverse-transition="fade-transition"
-                      transition="fade-transition">
-                      <video autoplay loop width="600" height="500" :src=" protocol + '://' + server + '/static/data/' + item.filePath" v-if="item.filePath.includes('mp4')">
-                        Your browser does not support the video tag.
-                      </video>
-                      <img width="600" height="500" :src=" protocol + '://' + server + '/static/data/' + item.filePath" v-if="!item.filePath.includes('mp4')">
-
-                      </v-carousel-item>
-             </v-template>
-          </v-carousel>
-                <v-card-text>{{p.description}} {{p.hashTags}} {{p.location}}</v-card-text>
-                <v-card-text>{{p.publishDate}}</v-card-text>
-                </v-card>
+        <v-row  >
+            <v-col cols="12" sm="3" v-for="p in postsWithTypePost" :key="p._id" >
+               <post v-bind:usage="'Explore'" v-bind:post="p"/>
              </v-col>
         </v-row>
         </template>
@@ -105,10 +85,12 @@
 import axios from 'axios'
 import * as comm from '../configuration/communication.js'
 import Search from '../components/Search.vue'
+import Post from '../components/Posts/Post.vue'
   export default {
     name: 'Explore',
     components:{
-      Search
+      Search,
+      Post
     },
      mounted(){
         axios.get(comm.protocol + "://" + comm.server +"/api/post/public").then((response) => {
@@ -129,6 +111,13 @@ import Search from '../components/Search.vue'
       protocol: comm.protocol,
       usernames:[]
     }},
+    computed : {
+      postsWithTypePost : function (){
+        return this.posts.filter(function (item){
+          return item.postType == 2;
+        })
+      }
+    },
 
     methods: {
       loadSearchResult(searchResult){

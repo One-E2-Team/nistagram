@@ -45,17 +45,22 @@
                 :disabled="!valid"
                 color="success"
                 class="mr-4"
-                @click="login"
-                >
+                @click="login">
                 Log in
                 </v-btn>
                 <v-btn
                 color="warning"
                 elevation="8"
-                @click="requestRecovery"
-                >
+                @click="requestRecovery">
                 Forgot password
                 </v-btn>
+            </v-col>
+        </v-row>
+        <v-row align="center" justify="center">
+            <v-col cols="12" sm="4" >
+                <v-alert outlined dense type="error" v-model="alert">
+                  Username or password is incorrect
+                </v-alert>
             </v-col>
         </v-row>
     </v-container>
@@ -74,7 +79,8 @@
       email: '',
       password: '',
       passCode: '',
-      rules: validator.rules
+      rules: validator.rules,
+      alert: false
     }},
     mounted(){
        if (this.isAvailable()){
@@ -86,6 +92,7 @@
         return comm.isUserLogged()
       },
       login () {
+        this.alert = false
         if (this.$refs.form.validate()){
             let credentials = {
                 "email" : this.email,
@@ -102,6 +109,8 @@
                 this.$router.push({name: "HomePage"})
                 this.$root.$emit('loggedUser')
               }
+            }).catch(() => {
+              this.alert = true
             })
         }
       },

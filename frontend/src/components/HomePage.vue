@@ -27,10 +27,10 @@
                       <v-carousel-item
                       reverse-transition="fade-transition"
                       transition="fade-transition">
-                      <video autoplay loop width="600" height="500" :src=" protocol + '://' + server + '/static/data/' + item.filePath" v-if="item.filePath.includes('mp4')">
+                      <video autoplay loop width="100" height="200" :src=" protocol + '://' + server + '/static/data/' + item.filePath" v-if="item.filePath.includes('mp4')">
                         Your browser does not support the video tag.
                       </video>
-                      <img width="600" height="500" :src=" protocol + '://' + server + '/static/data/' + item.filePath" v-if="!item.filePath.includes('mp4')">
+                      <img width="100" height="200" :src=" protocol + '://' + server + '/static/data/' + item.filePath" v-if="!item.filePath.includes('mp4')">
 
                       </v-carousel-item>
              </v-template>
@@ -45,28 +45,7 @@
         </v-row>
         <v-row justify="center" align="center" v-for="p in posts" :key="p._id">
             <v-col cols="12" sm="4" v-if="p.postType == 2">
-                <v-card justify="center" align="center"
-                    outlined
-                    width="600"
-                >
-                <v-card-title>{{p.publisherUsername}}</v-card-title>
-                <v-carousel>
-                
-                <v-template v-for="item in p.medias" :key="item.filePath">
-                      <v-carousel-item
-                      reverse-transition="fade-transition"
-                      transition="fade-transition">
-                      <video autoplay loop width="600" height="500" :src=" protocol + '://' + server + '/static/data/' + item.filePath" v-if="item.filePath.includes('mp4')">
-                        Your browser does not support the video tag.
-                      </video>
-                      <img width="600" height="500" :src=" protocol + '://' + server + '/static/data/' + item.filePath" v-if="!item.filePath.includes('mp4')">
-
-                      </v-carousel-item>
-             </v-template>
-             </v-carousel>
-                <v-card-text>{{p.description}}</v-card-text>
-                <v-card-text>{{p.publishDate}}</v-card-text>
-                </v-card>
+                <post v-bind:usage="'HomePage'" v-bind:post="p" />
              </v-col>
         </v-row>
   </v-container>
@@ -75,7 +54,9 @@
 <script>
   import axios from 'axios'
   import * as comm from '../configuration/communication.js'
+  import Post from './Posts/Post.vue'
   export default {
+  components: { Post },
 
     name: 'HomePage',
 
