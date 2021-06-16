@@ -16,6 +16,7 @@ type Handler struct {
 }
 
 func (handler *Handler) AddProfile(w http.ResponseWriter, r *http.Request){
+	method := "nistagram/connection/handler.AddProfile"
 	vars := mux.Vars(r)
 	id, _ := strconv.ParseUint(vars["id"],10,32)
 	profile, ok := handler.ConnectionService.AddProfile(uint(id))
@@ -23,8 +24,10 @@ func (handler *Handler) AddProfile(w http.ResponseWriter, r *http.Request){
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(profile)
+		util.Logging(util.INFO, method, "", "Added user: " + util.Uint2String(uint(id)), "connection")
 	} else {
 		w.WriteHeader(http.StatusInternalServerError)
+		util.Logging(util.INFO, method, "", "Failed to add user: " + util.Uint2String(uint(id)), "connection")
 	}
 }
 
@@ -61,10 +64,12 @@ func (handler *Handler) GetConnectionPublic(w http.ResponseWriter, r *http.Reque
 }
 
 func (handler *Handler) FollowRequest(w http.ResponseWriter, r *http.Request){
+	method := "nistagram/connection/handler.FollowRequest"
 	vars := mux.Vars(r)
 	id2, e2 := strconv.ParseUint(vars["profileId"],10,32)
 	if e2!=nil {
 		w.WriteHeader(http.StatusBadRequest)
+		util.Logging(util.ERROR, method, "", "Failed Follow request (possible auto-approve): " + util.GetLoggingStringFromID(util.GetLoggedUserIDFromToken(r)) + "->" + util.Uint2String(uint(id2)), "connection")
 		return
 	}
 	id := util.GetLoggedUserIDFromToken(r)
@@ -77,21 +82,26 @@ func (handler *Handler) FollowRequest(w http.ResponseWriter, r *http.Request){
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(connection)
+		util.Logging(util.INFO, method, "", "Follow request (possible auto-approve): "+ util.Uint2String(id) + "->" + util.Uint2String(uint(id2)), "connection")
 	} else {
 		w.WriteHeader(http.StatusInternalServerError)
+		util.Logging(util.ERROR, method, "", "Service call failed:" + util.GetLoggingStringFromID(util.GetLoggedUserIDFromToken(r)) + "->" + util.Uint2String(uint(id2)), "connection")
 	}
 }
 
 func (handler *Handler) FollowApprove(w http.ResponseWriter, r *http.Request){
+	method := "nistagram/connection/handler.FollowApprove"
 	vars := mux.Vars(r)
 	id1, e1 := strconv.ParseUint(vars["profileId"],10,32)
 	if e1!=nil{
 		w.WriteHeader(http.StatusBadRequest)
+		util.Logging(util.ERROR, method, "", e1.Error(), "connection")
 		return
 	}
 	id := util.GetLoggedUserIDFromToken(r)
 	if id == 0 {
 		w.WriteHeader(http.StatusUnauthorized)
+		util.Logging(util.ERROR, method, "", "Unauthorized", "connection")
 		return
 	}
 	_, ok := handler.ConnectionService.ApproveConnection(uint(id1), id)
@@ -99,7 +109,9 @@ func (handler *Handler) FollowApprove(w http.ResponseWriter, r *http.Request){
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
 		w.Write([]byte("{\"status\":\"ok\"}"))
+		util.Logging(util.INFO, method, "", "Approved follow request: "+ util.Uint2String(id) + "->" + util.Uint2String(uint(id1)), "connection")
 	} else {
+		util.Logging(util.ERROR, method, "", "Service Error", "connection")
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
@@ -166,15 +178,18 @@ func (handler *Handler) UpdateConnection(w http.ResponseWriter, r *http.Request)
 			w.WriteHeader(http.StatusOK)
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(*ret)
+
 		}
 	}
 }
 
 func (handler *Handler) DeclineFollowRequest(writer http.ResponseWriter, request *http.Request) {
+	method := "nistagram/connection/handler.DeclineFollowRequest"
 	vars := mux.Vars(request)
 	followerId, e1 := strconv.ParseUint(vars["profileId"],10,32)
 	if e1 != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
+		util.Logging(util.INFO, method, "", "FAIL on Decline follow request:" + util.Uint2String(uint(followerId)) + "->" + util.Uint2String(util.GetLoggedUserIDFromToken(request)), "connection")
 	}
 	id := util.GetLoggedUserIDFromToken(request)
 	if id == 0 {
@@ -183,10 +198,12 @@ func (handler *Handler) DeclineFollowRequest(writer http.ResponseWriter, request
 	_, ok := handler.ConnectionService.DeleteConnection(uint(followerId), id)
 	if !ok {
 		writer.WriteHeader(http.StatusInternalServerError)
+		util.Logging(util.ERROR, method, "", "Service error on decline follow request:" + util.Uint2String(uint(followerId)) + "->" + util.Uint2String(id), "connection")
 	} else {
 		writer.WriteHeader(http.StatusOK)
 		writer.Header().Set("Content-Type", "application/json")
 		writer.Write([]byte("{\"status\":\"ok\"}"))
+		util.Logging(util.INFO, method, "", "Declined follow request:" + util.Uint2String(uint(followerId)) + "->" + util.Uint2String(id), "connection")
 	}
 }
 
