@@ -29,12 +29,20 @@
         </v-card-text>
       </v-card>
     </v-dialog>
+    <report-modal :visible="showReportModal" @close="showReportModal=false"/>
   </div>
 </template>
 
 <script>
+import ReportModal from './ReportModal.vue';
 export default {
+  components: { ReportModal },
   props: ['visible'],
+  data(){
+    return {
+      showReportModal: false
+    }
+  },
   methods: {
       report(){
           //TODO: send report axios

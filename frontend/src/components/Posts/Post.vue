@@ -9,7 +9,7 @@
       <v-list-item-content >
         <v-list-item-title  class="text-h6 d-flex justify-space-between ">
           <label> {{post.publisherUsername}} </label>
-          <v-btn dark icon @click="showOptionDialog()">
+          <v-btn dark icon @click="showDialog = true">
             <v-icon color="blue">mdi-dots-horizontal</v-icon>
           </v-btn>
         </v-list-item-title>
@@ -56,9 +56,6 @@ export default {
       this.designView();
     },
     methods: {
-        showOptionDialog(){
-            this.showDialog = true;
-        },
         designView() {
           if (this.usage == 'Profile') {
             this.width = 300;
