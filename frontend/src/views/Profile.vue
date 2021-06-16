@@ -24,9 +24,9 @@
                 </profile-options-drop-menu>
             </v-col>
         </v-row>
-        <v-row align="center" justify="center">
+        <v-row>
             <v-col cols="12" sm="4" v-for="p in posts" :key="p._id">
-               <post v-bind:usage="'Explore'" v-bind:post="p" />
+               <post v-bind:usage="'Profile'" v-bind:post="p" />
             </v-col>
         </v-row>
     </v-container>

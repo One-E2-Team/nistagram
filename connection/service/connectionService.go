@@ -260,6 +260,20 @@ func (service *ConnectionService) ToggleMuted(followerId, profileId uint) (*mode
 	}
 }
 
+func (service *ConnectionService) ToggleBlock(followerId, profileId uint) (*model.Connection, bool) {
+	connection, okSelect := service.ConnectionRepository.SelectConnection(followerId, profileId, false)
+	if okSelect && connection == nil {
+		return connection, false
+	}
+	connection.Block = !connection.Block
+	resConnection, ok := service.ConnectionRepository.UpdateConnection(connection)
+	if ok {
+		return resConnection, true
+	} else {
+		return connection, false
+	}
+}
+
 func (service *ConnectionService) GetConnectedProfiles(conn model.Connection, excludeMuted bool) *[]uint {
 	ret := service.ConnectionRepository.GetConnectedProfiles(conn, excludeMuted)
 	if ret == nil {

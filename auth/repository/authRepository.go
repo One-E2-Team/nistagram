@@ -21,7 +21,7 @@ func (repo *AuthRepository) CreateUser(user *model.User) error {
 
 func (repo *AuthRepository) GetUserByEmail(email string) (*model.User, error) {
 	user := &model.User{}
-	if err := repo.Database.Table("users").First(&user, "email = ?", email).Error; err != nil {
+	if err := repo.Database.Preload("Roles").Table("users").First(&user, "email = ?", email).Error; err != nil {
 		return nil, err
 	}
 	return user, nil
