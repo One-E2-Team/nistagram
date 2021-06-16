@@ -34,7 +34,15 @@
           >
             <v-list-item-content>
               <v-list-item-title class="text-h6 text-left">
-                {{profile.username}}
+                {{profile.username}} 
+                <v-tooltip right>
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-icon  v-bind="attrs" v-on="on" v-if="profile.isVerified">
+                      mdi-check-decagram 
+                    </v-icon>
+                   </template>
+                  <span>Verified</span>
+                </v-tooltip>
               </v-list-item-title>
               <v-list-item-subtitle class="text-h6 text-left">Name : {{profile.personalData.name}}</v-list-item-subtitle>
               <v-list-item-subtitle class="text-h6 text-left">Surname : {{profile.personalData.surname}}</v-list-item-subtitle>
