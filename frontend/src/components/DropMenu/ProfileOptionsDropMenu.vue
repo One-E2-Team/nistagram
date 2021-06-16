@@ -1,5 +1,5 @@
 <template>
-    <v-menu bottom left >
+    <v-menu bottom right >
         <template v-slot:activator="{ on, attrs }">
             <v-btn dark icon v-bind="attrs" v-on="on" class="mx-2" fab small color="cyan">
                 <v-icon>mdi-menu-down</v-icon>
@@ -19,14 +19,35 @@
 </template>
 
 <script>
+import axios from 'axios'
+import * as comm from '../../configuration/communication.js'
 export default {
-    name : "Settings",
     props: ['profileId'],
     name: 'ProfileOptions',
     methods:{
-        mute(){            
-        },
+        mute(){   
+            axios({
+                method: "put",
+                url: comm.protocol + "://" + comm.server +"/api/connection/mute/" + this.profileId,
+                headers: comm.getHeader(),
+            }).then((response) => {
+            console.log(response.data);
+            })
+            .catch((error) => {
+            console.log(error);
+            });
+    },
         block(){
+            axios({
+                method: "put",
+                url: comm.protocol + "://" + comm.server +"/api/connection/block/" + this.profileId,
+                headers: comm.getHeader(),
+            }).then((response) => {
+            console.log(response.data);
+            })
+            .catch((error) => {
+            console.log(error);
+            });
         }
     }
 }
