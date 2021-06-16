@@ -19,9 +19,9 @@
                 >
                 Create post
                 </v-btn>
-                <v-btn v-if="!isMyProfile" class="mx-2" fab dark small color="cyan" @click="showFollowOptionDialog()">
+                <profile-options-drop-menu v-if="!isMyProfile" class="mx-2">
                     <v-icon>mdi-menu-down</v-icon>
-                </v-btn>
+                </profile-options-drop-menu>
             </v-col>
         </v-row>
         <v-row align="center" justify="center">
@@ -38,12 +38,13 @@ import FollowRequests from '../components/FollowRequests.vue'
 import Post from '../components/Posts/Post.vue'
 import axios from 'axios'
 import * as comm from '../configuration/communication.js'
-
+import ProfileOptionsDropMenu from '../components/DropMenu/ProfileOptionsDropMenu.vue'
 export default {
     components: {
         PersonalData,
         FollowRequests,
-        Post},
+        Post,
+        ProfileOptionsDropMenu},
     props: ['username'],
     data() {
         return {
