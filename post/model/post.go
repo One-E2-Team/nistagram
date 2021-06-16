@@ -6,7 +6,7 @@ import (
 )
 
 type Post struct {
-	ID    primitive.ObjectID 	 `bson:"_id" json:"_id,omitempty"`
+	ID    primitive.ObjectID 	 `bson:"_id" json:"id,omitempty"`
 	PublisherId        uint      `json:"publisherId"`
 	PublisherUsername  string    `json:"publisherUsername"`
 	PostType           PostType  `json:"postType"`

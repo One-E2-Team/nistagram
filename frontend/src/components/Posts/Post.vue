@@ -4,7 +4,7 @@
     :width="width"
     :height="height"
   >
-    <post-modal v-if="showTitle" :visible="showDialog" @close="showDialog=false"/>
+    <post-modal v-if="showTitle" :visible="showDialog" @close="showDialog=false" v-bind:post="post"/>
     <v-list-item v-if="showTitle">
       <v-list-item-content >
         <v-list-item-title  class="text-h6 d-flex justify-space-between ">
