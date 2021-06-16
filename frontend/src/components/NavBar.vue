@@ -6,7 +6,8 @@
           <v-col cols="12" sm="4">
                 <router-link v-if="isUserLogged" to="/homePage">Home page</router-link> 
                 <router-link v-else to="/">Home</router-link> |
-                <router-link to="/explore">Explore</router-link>
+                <router-link to="/explore">Explore </router-link>
+                <router-link to="/verificationRequests" v-if="hasRole('ADMIN')">| Requests</router-link>
           </v-col>
           <v-col cols="12" sm="4">
               <v-spacer />
@@ -34,6 +35,11 @@ export default {
       this.$root.$on('loggedUser', () => {
         this.isUserLogged = comm.getLoggedUserUsername() != null;
       })
+    },
+    methods: {
+      hasRole(role){
+        return comm.hasRole(role);
+      }
     }
 }
 </script>
