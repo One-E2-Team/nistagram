@@ -1,6 +1,5 @@
 <template>
     <v-container>
-        <post-modal :visible="showFollowOption" @close="showFollowOption=false"/>
         <v-row align="left" >
             <v-col cols="12" sm="11" >
                 <personal-data v-on:loaded-user='profileLoaded($event)' style="height:200px" v-bind:username="username"/>
@@ -19,14 +18,14 @@
                 >
                 Create post
                 </v-btn>
-                <v-btn v-if="!isMyProfile" class="mx-2" fab dark small color="cyan" @click="showFollowOptionDialog()">
+                <profile-options-drop-menu v-if="!isMyProfile" v-bind:profileId="profileId" class="mx-2">
                     <v-icon>mdi-menu-down</v-icon>
-                </v-btn>
+                </profile-options-drop-menu>
             </v-col>
         </v-row>
-        <v-row align="center" justify="center">
+        <v-row>
             <v-col cols="12" sm="4" v-for="p in posts" :key="p._id">
-               <post v-bind:usage="'Explore'" v-bind:post="p" />
+               <post v-bind:usage="'Profile'" v-bind:post="p" />
             </v-col>
         </v-row>
     </v-container>
@@ -38,17 +37,18 @@ import FollowRequests from '../components/FollowRequests.vue'
 import Post from '../components/Posts/Post.vue'
 import axios from 'axios'
 import * as comm from '../configuration/communication.js'
-
+import ProfileOptionsDropMenu from '../components/DropMenu/ProfileOptionsDropMenu.vue'
 export default {
     components: {
         PersonalData,
         FollowRequests,
-        Post},
+        Post,
+        ProfileOptionsDropMenu},
     props: ['username'],
     data() {
         return {
             isMyProfile: false,
-            profileId: 1,
+            profileId: 0,
             posts: [],
             server: comm.server,
             protocol: comm.protocol,

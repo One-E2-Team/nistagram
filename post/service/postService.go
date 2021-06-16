@@ -47,7 +47,7 @@ func (service *PostService) CreatePost(postType model.PostType, post dto.PostDto
 		medias = append(medias, m)
 	}
 
-	newPost := model.Post{PublisherId: profile.ProfileId, PublisherUsername: profile.Username,
+	newPost := model.Post{ID: primitive.NewObjectID(), PublisherId: profile.ProfileId, PublisherUsername: profile.Username,
 		PostType: postType, Medias: medias, PublishDate: time.Now(),
 		Description: post.Description, IsHighlighted: post.IsHighlighted, IsCampaign: false,
 		IsCloseFriendsOnly: post.IsCloseFriendsOnly, Location: post.Location,
