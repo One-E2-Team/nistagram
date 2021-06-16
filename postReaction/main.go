@@ -59,8 +59,9 @@ func initHandler(postService *service.PostReactionService) *handler.PostReaction
 
 func handleFunc(handler *handler.PostReactionHandler) {
 	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/like", handler.ReactOnPost).Methods("POST")
-	fmt.Println("Starting server..")
+	router.HandleFunc("/react", handler.ReactOnPost).Methods("POST")
+	router.HandleFunc("/report", handler.ReportPost).Methods("POST")
+	fmt.Println("Post reaction server started...")
 	host, port := util.GetPostReactionHostAndPort()
 	var err error
 	/*if util.DockerChecker() {

@@ -44,3 +44,22 @@ func (handler *PostReactionHandler) ReactOnPost(w http.ResponseWriter, r *http.R
 	_, _ = w.Write([]byte("{\"success\":\"ok\"}"))
 	w.Header().Set("Content-Type", "application/json")
 }
+
+func (handler *PostReactionHandler) ReportPost(w http.ResponseWriter, r *http.Request) {
+	var reportDTO dto.ReportDTO
+	err := json.NewDecoder(r.Body).Decode(&reportDTO)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	err = handler.PostReactionService.ReportPost(reportDTO.PostID, reportDTO.Reason)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte("{\"success\":\"ok\"}"))
+	w.Header().Set("Content-Type", "application/json")
+}
