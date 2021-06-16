@@ -11,7 +11,7 @@
               label="Report"
               class="my-2"
               style="color:red"
-              @click="report()"
+              @click="showReportModal = true"
               width="200"
             >Report</v-btn><br/>
             <v-btn
@@ -39,9 +39,6 @@ export default {
     }
   },
   methods: {
-      report(){
-          //TODO: send report axios
-      },
       block(){
         axios({
                 method: "put",
