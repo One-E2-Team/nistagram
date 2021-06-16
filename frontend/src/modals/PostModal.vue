@@ -15,17 +15,10 @@
               width="200"
             >Report</v-btn><br/>
             <v-btn
-              label="Report"
+              label="Block"
               width="200"
-              @click="unfollow()"
-            >Unfollow</v-btn><br/>
-            <v-btn
-              label="Mute"
-              class="my-2"
-              width="200"
-              @click="mute()"
-            >Mute</v-btn>
-
+              @click="block()"
+            >Block</v-btn><br/>
         </v-card-text>
       </v-card>
     </v-dialog>
@@ -35,9 +28,11 @@
 
 <script>
 import ReportModal from './ReportModal.vue';
+import axios from 'axios'
+import * as comm from '../configuration/communication.js'
 export default {
   components: { ReportModal },
-  props: ['visible'],
+  props: ['visible', 'post'],
   data(){
     return {
       showReportModal: false
@@ -47,11 +42,17 @@ export default {
       report(){
           //TODO: send report axios
       },
-      unfollow(){
-          //TODO: send unfollow axios
-      },
-      mute(){
-          //TODO: send mute axos
+      block(){
+        axios({
+                method: "put",
+                url: comm.protocol + "://" + comm.server +"/api/connection/block/" + this.post.publisherId,
+                headers: comm.getHeader(),
+            }).then((response) => {
+            console.log(response.data);
+    })
+    .catch((error) => {
+      console.log(error);
+    });
       }
   },
   computed: {

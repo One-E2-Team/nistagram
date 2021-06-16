@@ -1,6 +1,5 @@
 <template>
     <v-container>
-        <post-modal :visible="showFollowOption" @close="showFollowOption=false"/>
         <v-row align="left" >
             <v-col cols="12" sm="11" >
                 <personal-data v-on:loaded-user='profileLoaded($event)' style="height:200px" v-bind:username="username"/>
@@ -19,7 +18,7 @@
                 >
                 Create post
                 </v-btn>
-                <profile-options-drop-menu v-if="!isMyProfile" class="mx-2">
+                <profile-options-drop-menu v-if="!isMyProfile" v-bind:profileId="profileId" class="mx-2">
                     <v-icon>mdi-menu-down</v-icon>
                 </profile-options-drop-menu>
             </v-col>
@@ -49,7 +48,7 @@ export default {
     data() {
         return {
             isMyProfile: false,
-            profileId: 1,
+            profileId: 0,
             posts: [],
             server: comm.server,
             protocol: comm.protocol,
