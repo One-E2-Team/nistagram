@@ -38,8 +38,10 @@ export default {
     props: ['visible','postId'],
     data(){
         return {
-            rules: validator,
-            loading: false
+            rules: validator.rules,
+            loading: false,
+            valid: false,
+            reason: '',
         }
     },
     methods:{
