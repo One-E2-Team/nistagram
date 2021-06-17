@@ -92,9 +92,9 @@ func handleFunc(handler *handler.Handler) {
 	router.HandleFunc("/connection/block/{profileId}",
 		util.RBAC(handler.ToggleBlockProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT") //frontend func
 	router.HandleFunc("/connection/closeFriend/{profileId}",
-		util.RBAC(handler.ToggleMuteProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT") //frontend func
-	router.HandleFunc("/connection/mute/{profileId}",
 		util.RBAC(handler.ToggleCloseFriendProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT") //frontend func
+	router.HandleFunc("/connection/mute/{profileId}",
+		util.RBAC(handler.ToggleMuteProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT") //frontend func
 	router.HandleFunc("/connection/notify/post/{profileId}",
 		util.RBAC(handler.ToggleNotifyPostProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT") //frontend func
 	router.HandleFunc("/connection/notify/story/{profileId}",

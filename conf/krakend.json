@@ -1344,6 +1344,116 @@
           "disable_host_sanitize": false
         }
       ]
+    },
+    {
+      "endpoint": "/api/connection/notify/post/{profileId}",
+      "method": "PUT",
+      "output_encoding": "json",
+      "extra_config": {},
+      "backend": [
+        {
+          "url_pattern": "/connection/notify/post/{profileId}",
+          "encoding": "json",
+          "sd": "static",
+          "method": "PUT",
+          "extra_config": {},
+          "host": [
+            "https://connection:8080"
+          ],
+          "disable_host_sanitize": false
+        }
+      ],
+      "headers_to_pass": [
+        "Authorization"
+      ]
+    },
+    {
+      "endpoint": "/api/connection/notify/story/{profileId}",
+      "method": "PUT",
+      "output_encoding": "json",
+      "extra_config": {},
+      "backend": [
+        {
+          "url_pattern": "/connection/notify/story/{profileId}",
+          "encoding": "json",
+          "sd": "static",
+          "method": "PUT",
+          "extra_config": {},
+          "host": [
+            "https://connection:8080"
+          ],
+          "disable_host_sanitize": false
+        }
+      ],
+      "headers_to_pass": [
+        "Authorization"
+      ]
+    },
+    {
+      "endpoint": "/api/connection/notify/comment/{profileId}",
+      "method": "PUT",
+      "output_encoding": "json",
+      "extra_config": {},
+      "headers_to_pass": [
+        "Authorization"
+      ],
+      "backend": [
+        {
+          "url_pattern": "/connection/notify/comment/{profileId}",
+          "encoding": "json",
+          "sd": "static",
+          "method": "PUT",
+          "extra_config": {},
+          "host": [
+            "https://connection:8080"
+          ],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/connection/notify/message/{profileId}",
+      "method": "PUT",
+      "output_encoding": "json",
+      "extra_config": {},
+      "headers_to_pass": [
+        "Authorization"
+      ],
+      "backend": [
+        {
+          "url_pattern": "/connection/notify/message/{profileId}",
+          "encoding": "json",
+          "sd": "static",
+          "method": "PUT",
+          "extra_config": {},
+          "host": [
+            "https://connection:8080"
+          ],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/connection/closeFriend/{profileId}",
+      "method": "PUT",
+      "output_encoding": "json",
+      "extra_config": {},
+      "headers_to_pass": [
+        "Authorization"
+      ],
+      "backend": [
+        {
+          "url_pattern": "/connection/closeFriend/{profileId}",
+          "encoding": "json",
+          "sd": "static",
+          "method": "PUT",
+          "extra_config": {},
+          "host": [
+            "https://connection:8080"
+          ],
+          "disable_host_sanitize": false
+        }
+      ]
     }
   ],
   "read_timeout": "0s",
