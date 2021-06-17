@@ -73,7 +73,8 @@ func (repo *PostRepository) GetProfilesPosts(followingProfiles []uint, targetUse
 	for postCursor.Next(context.TODO()) {
 		var result model.Post
 		err = postCursor.Decode(&result)
-		if result.PublisherUsername == targetUsername && (result.IsPrivate == false || contains(followingProfiles, result.PublisherId)) {
+		if result.PublisherUsername == targetUsername &&
+			(result.IsPrivate == false || contains(followingProfiles, result.PublisherId)) {
 			posts = append(posts, result)
 		}
 	}
@@ -81,7 +82,8 @@ func (repo *PostRepository) GetProfilesPosts(followingProfiles []uint, targetUse
 	for storyCursor.Next(context.TODO()) {
 		var result model.Post
 		err = storyCursor.Decode(&result)
-		if result.PublisherUsername == targetUsername && (result.IsPrivate == false || contains(followingProfiles, result.PublisherId)) {
+		if result.PublisherUsername == targetUsername &&
+			(result.IsPrivate == false || contains(followingProfiles, result.PublisherId)) {
 			duration, err := time.ParseDuration("24h")
 			if err != nil {
 				fmt.Println(err)

@@ -85,6 +85,7 @@ export default {
                 axios({
                 method: "get",
                 url: comm.protocol + '://' + comm.server + '/api/post/profile/' + this.username,
+                headers: comm.getHeader(),
             }).then(response => {
               if(response.status==200){
                   this.posts = response.data.collection;

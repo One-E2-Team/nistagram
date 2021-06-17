@@ -212,6 +212,9 @@
           "is_collection": true,
           "disable_host_sanitize": false
         }
+      ],
+      "headers_to_pass": [
+        "Authorization"
       ]
     },
     {

@@ -130,27 +130,23 @@ func (handler Handler) GetProfilesPosts(w http.ResponseWriter, r *http.Request) 
 
 	loggedUserId := util.GetLoggedUserIDFromToken(r)
 
-	if loggedUserId == 0 {
-		http.Error(w, "user is not logged in", http.StatusForbidden)
-		return
-	}
+	if loggedUserId != 0 {
+		resp, err := getUserFollowers(loggedUserId)
+		if err != nil {
+			fmt.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 
-	resp, err := getUserFollowers(loggedUserId)
-	if err != nil {
-		fmt.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			fmt.Println(err)
+		}
+		defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println("Body: ", body)
-	defer resp.Body.Close()
-
-	if err = json.Unmarshal(body, &followingProfiles); err != nil {
-		fmt.Println(err)
+		if err = json.Unmarshal(body, &followingProfiles); err != nil {
+			fmt.Println(err)
+		}
 	}
 
 	result := handler.PostService.GetProfilesPosts(followingProfiles, targetUsername)
