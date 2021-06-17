@@ -91,8 +91,18 @@ func handleFunc(handler *handler.Handler) {
 		util.RBAC(handler.DeclineFollowRequest, "EDIT_CONNECTION_STATUS", false)).Methods("DELETE") //frontend func
 	router.HandleFunc("/connection/block/{profileId}",
 		util.RBAC(handler.ToggleBlockProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT") //frontend func
-	router.HandleFunc("/connection/mute/{profileId}",
+	router.HandleFunc("/connection/closeFriend/{profileId}",
 		util.RBAC(handler.ToggleMuteProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT") //frontend func
+	router.HandleFunc("/connection/mute/{profileId}",
+		util.RBAC(handler.ToggleCloseFriendProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT") //frontend func
+	router.HandleFunc("/connection/notify/post/{profileId}",
+		util.RBAC(handler.ToggleNotifyPostProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT") //frontend func
+	router.HandleFunc("/connection/notify/story/{profileId}",
+		util.RBAC(handler.ToggleNotifyStoryProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT") //frontend func
+	router.HandleFunc("/connection/notify/comment/{profileId}",
+		util.RBAC(handler.ToggleNotifyCommentProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT") //frontend func
+	router.HandleFunc("/connection/notify/message/{profileId}",
+		util.RBAC(handler.ToggleNotifyMessageProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT") //frontend func
 	fmt.Println("Starting server..")
 	host, port := util.GetConnectionHostAndPort()
 	var err error
