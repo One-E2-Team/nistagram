@@ -98,16 +98,18 @@
       picture: null
     }},
     mounted(){
-     // if( !comm.isUserLogged() )
-       // this.$router.push({name: 'NotFound'});
+     if( !comm.isUserLogged() )
+      this.$router.push({name: 'NotFound'});
        
-     axios({
-          method: "get",
-          url: comm.protocol + "://" + comm.server + "/api/profile/categories"
-        }).then(response => {
-          console.log(response);
-          this.categories = response.data.collection;
-        })
+     else{
+      axios({
+            method: "get",
+            url: comm.protocol + "://" + comm.server + "/api/profile/categories"
+          }).then(response => {
+            console.log(response);
+            this.categories = response.data.collection;
+          })
+     }
     },
     methods: {
       resetForm () {

@@ -3,6 +3,7 @@ package service
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"nistagram/profile/dto"
 	"nistagram/profile/model"
@@ -79,6 +80,48 @@ func registerInConnection(profileId uint, postBody []byte) error {
 
 func (service *ProfileService) Search(username string) []string {
 	return service.ProfileRepository.FindUsernameContains(username)
+}
+
+func (service *ProfileService) SearchForTag(loggedUserId uint, username string) ([]string, error) {
+	var ret []string
+	usernames := service.ProfileRepository.FindUsernameContains(username)
+
+	var followingProfiles []uint
+
+	resp, err := getUserFollowers(loggedUserId)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if err = json.Unmarshal(body, &followingProfiles); err != nil {
+		return nil, err
+	}
+
+	for i := 0; i < len(usernames); i++{
+		profile, err := service.GetProfileByUsername(usernames[i])
+		if err != nil{
+			fmt.Println("Can't get profile by username!")
+		}
+		if util.Contains(followingProfiles, profile.ID) && profile.ProfileSettings.CanBeTagged{
+			ret = append(ret, profile.Username)
+		}
+	}
+
+	return ret, nil
+}
+
+func getUserFollowers(loggedUserId uint) (*http.Response, error) {
+	connHost, connPort := util.GetConnectionHostAndPort()
+	resp, err := util.CrossServiceRequest(http.MethodGet,
+		util.CrossServiceProtocol+"://"+connHost+":"+connPort+"/connection/following/show/"+util.Uint2String(loggedUserId),
+		nil, map[string]string{})
+	return resp, err
 }
 
 func (service *ProfileService) GetProfileByUsername(username string) (*model.Profile, error) {

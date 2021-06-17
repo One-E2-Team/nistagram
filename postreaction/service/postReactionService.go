@@ -15,6 +15,10 @@ func (service *PostReactionService) ReactOnPost(postID string, loggedUserID uint
 	return service.PostReactionRepository.ReactOnPost(&reaction)
 }
 
+func (service *PostReactionService) DeleteReaction(postID string, loggedUserID uint) error {
+	return service.PostReactionRepository.DeleteReaction(postID, loggedUserID)
+}
+
 func (service *PostReactionService) ReportPost(postID string, reason string) error {
 	report := model.Report{PostID: postID, Time: time.Now(), Reason: reason}
 	return service.PostReactionRepository.ReportPost(&report)

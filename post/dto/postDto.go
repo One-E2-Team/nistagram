@@ -6,6 +6,5 @@ type PostDto struct {
 	IsCloseFriendsOnly bool     `json:"isCloseFriendsOnly"`
 	Location           string   `json:"location"`
 	HashTags           string   `json:"hashTags"`
-	TaggedUsers        []string `json:"taggedUsers"`
 	PostType           string   `json:"postType"`
 }

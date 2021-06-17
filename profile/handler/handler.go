@@ -190,6 +190,28 @@ func (handler *Handler) Search(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+func (handler *Handler) SearchForTag(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	loggedUserId := util.GetLoggedUserIDFromToken(r)
+	result, err := handler.ProfileService.SearchForTag(loggedUserId, template.HTMLEscapeString(vars["username"]))
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("{\"message\":\"error\"}"))
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(result)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("{\"message\":\"error\"}"))
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+
 func (handler *Handler) GetProfileByUsername(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	result, err := handler.ProfileService.GetProfileByUsername(template.HTMLEscapeString(vars["username"]))
