@@ -56,8 +56,15 @@ func initConnectionRepo(databaseDriver *neo4j.Driver) *repository.ConnectionRepo
 	return &repository.ConnectionRepository{DatabaseDriver: databaseDriver}
 }
 
-func initService(connectionRepo *repository.ConnectionRepository) *service.ConnectionService {
-	return &service.ConnectionService{ConnectionRepository: connectionRepo}
+func initBlockRepo(databaseDriver *neo4j.Driver) *repository.BlockRepository {
+	return &repository.BlockRepository{DatabaseDriver: databaseDriver}
+}
+
+func initService(connectionRepo *repository.ConnectionRepository, blockRepo *repository.BlockRepository) *service.ConnectionService {
+	return &service.ConnectionService{
+		ConnectionRepository: connectionRepo,
+		BlockRepository:      blockRepo,
+	}
 }
 
 func initHandler(service *service.ConnectionService) *handler.Handler {
@@ -83,10 +90,20 @@ func handleFunc(handler *handler.Handler) {
 	router.HandleFunc("/connection/following/request/{profileId}",
 		util.RBAC(handler.DeclineFollowRequest, "EDIT_CONNECTION_STATUS", false)).Methods("DELETE") //frontend func
 	router.HandleFunc("/connection/block/{profileId}",
-		util.RBAC(handler.BlockProfile, "EDIT_CONNECTION_STATUS" ,false)).Methods("PUT")	//frontend func
+		util.RBAC(handler.ToggleBlockProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT") //frontend func
+	router.HandleFunc("/connection/closeFriend/{profileId}",
+		util.RBAC(handler.ToggleCloseFriendProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT") //frontend func
 	router.HandleFunc("/connection/mute/{profileId}",
-		util.RBAC(handler.MuteProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT")	//frontend func
-		fmt.Println("Starting server..")
+		util.RBAC(handler.ToggleMuteProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT") //frontend func
+	router.HandleFunc("/connection/notify/post/{profileId}",
+		util.RBAC(handler.ToggleNotifyPostProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT") //frontend func
+	router.HandleFunc("/connection/notify/story/{profileId}",
+		util.RBAC(handler.ToggleNotifyStoryProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT") //frontend func
+	router.HandleFunc("/connection/notify/comment/{profileId}",
+		util.RBAC(handler.ToggleNotifyCommentProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT") //frontend func
+	router.HandleFunc("/connection/notify/message/{profileId}",
+		util.RBAC(handler.ToggleNotifyMessageProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT") //frontend func
+	fmt.Println("Starting server..")
 	host, port := util.GetConnectionHostAndPort()
 	var err error
 	if util.DockerChecker() {
@@ -104,7 +121,8 @@ func main() {
 	db := initDB()
 	defer (*db).Close()
 	connectionRepo := initConnectionRepo(db)
-	connectionService := initService(connectionRepo)
+	blockRepo := initBlockRepo(db)
+	connectionService := initService(connectionRepo, blockRepo)
 	connectionHandler := initHandler(connectionService)
 	_ = util.SetupMSAuth("connection")
 	handleFunc(connectionHandler)

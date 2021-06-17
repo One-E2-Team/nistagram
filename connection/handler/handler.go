@@ -133,9 +133,8 @@ func (handler *Handler) GetFollowedProfilesNotMuted(w http.ResponseWriter, r *ht
 		Approved:          true,
 		MessageRequest:    false,
 		MessageConnected:  false,
-		Block:             false,
 	}
-	profiles := handler.ConnectionService.GetConnectedProfiles(conn, true)
+	profiles := handler.ConnectionService.GetConnectedProfiles(conn, true, false)
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(*profiles)
@@ -157,9 +156,8 @@ func (handler *Handler) GetFollowedProfiles(w http.ResponseWriter, r *http.Reque
 		Approved:          true,
 		MessageRequest:    false,
 		MessageConnected:  false,
-		Block:             false,
 	}
-	profiles := handler.ConnectionService.GetConnectedProfiles(conn, false)
+	profiles := handler.ConnectionService.GetConnectedProfiles(conn, false, false)
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(*profiles)
@@ -224,7 +222,7 @@ func (handler *Handler) GetAllFollowRequests(writer http.ResponseWriter, request
 	json.NewEncoder(writer).Encode(*userDtos)
 }
 
-func (handler *Handler) BlockProfile(writer http.ResponseWriter, request *http.Request) {
+func (handler *Handler) ToggleBlockProfile(writer http.ResponseWriter, request *http.Request) {
 	followerId := util.GetLoggedUserIDFromToken(request)
 	if followerId == 0 {
 		writer.Write([]byte("{\"status\":\"error\"}"))
@@ -247,7 +245,7 @@ func (handler *Handler) BlockProfile(writer http.ResponseWriter, request *http.R
 	writer.Header().Set("Content-Type", "application/json")
 }
 
-func (handler *Handler) MuteProfile(writer http.ResponseWriter, request *http.Request) {
+func (handler *Handler) ToggleMuteProfile(writer http.ResponseWriter, request *http.Request) {
 	followerId := util.GetLoggedUserIDFromToken(request)
 	if followerId == 0 {
 		writer.Write([]byte("{\"status\":\"error\"}"))
@@ -258,6 +256,121 @@ func (handler *Handler) MuteProfile(writer http.ResponseWriter, request *http.Re
 	profileId := util.String2Uint(vars["profileId"])
 
 	_, ok := handler.ConnectionService.ToggleMuted(followerId, profileId)
+
+	if !ok {
+		writer.Write([]byte("{\"status\":\"error\"}"))
+		writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	writer.WriteHeader(http.StatusOK)
+	writer.Write([]byte("{\"status\":\"ok\"}"))
+	writer.Header().Set("Content-Type", "application/json")
+}
+
+func (handler *Handler) ToggleCloseFriendProfile(writer http.ResponseWriter, request *http.Request) {
+	followerId := util.GetLoggedUserIDFromToken(request)
+	if followerId == 0 {
+		writer.Write([]byte("{\"status\":\"error\"}"))
+		writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	vars := mux.Vars(request)
+	profileId := util.String2Uint(vars["profileId"])
+
+	_, ok := handler.ConnectionService.ToggleCloseFriend(followerId, profileId)
+
+	if !ok {
+		writer.Write([]byte("{\"status\":\"error\"}"))
+		writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	writer.WriteHeader(http.StatusOK)
+	writer.Write([]byte("{\"status\":\"ok\"}"))
+	writer.Header().Set("Content-Type", "application/json")
+}
+
+func (handler *Handler) ToggleNotifyPostProfile(writer http.ResponseWriter, request *http.Request) {
+	followerId := util.GetLoggedUserIDFromToken(request)
+	if followerId == 0 {
+		writer.Write([]byte("{\"status\":\"error\"}"))
+		writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	vars := mux.Vars(request)
+	profileId := util.String2Uint(vars["profileId"])
+
+	_, ok := handler.ConnectionService.ToggleNotifyPost(followerId, profileId)
+
+	if !ok {
+		writer.Write([]byte("{\"status\":\"error\"}"))
+		writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	writer.WriteHeader(http.StatusOK)
+	writer.Write([]byte("{\"status\":\"ok\"}"))
+	writer.Header().Set("Content-Type", "application/json")
+}
+
+func (handler *Handler) ToggleNotifyStoryProfile(writer http.ResponseWriter, request *http.Request) {
+	followerId := util.GetLoggedUserIDFromToken(request)
+	if followerId == 0 {
+		writer.Write([]byte("{\"status\":\"error\"}"))
+		writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	vars := mux.Vars(request)
+	profileId := util.String2Uint(vars["profileId"])
+
+	_, ok := handler.ConnectionService.ToggleNotifyStory(followerId, profileId)
+
+	if !ok {
+		writer.Write([]byte("{\"status\":\"error\"}"))
+		writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	writer.WriteHeader(http.StatusOK)
+	writer.Write([]byte("{\"status\":\"ok\"}"))
+	writer.Header().Set("Content-Type", "application/json")
+}
+
+func (handler *Handler) ToggleNotifyMessageProfile(writer http.ResponseWriter, request *http.Request) {
+	followerId := util.GetLoggedUserIDFromToken(request)
+	if followerId == 0 {
+		writer.Write([]byte("{\"status\":\"error\"}"))
+		writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	vars := mux.Vars(request)
+	profileId := util.String2Uint(vars["profileId"])
+
+	_, ok := handler.ConnectionService.ToggleNotifyMessage(followerId, profileId)
+
+	if !ok {
+		writer.Write([]byte("{\"status\":\"error\"}"))
+		writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	writer.WriteHeader(http.StatusOK)
+	writer.Write([]byte("{\"status\":\"ok\"}"))
+	writer.Header().Set("Content-Type", "application/json")
+}
+
+func (handler *Handler) ToggleNotifyCommentProfile(writer http.ResponseWriter, request *http.Request) {
+	followerId := util.GetLoggedUserIDFromToken(request)
+	if followerId == 0 {
+		writer.Write([]byte("{\"status\":\"error\"}"))
+		writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	vars := mux.Vars(request)
+	profileId := util.String2Uint(vars["profileId"])
+
+	_, ok := handler.ConnectionService.ToggleNotifyComment(followerId, profileId)
 
 	if !ok {
 		writer.Write([]byte("{\"status\":\"error\"}"))
