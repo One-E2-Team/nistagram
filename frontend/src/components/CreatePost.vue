@@ -214,8 +214,8 @@
         })
       },
       setTag(item){
-        this.description = this.description.slice(0, this.cursorStart - 1) +
-                           item + this.description.slice(this.cursorEnd + 1, this.description.length - 1);
+        this.description = this.description.slice(0, this.cursorStart) +
+                           item + this.description.slice(this.cursorEnd + 1, this.description.length);
         this.searchedTaggedUsers = [];
       }
     }
