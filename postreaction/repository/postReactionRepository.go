@@ -36,6 +36,18 @@ func (repo *PostReactionRepository) ReactOnPost(reaction *model.Reaction) error 
 	return nil
 }
 
+func (repo *PostReactionRepository) DeleteReaction(postID string, loggedUserID uint) error {
+	reactionsCollection := repo.getCollection(reactionsCollectionName)
+	filter := bson.D{{"profileid", loggedUserID}, {"postid", postID}}
+	var existingReaction model.Reaction
+	err := reactionsCollection.FindOne(context.TODO(), filter).Decode(&existingReaction)
+	if err != nil {
+		return err
+	}
+	_, err = reactionsCollection.DeleteOne(context.TODO(), existingReaction)
+	return err
+}
+
 func (repo *PostReactionRepository) ReportPost(report *model.Report) error {
 	reportsCollection := repo.getCollection(reportsCollectionName)
 	_, err := reportsCollection.InsertOne(context.TODO(), report)

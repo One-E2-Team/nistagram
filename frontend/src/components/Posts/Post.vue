@@ -38,17 +38,18 @@
           <v-col> {{post.description}} </v-col>
          </v-row>
          <v-row>
-         <v-btn-toggle v-model="reaction" rounded>
           <v-col class="d-flex justify-space-around ">
-              <v-btn class="ma-2" text icon color="blue lighten-2" @click="react('like')">
+            <v-btn-toggle v-model="reaction" color="primary" group dense>
+              <v-btn :value="'like'" class="ma-2" text icon @click="react('like')">
                 <v-icon>mdi-thumb-up</v-icon>
               </v-btn>
 
-              <v-btn class="ma-2" text icon color="red lighten-2" @click="react('dislike')">
+              <v-btn :value="'dislike'" class="ma-2" text icon @click="react('dislike')">
                 <v-icon>mdi-thumb-down</v-icon>
               </v-btn>
+            </v-btn-toggle>
           </v-col>
-         </v-btn-toggle>
+         
          </v-row>
        </v-container>
     </v-card-text>
@@ -94,15 +95,25 @@ export default {
       }
     }, 
     react (reactionType) {
-      let dto = {"postId" : this.post.id, "reactionType" : reactionType}
-      axios({
-        method: "post",
-        url: comm.protocol + "://" + comm.server + "/api/postreaction/react",
-        data: JSON.stringify(dto),
-        headers: comm.getHeader()
-      }).then(response => {
-        console.log(response.data);
-      });
+      if (reactionType == this.reaction){
+        axios({
+          method: "delete",
+          url: comm.protocol + "://" + comm.server + "/api/postreaction/react/" + this.post.id,
+          headers: comm.getHeader()
+        }).then(response => {
+          console.log(response.data);
+        });
+      } else {
+        let dto = {"postId" : this.post.id, "reactionType" : reactionType}
+        axios({
+          method: "post",
+          url: comm.protocol + "://" + comm.server + "/api/postreaction/react",
+          data: JSON.stringify(dto),
+          headers: comm.getHeader()
+        }).then(response => {
+          console.log(response.data);
+        });
+      }
     },
   },
   watch: {
