@@ -33,6 +33,8 @@
 </template>
 
 <script>
+import axios from 'axios'
+import * as comm from '../configuration/communication.js'
 import * as validator from '../plugins/validator.js'
 export default {
     props: ['visible','postId'],
@@ -47,9 +49,21 @@ export default {
     methods:{
         report(){
             if(this.$refs.form.validate()){
-                alert('Validna forma, unesi axios zahtev')
                 this.loading = true
-                //TODO: axios za slanje reporta i u then-u zaustaviti loading
+                let data = {postId : this.postId, reason : this.reason}
+                axios({
+                method: "post",
+                url: comm.protocol + "://" + comm.server + "/api/postreaction/report",
+                data : JSON.stringify(data),
+                headers: comm.getHeader(),
+              }).then((response) => {
+              console.log(response.data);
+              this.loading = false;
+              })
+              .catch((error) => {
+                console.log(error);
+                this.loading = false;
+              });
             }
         }
     },

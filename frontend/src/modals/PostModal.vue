@@ -22,7 +22,7 @@
         </v-card-text>
       </v-card>
     </v-dialog>
-    <report-modal :visible="showReportModal" @close="showReportModal=false"/>
+    <report-modal :visible="showReportModal" @close="showReportModal=false" v-bind:postId="post.id"/>
   </div>
 </template>
 
