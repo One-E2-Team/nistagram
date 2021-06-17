@@ -19,3 +19,15 @@ func (service *PostReactionService) ReportPost(postID string, reason string) err
 	report := model.Report{PostID: postID, Time: time.Now(), Reason: reason}
 	return service.PostReactionRepository.ReportPost(&report)
 }
+
+func (service *PostReactionService) GetMyReactions(reactionType model.ReactionType, loggedUserID uint) ([]string, error) {
+	reactions, err := service.PostReactionRepository.GetProfileReactions(reactionType, loggedUserID)
+	if err != nil {
+		return nil, err
+	}
+	ret := make([]string, 0)
+	for _, value := range reactions {
+		ret = append(ret, value.PostID)
+	}
+	return ret, nil
+}
