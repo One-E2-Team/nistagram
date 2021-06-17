@@ -30,8 +30,21 @@ func (handler *PostReactionHandler) ReactOnPost(w http.ResponseWriter, r *http.R
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	loggedUserID := util.GetLoggedUserIDFromToken(r)
-	err = handler.PostReactionService.ReactOnPost(reactionDTO.PostID, loggedUserID, reactionType)
+	err = handler.PostReactionService.ReactOnPost(reactionDTO.PostID, util.GetLoggedUserIDFromToken(r), reactionType)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte("{\"success\":\"ok\"}"))
+	w.Header().Set("Content-Type", "application/json")
+}
+
+func (handler *PostReactionHandler) DeleteReaction(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	postID := vars["postID"]
+	err := handler.PostReactionService.DeleteReaction(postID, util.GetLoggedUserIDFromToken(r))
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)

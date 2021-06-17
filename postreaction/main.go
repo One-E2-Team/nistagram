@@ -61,6 +61,8 @@ func handleFunc(handler *handler.PostReactionHandler) {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/react",
 		util.RBAC(handler.ReactOnPost, "REACT_ON_POST", false)).Methods("POST") //frontend func
+	router.HandleFunc("/react/{postID}",
+		util.RBAC(handler.DeleteReaction, "REACT_ON_POST", false)).Methods("DELETE") //frontend func
 	router.HandleFunc("/report",
 		util.RBAC(handler.ReportPost, "REPORT_POST", false)).Methods("POST") //frontend func
 	router.HandleFunc("/my-reactions/{type}",

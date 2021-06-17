@@ -40,11 +40,11 @@
          <v-row>
          <v-btn-toggle v-model="reaction" rounded color="primary">
           <v-col class="d-flex justify-space-around ">
-              <v-btn :value="like" class="ma-2" text icon color="blue lighten-2" @click="react('like')">
+              <v-btn :value="'like'" class="ma-2" color="blue lighten-2" text icon @click="react('like')">
                 <v-icon>mdi-thumb-up</v-icon>
               </v-btn>
 
-              <v-btn :value="dislike" class="ma-2" text icon color="red lighten-2" @click="react('dislike')">
+              <v-btn :value="'dislike'" class="ma-2" color="red lighten-2" text icon @click="react('dislike')">
                 <v-icon>mdi-thumb-down</v-icon>
               </v-btn>
           </v-col>
@@ -95,17 +95,24 @@ export default {
     }, 
     react (reactionType) {
       if (reactionType == this.reaction){
-          //TODO: send axios for removing post reaction
-      }else{
-      let dto = {"postId" : this.post.id, "reactionType" : reactionType}
-      axios({
-        method: "post",
-        url: comm.protocol + "://" + comm.server + "/api/postreaction/react",
-        data: JSON.stringify(dto),
-        headers: comm.getHeader()
-      }).then(response => {
-        console.log(response.data);
-      });}
+        axios({
+          method: "delete",
+          url: comm.protocol + "://" + comm.server + "/api/postreaction/react/" + this.post.id,
+          headers: comm.getHeader()
+        }).then(response => {
+          console.log(response.data);
+        });
+      } else {
+        let dto = {"postId" : this.post.id, "reactionType" : reactionType}
+        axios({
+          method: "post",
+          url: comm.protocol + "://" + comm.server + "/api/postreaction/react",
+          data: JSON.stringify(dto),
+          headers: comm.getHeader()
+        }).then(response => {
+          console.log(response.data);
+        });
+      }
     },
   },
   watch: {
