@@ -40,7 +40,11 @@
     name: 'VerificationRequests',
 
     mounted(){
-       this.getRequests();
+       if( !comm.hasRole("ADMIN") )
+          this.$router.push({name: 'NotFound'});
+       else{
+        this.getRequests();
+       }
     },
 
     data() {return {

@@ -30,7 +30,6 @@
     </v-carousel>
 
     <v-card-text class="text--primary">
-       <v-container >
          <v-row>
           <v-col>Location: {{post.location}} </v-col>
           <v-col> {{post.description}} </v-col>
