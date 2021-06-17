@@ -2,22 +2,26 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"nistagram/postreaction/model"
 )
+
+const reactionsCollectionName = "reactions"
+const reportsCollectionName = "reports"
 
 type PostReactionRepository struct {
 	Client *mongo.Client
 }
 
 func (repo *PostReactionRepository) ReactOnPost(reaction *model.Reaction) error {
-	collection := repo.getCollection("reactions")
+	reactionsCollection := repo.getCollection(reactionsCollectionName)
 	filter := bson.D{{"profileid", reaction.ProfileID}, {"postid", reaction.PostID}}
 	var existingReaction model.Reaction
-	exists := collection.FindOne(context.TODO(), filter).Decode(&existingReaction)
+	exists := reactionsCollection.FindOne(context.TODO(), filter).Decode(&existingReaction)
 	if exists != nil {
-		_, err := collection.InsertOne(context.TODO(), reaction)
+		_, err := reactionsCollection.InsertOne(context.TODO(), reaction)
 		return err
 	}
 	update := bson.D{
@@ -25,7 +29,7 @@ func (repo *PostReactionRepository) ReactOnPost(reaction *model.Reaction) error 
 			{"reactiontype", reaction.ReactionType},
 		}},
 	}
-	result, _ := collection.UpdateOne(context.TODO(), filter, update)
+	result, _ := reactionsCollection.UpdateOne(context.TODO(), filter, update)
 	if result.MatchedCount == 0 {
 		return mongo.ErrNoDocuments
 	}
@@ -33,9 +37,29 @@ func (repo *PostReactionRepository) ReactOnPost(reaction *model.Reaction) error 
 }
 
 func (repo *PostReactionRepository) ReportPost(report *model.Report) error {
-	collection := repo.getCollection("reports")
-	_, err := collection.InsertOne(context.TODO(), report)
+	reportsCollection := repo.getCollection(reportsCollectionName)
+	_, err := reportsCollection.InsertOne(context.TODO(), report)
 	return err
+}
+
+func (repo *PostReactionRepository) GetProfileReactions(reactionType model.ReactionType, profileID uint) ([]model.Reaction, error) {
+	reactionsCollection := repo.getCollection(reactionsCollectionName)
+	filter := bson.D{{"profileid", profileID}, {"reactiontype", reactionType}}
+	reactionCursor, err := reactionsCollection.Find(context.TODO(), filter)
+	if err != nil {
+		return nil, err
+	}
+	var reactions []model.Reaction
+	for reactionCursor.Next(context.TODO()) {
+		var result model.Reaction
+		err = reactionCursor.Decode(&result)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Println(result.ProfileID, result.ReactionType, result.PostID)
+		reactions = append(reactions, result)
+	}
+	return reactions, nil
 }
 
 func (repo *PostReactionRepository) getCollection(name string) *mongo.Collection {

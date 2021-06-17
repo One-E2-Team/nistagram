@@ -3,11 +3,13 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/mux"
 	"net/http"
 	"nistagram/postreaction/dto"
 	"nistagram/postreaction/model"
 	"nistagram/postreaction/service"
 	"nistagram/util"
+	"strings"
 )
 
 type PostReactionHandler struct {
@@ -29,11 +31,6 @@ func (handler *PostReactionHandler) ReactOnPost(w http.ResponseWriter, r *http.R
 		return
 	}
 	loggedUserID := util.GetLoggedUserIDFromToken(r)
-	if loggedUserID == 0 {
-		fmt.Println("NO TOKEN")
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
 	err = handler.PostReactionService.ReactOnPost(reactionDTO.PostID, loggedUserID, reactionType)
 	if err != nil {
 		fmt.Println(err)
@@ -62,4 +59,29 @@ func (handler *PostReactionHandler) ReportPost(w http.ResponseWriter, r *http.Re
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write([]byte("{\"success\":\"ok\"}"))
 	w.Header().Set("Content-Type", "application/json")
+}
+
+func (handler *PostReactionHandler) GetMyReactions(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	reactionType := model.GetReactionType(strings.ToLower(vars["type"]))
+	if reactionType == model.NONE {
+		fmt.Println("Bad reaction type in request!")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	loggedUserID := util.GetLoggedUserIDFromToken(r)
+	posts, err := handler.PostReactionService.GetMyReactions(reactionType, loggedUserID)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	js, err := json.Marshal(posts)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(js)
 }
