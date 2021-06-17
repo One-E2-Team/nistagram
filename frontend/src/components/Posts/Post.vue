@@ -38,17 +38,18 @@
           <v-col> {{post.description}} </v-col>
          </v-row>
          <v-row>
-         <v-btn-toggle v-model="reaction" rounded color="primary">
           <v-col class="d-flex justify-space-around ">
-              <v-btn :value="'like'" class="ma-2" color="blue lighten-2" text icon @click="react('like')">
+            <v-btn-toggle v-model="reaction" color="primary" group dense>
+              <v-btn :value="'like'" class="ma-2" text icon @click="react('like')">
                 <v-icon>mdi-thumb-up</v-icon>
               </v-btn>
 
-              <v-btn :value="'dislike'" class="ma-2" color="red lighten-2" text icon @click="react('dislike')">
+              <v-btn :value="'dislike'" class="ma-2" text icon @click="react('dislike')">
                 <v-icon>mdi-thumb-down</v-icon>
               </v-btn>
+            </v-btn-toggle>
           </v-col>
-         </v-btn-toggle>
+         
          </v-row>
        </v-container>
     </v-card-text>
