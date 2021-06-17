@@ -51,6 +51,8 @@ services:
             - ./conf/certs/pem/profile.cert.pem:/nistagram/cert.pem
             - ../logs/profile:/logs/profile
             - ../nistagramstaticdata:/nistagramstaticdata
+        ports:
+            - 7000:8080
         networks: 
             - net_apigateway
             - net_db_relational
@@ -79,6 +81,8 @@ services:
             - ./conf/certs/pem/auth.cert.pem:/nistagram/cert.pem
             - ../logs/auth:/logs/auth
             - ../nistagramstaticdata/totp:/nistagramstaticdata/totp
+        ports:
+            - 7001:8080
         networks: 
             - net_apigateway
             - net_db_relational
@@ -103,6 +107,8 @@ services:
             - ./conf/certs/key/connection.key.pem:/nistagram/key.pem
             - ./conf/certs/pem/connection.cert.pem:/nistagram/cert.pem
             - ../logs/connection:/logs/connection
+        ports:
+            - 7002:8080
         networks: 
             - net_apigateway
             - net_db_graph
@@ -128,7 +134,8 @@ services:
             - ./conf/certs/key/post.key.pem:/nistagram/key.pem
             - ./conf/certs/pem/post.cert.pem:/nistagram/cert.pem
             - ../logs/post:/logs/post
-
+        ports:
+            - 7003:8080
         networks:
             - net_apigateway
             - net_mongo
@@ -153,7 +160,8 @@ services:
             - ./conf/certs/key/postreaction.key.pem:/nistagram/key.pem
             - ./conf/certs/pem/postreaction.cert.pem:/nistagram/cert.pem
             - ../logs/postreaction:/logs/postreaction
-
+        ports:
+            - 7004:8080
         networks:
             - net_apigateway
             - net_mongo
