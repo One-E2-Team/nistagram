@@ -102,7 +102,7 @@ export default {
                     headers: comm.getHeader(),
                     }).then(response => {
                         if(response.status==200)
-                            this.isFollowed = response.data;
+                            this.posts = response.data;
                         });
         },
         loadIfUserAreFollowed(){
@@ -111,7 +111,7 @@ export default {
                     headers: comm.getHeader(),
                     }).then(response => {
                         if(response.status==200)
-                            this.posts = response.data.collection;
+                            this.isFollowed = response.data;
                         });
         }
     },

@@ -58,7 +58,7 @@ func (handler *Handler) GetConnectionPublic(w http.ResponseWriter, r *http.Reque
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	connection := handler.ConnectionService.GetConnection(uint(id1), id)
+	connection := handler.ConnectionService.GetConnection(id, uint(id1))
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(connection)
