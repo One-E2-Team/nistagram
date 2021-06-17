@@ -30,22 +30,25 @@
     </v-carousel>
 
     <v-card-text class="text--primary">
-       <v-container >
+       <v-container>
          <v-row>
           <v-col>Location: {{post.location}} </v-col>
+         </v-row>
+         <v-row>
           <v-col> {{post.description}} </v-col>
          </v-row>
+         <v-row>
          <v-col class="d-flex justify-space-around ">
-            <v-btn class="ma-2" text icon color="blue lighten-2">
+            <v-btn class="ma-2" text icon color="blue lighten-2" @click="react('like')">
               <v-icon>mdi-thumb-up</v-icon>
             </v-btn>
 
-            <v-btn class="ma-2" text icon color="red lighten-2" >
+            <v-btn class="ma-2" text icon color="red lighten-2" @click="react('dislike')">
               <v-icon>mdi-thumb-down</v-icon>
             </v-btn>
          </v-col>
-         <v-row >
          </v-row>
+       </v-container>
     </v-card-text>
   </v-card>
 </template>
@@ -53,44 +56,56 @@
 <script>
 import PostModal from '../../modals/PostModal.vue'
 import * as comm from '../../configuration/communication.js'
+import axios from 'axios'
 export default {
-    components: { PostModal },
-    name: "Post",
-    props: ['post','usage'],
-    data() {
-        return {
-            showDialog : false,
-            width: 300,
-            height: 200,
-            showTitle: false,
-            protocol: comm.protocol,
-            server: comm.server,
-        }
-    },
-    mounted() {
-      this.designView();
-    },
-    methods: {
-        designView() {
-          if (this.usage == 'Profile') {
-            this.width = 300;
-            this.height = 400;
-            this.showTitle = false;
-          } else if (this.usage == 'Explore') {
-            this.width = 300;
-            this.height = 400;
-            this.showTitle = true;
-          } else if(this.usage == 'HomePage') {
-            this.width = 600;
-            this.height = 700;
-            this.showTitle = true;
-          }
-        }
-    },
-    watch: {
-      usage(){
-        this.designView();
-      }
+  components: { PostModal },
+  name: "Post",
+  props: ['post','usage'],
+  data() {
+    return {
+      showDialog : false,
+      width: 300,
+      height: 200,
+      showTitle: false,
+      protocol: comm.protocol,
+      server: comm.server,
     }
+  },
+  mounted() {
+    this.designView();
+  },
+  methods: {
+    designView() {
+      if (this.usage == 'Profile') {
+        this.width = 300;
+        this.height = 400;
+        this.showTitle = false;
+      } else if (this.usage == 'Explore') {
+        this.width = 300;
+        this.height = 400;
+        this.showTitle = true;
+      } else if(this.usage == 'HomePage') {
+        this.width = 600;
+        this.height = 700;
+        this.showTitle = true;
+      }
+    }, 
+    react (reactionType) {
+      let dto = {"postId" : this.post.id, "reactionType" : reactionType}
+      axios({
+        method: "post",
+        url: comm.protocol + "://" + comm.server + "/api/postreaction/react",
+        data: JSON.stringify(dto),
+        headers: comm.getHeader()
+      }).then(response => {
+        console.log(response.data);
+      });
+    },
+  },
+  watch: {
+    usage(){
+      this.designView();
+    }
+  }
 }
 </script>
