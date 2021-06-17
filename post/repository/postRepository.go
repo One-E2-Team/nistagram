@@ -9,6 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"nistagram/post/dto"
 	"nistagram/post/model"
+	"nistagram/util"
 	"strings"
 	"time"
 )
@@ -74,7 +75,7 @@ func (repo *PostRepository) GetProfilesPosts(followingProfiles []uint, targetUse
 		var result model.Post
 		err = postCursor.Decode(&result)
 		if result.PublisherUsername == targetUsername &&
-			(result.IsPrivate == false || contains(followingProfiles, result.PublisherId)) {
+			(result.IsPrivate == false || util.Contains(followingProfiles, result.PublisherId)) {
 			posts = append(posts, result)
 		}
 	}
@@ -83,7 +84,7 @@ func (repo *PostRepository) GetProfilesPosts(followingProfiles []uint, targetUse
 		var result model.Post
 		err = storyCursor.Decode(&result)
 		if result.PublisherUsername == targetUsername &&
-			(result.IsPrivate == false || contains(followingProfiles, result.PublisherId)) {
+			(result.IsPrivate == false || util.Contains(followingProfiles, result.PublisherId)) {
 			duration, err := time.ParseDuration("24h")
 			if err != nil {
 				fmt.Println(err)
@@ -289,7 +290,7 @@ func (repo *PostRepository) GetPostsForHomePage(followingProfiles []uint) []mode
 	for postCursor.Next(context.TODO()) {
 		var result model.Post
 		err = postCursor.Decode(&result)
-		if contains(followingProfiles, result.PublisherId) {
+		if util.Contains(followingProfiles, result.PublisherId) {
 			posts = append(posts, result)
 		}
 	}
@@ -297,7 +298,7 @@ func (repo *PostRepository) GetPostsForHomePage(followingProfiles []uint) []mode
 	for storyCursor.Next(context.TODO()) {
 		var result model.Post
 		err = storyCursor.Decode(&result)
-		if contains(followingProfiles, result.PublisherId) {
+		if util.Contains(followingProfiles, result.PublisherId) {
 			duration, err := time.ParseDuration("24h")
 			if err != nil {
 				fmt.Println(err)
@@ -309,15 +310,6 @@ func (repo *PostRepository) GetPostsForHomePage(followingProfiles []uint) []mode
 	}
 
 	return posts
-}
-
-func contains(array []uint, el uint) bool {
-	for _, a := range array {
-		if a == el {
-			return true
-		}
-	}
-	return false
 }
 
 func (repo *PostRepository) Create(post *model.Post) error {

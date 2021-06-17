@@ -7,5 +7,6 @@ type ProfileDto struct {
 }
 
 type ProfileSettings struct {
-	IsPrivate bool `json:"isPrivate"`
+	IsPrivate    bool `json:"isPrivate"`
+	CanBeTagged  bool `json:"canBeTagged"`
 }

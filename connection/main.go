@@ -83,9 +83,9 @@ func handleFunc(handler *handler.Handler) {
 	router.HandleFunc("/connection/following/request/{profileId}",
 		util.RBAC(handler.DeclineFollowRequest, "EDIT_CONNECTION_STATUS", false)).Methods("DELETE") //frontend func
 	router.HandleFunc("/connection/block/{profileId}",
-		util.RBAC(handler.BlockProfile, "EDIT_CONNECTION_STATUS" ,false)).Methods("PUT")
+		util.RBAC(handler.BlockProfile, "EDIT_CONNECTION_STATUS" ,false)).Methods("PUT")	//frontend func
 	router.HandleFunc("/connection/mute/{profileId}",
-		util.RBAC(handler.MuteProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT")
+		util.RBAC(handler.MuteProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT")	//frontend func
 		fmt.Println("Starting server..")
 	host, port := util.GetConnectionHostAndPort()
 	var err error

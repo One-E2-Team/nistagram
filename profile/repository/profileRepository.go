@@ -37,7 +37,7 @@ func (repo *ProfileRepository) FindUsernameContains(username string) []string {
 
 func (repo *ProfileRepository) FindProfileByUsername(username string) (*model.Profile, error) {
 	profile := &model.Profile{}
-	if err := repo.RelationalDatabase.Preload("PersonalData").First(&profile, "username = ?", username).Error; err != nil {
+	if err := repo.RelationalDatabase.Preload("ProfileSettings").Preload("PersonalData").First(&profile, "username = ?", username).Error; err != nil {
 		return nil, err
 	}
 	return profile, nil

@@ -35,3 +35,12 @@ func String2Uint(input string) uint {
 	}
 	return uint(u64)
 }
+
+func Contains(array []uint, el uint) bool {
+	for _, a := range array {
+		if a == el {
+			return true
+		}
+	}
+	return false
+}

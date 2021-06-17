@@ -370,11 +370,6 @@ func (handler *Handler) ChangePrivacy(w http.ResponseWriter, r *http.Request) {
 
 func safePostDto(postDto dto.PostDto) dto.PostDto {
 	postDto.Description = template.HTMLEscapeString(postDto.Description)
-	taggedUsers := postDto.TaggedUsers
-	for i := 0; i < len(postDto.TaggedUsers); i++ {
-		taggedUsers[i] = template.HTMLEscapeString(postDto.TaggedUsers[i])
-	}
-	postDto.TaggedUsers = taggedUsers
 	postDto.HashTags = template.HTMLEscapeString(postDto.HashTags)
 	postDto.Location = template.HTMLEscapeString(postDto.Location)
 	return postDto
@@ -396,7 +391,6 @@ func getProfileByProfileId(profileId uint) (*http.Response, error) {
 		nil, map[string]string{})
 	return resp, err
 }
-
 
 func (handler *Handler) createPost(profileId uint,postDto dto.PostDto, mediaNames []string) error {
 	postType := model.GetPostType(postDto.PostType)
