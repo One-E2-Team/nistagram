@@ -73,7 +73,7 @@ func (repo *ConnectionRepository) GetConnectedProfiles(conn model.Connection, ex
 	profileIDs, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
 		result, err := transaction.Run(
 			"MATCH (a:Profile)-[e:FOLLOWS]->(b:Profile) \n"+
-				"WHERE a.profileID = $primary AND e.block = FALSE "+additionalSelector+"\n"+
+				"WHERE a.profileID = $primary "+additionalSelector+"\n"+
 				"RETURN b",
 			conn.ToMap())
 		var ret []uint
@@ -116,7 +116,6 @@ func (repo *ConnectionRepository) SelectConnection(id1, id2 uint, doCreate bool)
 		Approved:          false,
 		MessageRequest:    false,
 		MessageConnected:  false,
-		Block:             false,
 	}
 	fmt.Println(conn.ToMap())
 	resultingConn, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
@@ -132,7 +131,7 @@ func (repo *ConnectionRepository) SelectConnection(id1, id2 uint, doCreate bool)
 					"WHERE a.profileID = $primary AND b.profileID = $secondary \n"+
 					"MERGE (a)-[e:FOLLOWS {muted: FALSE, closeFriend: FALSE, notifyPost: FALSE, notifyStory: "+
 					"FALSE, notifyMessage: FALSE, notifyComment: FALSE, connectionRequest: FALSE, approved: FALSE, "+
-					"messageRequest: FALSE, messageConnected: FALSE, block: FALSE}]->(b) \n"+
+					"messageRequest: FALSE, messageConnected: FALSE}]->(b) \n"+
 					"RETURN e",
 				conn.ToMap())
 			if err1 != nil {
@@ -159,7 +158,6 @@ func (repo *ConnectionRepository) SelectConnection(id1, id2 uint, doCreate bool)
 			Approved:          res["approved"].(bool),
 			MessageRequest:    res["messageRequest"].(bool),
 			MessageConnected:  res["messageConnected"].(bool),
-			Block:             res["block"].(bool),
 		}
 		return ret, err
 	})
@@ -181,7 +179,7 @@ func (repo *ConnectionRepository) UpdateConnection(conn *model.Connection) (*mod
 				"SET e.muted = $muted, e.closeFriend = $closeFriend, e.notifyPost = $notifyPost, "+
 				"e.notifyStory = $notifyStory, e.notifyMessage = $notifyMessage, e.notifyComment = $notifyComment, "+
 				"e.connectionRequest = $connectionRequest, e.approved = $approved, e.messageRequest = $messageRequest, "+
-				"e.messageConnected = $messageConnected, e.block = $block \n"+
+				"e.messageConnected = $messageConnected \n"+
 				"RETURN e\n",
 			conn.ToMap())
 		if err != nil {
@@ -204,7 +202,6 @@ func (repo *ConnectionRepository) UpdateConnection(conn *model.Connection) (*mod
 			Approved:          res["approved"].(bool),
 			MessageRequest:    res["messageRequest"].(bool),
 			MessageConnected:  res["messageConnected"].(bool),
-			Block:             res["block"].(bool),
 		}
 		return ret, err
 	})
@@ -251,7 +248,6 @@ func (repo *ConnectionRepository) GetAllFollowRequests(id uint) *[]uint {
 		Approved:          false,
 		MessageRequest:    false,
 		MessageConnected:  false,
-		Block:             false,
 	}
 	session := (*repo.DatabaseDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	defer session.Close()

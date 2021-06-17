@@ -56,8 +56,15 @@ func initConnectionRepo(databaseDriver *neo4j.Driver) *repository.ConnectionRepo
 	return &repository.ConnectionRepository{DatabaseDriver: databaseDriver}
 }
 
-func initService(connectionRepo *repository.ConnectionRepository) *service.ConnectionService {
-	return &service.ConnectionService{ConnectionRepository: connectionRepo}
+func initBlockRepo(databaseDriver *neo4j.Driver) *repository.BlockRepository {
+	return &repository.BlockRepository{DatabaseDriver: databaseDriver}
+}
+
+func initService(connectionRepo *repository.ConnectionRepository, blockRepo *repository.BlockRepository) *service.ConnectionService {
+	return &service.ConnectionService{
+		ConnectionRepository: connectionRepo,
+		BlockRepository:      blockRepo,
+	}
 }
 
 func initHandler(service *service.ConnectionService) *handler.Handler {
@@ -82,8 +89,8 @@ func handleFunc(handler *handler.Handler) {
 		util.RBAC(handler.GetAllFollowRequests, "READ_CONNECTION_REQUESTS", true)).Methods("GET") //frontend func
 	router.HandleFunc("/connection/following/request/{profileId}",
 		util.RBAC(handler.DeclineFollowRequest, "EDIT_CONNECTION_STATUS", false)).Methods("DELETE") //frontend func
-	router.HandleFunc("/connection/block/{profileId}", handler.BlockProfile).Methods("PUT")
-	router.HandleFunc("/connection/mute/{profileId}", handler.MuteProfile).Methods("PUT")
+	router.HandleFunc("/connection/block/{profileId}", handler.ToggleBlockProfile).Methods("PUT")
+	router.HandleFunc("/connection/mute/{profileId}", handler.ToggleMuteProfile).Methods("PUT")
 		fmt.Println("Starting server..")
 	host, port := util.GetConnectionHostAndPort()
 	var err error
@@ -102,7 +109,8 @@ func main() {
 	db := initDB()
 	defer (*db).Close()
 	connectionRepo := initConnectionRepo(db)
-	connectionService := initService(connectionRepo)
+	blockRepo := initBlockRepo(db)
+	connectionService := initService(connectionRepo, blockRepo)
 	connectionHandler := initHandler(connectionService)
 	_ = util.SetupMSAuth("connection")
 	handleFunc(connectionHandler)
