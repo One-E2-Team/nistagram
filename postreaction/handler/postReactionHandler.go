@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"nistagram/postReaction/dto"
-	"nistagram/postReaction/model"
-	"nistagram/postReaction/service"
+	"nistagram/postreaction/dto"
+	"nistagram/postreaction/model"
+	"nistagram/postreaction/service"
 	"nistagram/util"
 )
 

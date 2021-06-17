@@ -50,10 +50,10 @@ func GetPostHostAndPort() (string, string) {
 
 func GetPostReactionHostAndPort() (string, string) {
 	var postReactionHost, postReactionPort = "localhost", "8087" // dev.db environment
-	//if DockerChecker() {
-	//	postReactionHost = "postReaction"
-	//	postReactionPort = "8080"
-	//}
+	if DockerChecker() {
+		postReactionHost = "postreaction"
+		postReactionPort = "8080"
+	}
 	return postReactionHost, postReactionPort
 }
 

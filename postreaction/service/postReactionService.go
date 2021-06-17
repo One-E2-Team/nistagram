@@ -1,8 +1,8 @@
 package service
 
 import (
-	"nistagram/postReaction/model"
-	"nistagram/postReaction/repository"
+	"nistagram/postreaction/model"
+	"nistagram/postreaction/repository"
 	"time"
 )
 
