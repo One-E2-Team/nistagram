@@ -38,15 +38,17 @@
           <v-col> {{post.description}} </v-col>
          </v-row>
          <v-row>
-         <v-col class="d-flex justify-space-around ">
-            <v-btn class="ma-2" text icon color="blue lighten-2" @click="react('like')">
-              <v-icon>mdi-thumb-up</v-icon>
-            </v-btn>
+         <v-btn-toggle v-model="reaction" rounded>
+          <v-col class="d-flex justify-space-around ">
+              <v-btn class="ma-2" text icon color="blue lighten-2" @click="react('like')">
+                <v-icon>mdi-thumb-up</v-icon>
+              </v-btn>
 
-            <v-btn class="ma-2" text icon color="red lighten-2" @click="react('dislike')">
-              <v-icon>mdi-thumb-down</v-icon>
-            </v-btn>
-         </v-col>
+              <v-btn class="ma-2" text icon color="red lighten-2" @click="react('dislike')">
+                <v-icon>mdi-thumb-down</v-icon>
+              </v-btn>
+          </v-col>
+         </v-btn-toggle>
          </v-row>
        </v-container>
     </v-card-text>
@@ -69,6 +71,7 @@ export default {
       showTitle: false,
       protocol: comm.protocol,
       server: comm.server,
+      reaction: null,
     }
   },
   mounted() {
