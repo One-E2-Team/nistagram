@@ -7,9 +7,9 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"net/http"
-	"nistagram/postReaction/handler"
-	"nistagram/postReaction/repository"
-	"nistagram/postReaction/service"
+	"nistagram/postreaction/handler"
+	"nistagram/postreaction/repository"
+	"nistagram/postreaction/service"
 	"nistagram/util"
 	"os"
 	"time"
@@ -59,16 +59,18 @@ func initHandler(postService *service.PostReactionService) *handler.PostReaction
 
 func handleFunc(handler *handler.PostReactionHandler) {
 	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/react", handler.ReactOnPost).Methods("POST")
-	router.HandleFunc("/report", handler.ReportPost).Methods("POST")
+	router.HandleFunc("/react",
+		util.RBAC(handler.ReactOnPost, "REACT_ON_POST", false)).Methods("POST") //frontend func
+	router.HandleFunc("/report",
+		util.RBAC(handler.ReportPost, "REPORT_POST", false)).Methods("POST") //frontend func
 	fmt.Println("Post reaction server started...")
 	host, port := util.GetPostReactionHostAndPort()
 	var err error
-	/*if util.DockerChecker() {
+	if util.DockerChecker() {
 		err = http.ListenAndServeTLS(":"+port, "../cert.pem", "../key.pem", router)
-	} else {*/
-	err = http.ListenAndServe(host+":"+port, router)
-	//}
+	} else {
+		err = http.ListenAndServe(host+":"+port, router)
+	}
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -90,6 +92,6 @@ func main() {
 	postReactionRepo := initPostRepo(client)
 	postReactionService := initService(postReactionRepo)
 	postReactionHandler := initHandler(postReactionService)
-	_ = util.SetupMSAuth("postReaction")
+	_ = util.SetupMSAuth("postreaction")
 	handleFunc(postReactionHandler)
 }
