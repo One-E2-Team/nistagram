@@ -193,10 +193,19 @@ func (handler *Handler) Search(w http.ResponseWriter, r *http.Request) {
 func (handler *Handler) SearchForTag(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	loggedUserId := util.GetLoggedUserIDFromToken(r)
-	result := handler.ProfileService.SearchForTag(loggedUserId, template.HTMLEscapeString(vars["username"]))
-	w.Header().Set("Content-Type", "application/json")
-	err := json.NewEncoder(w).Encode(result)
+	result, err := handler.ProfileService.SearchForTag(loggedUserId, template.HTMLEscapeString(vars["username"]))
 	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("{\"message\":\"error\"}"))
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(result)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("{\"message\":\"error\"}"))
 		return
 	}
 	w.WriteHeader(http.StatusOK)
