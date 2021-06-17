@@ -3,12 +3,11 @@
         <v-row align="left" >
             <v-col cols="12" sm="11" >
                 <personal-data v-on:loaded-user='profileLoaded($event)' style="height:200px" v-bind:username="username"/>
-                <v-btn v-if="!isMyProfile"
-                color="warning"
-                elevation="8"
-                @click="follow"
-                >
-                Follow
+                <v-btn v-if="!isMyProfile && !isFollowed" color="warning" elevation="8" @click="follow">
+                    Follow
+                </v-btn>
+                <v-btn v-if="!isMyProfile && isFollowed" color="normal" elevation="8" @click="unfollow">
+                    Unfollow
                 </v-btn>
                 <follow-requests v-if="isMyProfile"/>
                 <v-btn v-if="isMyProfile"
@@ -53,6 +52,7 @@ export default {
             server: comm.server,
             protocol: comm.protocol,
             showFollowOption: false,
+            isFollowed: false,
         }
     },
     methods: {
@@ -67,30 +67,18 @@ export default {
               }
             })
         },
+        unfollow(){
+            alert('I need endpoint to do that you know igor fy_master -_- ')
+            //TODO: send axios for unfollow and when response status is 200 then this.isFollowed set on false
+        },
         profileLoaded(loadedProfileID){
             this.profileId = loadedProfileID;
             this.isMyProfile = comm.getLoggedUserID() == loadedProfileID;
             if (this.isMyProfile){
-                axios({
-                method: "get",
-                url: comm.protocol + '://' + comm.server + '/api/post/my',
-                headers: comm.getHeader(),
-            }).then(response => {
-              if (response.status==200){
-                  this.posts = response.data.collection;
-              }
-            })
-
+                this.loadMyPosts();
             } else {
-                axios({
-                method: "get",
-                url: comm.protocol + '://' + comm.server + '/api/post/profile/' + this.username,
-                headers: comm.getHeader(),
-            }).then(response => {
-              if(response.status==200){
-                  this.posts = response.data.collection;
-              }
-            })
+                this.loadPostsFromUsername();
+                this.loadIfUserAreFollowed();
             }
         },
         showFollowOptionDialog() {
@@ -98,6 +86,33 @@ export default {
         },
         redirectToCreatePost() {
             this.$router.push({name:'Post'});
+        },
+        loadMyPosts(){
+            axios({ method: "get", 
+                    url: comm.protocol + '://' + comm.server + '/api/post/my',
+                    headers: comm.getHeader()
+                    }).then(response => {
+                        if (response.status==200)
+                            this.posts = response.data.collection;  
+                        });
+        },
+        loadPostsFromUsername(){
+            axios({ method: "get",
+                    url: comm.protocol + '://' + comm.server + '/api/post/profile/' + this.username, 
+                    headers: comm.getHeader(),
+                    }).then(response => {
+                        if(response.status==200)
+                            this.isFollowed = response.data;
+                        });
+        },
+        loadIfUserAreFollowed(){
+            axios({ method: "get",
+                    url: comm.protocol + '://' + comm.server + '/api/connection/following/my-properties/' + this.profileId, 
+                    headers: comm.getHeader(),
+                    }).then(response => {
+                        if(response.status==200)
+                            this.posts = response.data.collection;
+                        });
         }
     },
 }
