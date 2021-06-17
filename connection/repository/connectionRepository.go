@@ -143,6 +143,9 @@ func (repo *ConnectionRepository) SelectConnection(id1, id2 uint, doCreate bool)
 				}
 			}
 		}
+		if rerr != nil{
+			return nil, rerr
+		}
 		res := record.Values[0].(dbtype.Relationship).Props
 		fmt.Println(res)
 		var ret = model.Connection{
@@ -164,6 +167,7 @@ func (repo *ConnectionRepository) SelectConnection(id1, id2 uint, doCreate bool)
 	fmt.Println(resultingConn)
 	if err != nil {
 		fmt.Println(err.Error())
+		return nil, false
 	}
 	var ret = resultingConn.(model.Connection)
 	return &ret, true
