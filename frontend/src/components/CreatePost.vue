@@ -10,11 +10,29 @@
       <v-form ref="form"  v-model="valid" lazy-validation>
       <v-card >
         <v-card-text>
-          <v-text-field
+          <v-text-field @keyup="e => findTag(e)"
             v-model="description"
             label="Description"
-            :rules="[rules.required, rules.max255]"
+            :rules="[rules.max255]"
           ></v-text-field>
+
+          <v-list rounded>
+              <v-list-item-group
+                color="primary"
+              >
+                <v-list-item @click="setTag(item)"
+                  v-for="(item, i) in searchedTaggedUsers"
+                  :key="i"
+                >
+                  <v-list-item-icon>
+                     <v-icon>mdi-account</v-icon>
+                  </v-list-item-icon>
+                  <v-list-item-content>
+                    <v-list-item-title v-text="item"></v-list-item-title>
+                  </v-list-item-content>
+                </v-list-item>
+              </v-list-item-group>
+            </v-list>
 
           <v-autocomplete
             ref="selectedPostType"
@@ -106,6 +124,9 @@
     data() {return {
       valid: true,
       description: '',
+      searchedTaggedUsers : [],
+      cursorStart: -1,
+      cursorEnd: -1,
       rules: validator.rules,
       selectedPostType: null,
       location: '',
@@ -164,11 +185,39 @@
           console.log(response);
         });
     
+      },
+      findTag(e){
+        let end = e.target.selectionStart -1;
+        if (this.description[end] == '@')
+          return;
+        for(let i = end; i >= 0; i--){
+          if(this.description[i] == ' ')
+            break;
+          if(this.description[i] == '@'){
+              this.cursorStart = i + 1;
+              this.cursorEnd = end;
+              this.searchUsername(this.description.slice(i+1, end + 1));
+              return;
+          }
+        }
+        this.searchedTaggedUsers = [];
+      },
+      searchUsername(username){
+        axios({
+          method: "get",
+          url: comm.protocol + '://' + comm.server + '/api/profile/search-for-tag/' + username,
+          headers: comm.getHeader()
+        }).then(response => {
+          if(response.status==200){
+            this.searchedTaggedUsers = response.data.collection;
+          }
+        })
+      },
+      setTag(item){
+        this.description = this.description.slice(0, this.cursorStart - 1) +
+                           item + this.description.slice(this.cursorEnd + 1, this.description.length - 1);
+        this.searchedTaggedUsers = [];
       }
     }
   }
 </script>
-
-<style>
-
-</style>
