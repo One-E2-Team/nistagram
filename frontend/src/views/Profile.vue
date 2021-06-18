@@ -72,8 +72,15 @@ export default {
             })
         },
         unfollow(){
-            alert('I need endpoint to do that you know igor fy_master -_- ')
-            //TODO: send axios for unfollow and when response status is 200 then this.isFollowed set on false
+            axios({
+                method: "put",
+                url: comm.protocol + '://' + comm.server + '/api/connection/unfollowing/' + this.profileId,
+                headers: comm.getHeader(),
+            }).then(response => {
+              if (response.status==200){
+                  this.isFollowed = false;
+              }
+            })
         },
         profileLoaded(loadedProfile){
             this.profileId = loadedProfile.ID;
