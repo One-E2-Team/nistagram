@@ -4,11 +4,12 @@
         <v-row align="center" justify="center">
           <v-col cols="12" sm="4"><v-spacer/></v-col>
           <v-col cols="12" sm="4">
-                <router-link v-if="isUserLogged" to="/homePage">Home page</router-link> 
-                <router-link v-else to="/">Home</router-link> |
-                <router-link to="/explore">Explore </router-link>
-                <template v-if="isUserLogged"> | <router-link to="/reactions" >Reactions</router-link> </template>
-                <template v-if="hasRole('ADMIN')"> | <router-link to="/verificationRequests" >Requests</router-link> </template>    
+            
+                <router-link v-if="isUserLogged" :to="{ name: 'HomePage'}">Home page</router-link> 
+                <router-link v-else :to="{ name: 'Home'}">Home</router-link> |
+                <router-link :to="{ name: 'Explore'}">Explore </router-link>
+                <template v-if="isUserLogged"> | <router-link :to="{ name: 'Reactions'}" >Reactions</router-link> </template>
+                <template v-if="hasRole('ADMIN')"> | <router-link :to="{ name: 'VerificationRequests'}" >Verification Requests</router-link> </template>    
           </v-col>
           <v-col cols="12" sm="4">
               <v-spacer />

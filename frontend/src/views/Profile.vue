@@ -10,11 +10,7 @@
                     Unfollow
                 </v-btn>
                 <follow-requests v-if="isMyProfile"/>
-                <v-btn v-if="isMyProfile"
-                color="normal"
-                elevation="8"
-                @click="redirectToCreatePost()"
-                >
+                <v-btn v-if="isMyProfile" color="normal" elevation="8" @click="redirectToCreatePost()">
                 Create post
                 </v-btn>
                 <profile-options-drop-menu v-if="!isMyProfile" v-bind:profileId="profileId" class="mx-2">

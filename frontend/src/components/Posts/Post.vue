@@ -6,7 +6,7 @@
     <v-list-item v-if="showTitle">
       <v-list-item-content >
         <v-list-item-title  class="text-h6 d-flex justify-space-between ">
-          <label> {{post.publisherUsername}} </label>
+          <router-link :to="{ name: 'Profile', params: { username: post.publisherUsername }}">{{post.publisherUsername}}</router-link>
           <v-btn dark icon @click="showDialog = true">
             <v-icon color="blue">mdi-dots-horizontal</v-icon>
           </v-btn>
