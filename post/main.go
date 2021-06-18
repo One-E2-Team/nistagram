@@ -76,7 +76,10 @@ func handleFunc(handler *handler.Handler) {
 	router.HandleFunc("/user", handler.DeleteUserPosts).Methods("DELETE")
 	router.HandleFunc("/user/{loggedUserId}/username",
 		util.MSAuth(handler.ChangeUsername, []string{"profile"})).Methods("PUT")
-	router.HandleFunc("/{postType}/{id}", handler.GetPost).Methods("GET")
+	router.HandleFunc("/collection/{postType}/{id}",
+		util.MSAuth(handler.GetPost, []string{"postreaction"})).Methods("GET")
+	router.HandleFunc("/get-collection/{postType}",
+		util.MSAuth(handler.GetPosts, []string{"postreaction"})).Methods("POST")
 	router.HandleFunc("/{postType}/{id}", handler.DeletePost).Methods("DELETE")
 	router.HandleFunc("/{postType}/{id}", handler.UpdatePost).Methods("PUT")
 	fmt.Println("Starting server..")

@@ -14,12 +14,12 @@
         ></v-checkbox>
 
         <v-checkbox
-          v-model="settings.canReceiveMessageFromUnknown"
+          v-model="settings.canBeTagged"
           :label="`Can be tagged on posts`"
         ></v-checkbox>
 
         <v-checkbox
-          v-model="settings.canBeTagged"
+          v-model="settings.canReceiveMessageFromUnknown"
           :label="`Can recieve message from unknown profiles`"
         ></v-checkbox>
 
