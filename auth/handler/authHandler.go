@@ -23,7 +23,6 @@ func (handler *AuthHandler) LogIn(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		util.Logging(util.ERROR, methodPath, "", err.Error(), "auth")
 		w.WriteHeader(http.StatusBadRequest)
-		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 	var user *model.User
@@ -31,7 +30,6 @@ func (handler *AuthHandler) LogIn(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		util.Logging(util.WARN, methodPath, util.GetIPAddress(r), err.Error(), "auth")
 		w.WriteHeader(http.StatusBadRequest)
-		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 
@@ -39,7 +37,6 @@ func (handler *AuthHandler) LogIn(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		util.Logging(util.ERROR, methodPath, "", err.Error(), "auth")
 		w.WriteHeader(http.StatusBadRequest)
-		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 	resp := dto.TokenResponseDTO{
@@ -53,7 +50,6 @@ func (handler *AuthHandler) LogIn(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		util.Logging(util.ERROR, methodPath, "", err.Error(), "auth")
 		w.WriteHeader(http.StatusBadRequest)
-		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 	w.WriteHeader(http.StatusOK)
@@ -69,14 +65,12 @@ func (handler *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
-		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 	err = handler.AuthService.Register(registerDTO)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
-		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
@@ -91,14 +85,12 @@ func (handler *AuthHandler) RequestPassRecovery(w http.ResponseWriter, r *http.R
 	if err != nil {
 		util.Logging(util.ERROR, methodPath, "", err.Error(), "auth")
 		w.WriteHeader(http.StatusBadRequest)
-		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 	err = handler.AuthService.RequestPassRecovery(email)
 	if err != nil {
 		util.Logging(util.WARN, methodPath, util.GetIPAddress(r), "'"+email+"' "+err.Error(), "auth")
 		w.WriteHeader(http.StatusBadRequest)
-		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 	w.WriteHeader(http.StatusOK)
@@ -114,14 +106,12 @@ func (handler *AuthHandler) ChangePassword(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		util.Logging(util.ERROR, methodPath, "", err.Error(), "auth")
 		w.WriteHeader(http.StatusBadRequest)
-		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 	err = handler.AuthService.ChangePassword(recoveryDTO)
 	if err != nil {
 		util.Logging(util.WARN, methodPath, util.GetIPAddress(r), err.Error(), "auth")
 		w.WriteHeader(http.StatusBadRequest)
-		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 	w.WriteHeader(http.StatusOK)
@@ -137,14 +127,12 @@ func (handler *AuthHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
-		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 	err = handler.AuthService.UpdateUser(updateUserDto)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
-		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 	w.WriteHeader(http.StatusOK)
@@ -158,7 +146,6 @@ func (handler *AuthHandler) ValidateUser(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
-		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 	w.WriteHeader(http.StatusOK)
@@ -170,7 +157,6 @@ func (handler *AuthHandler) ValidateUser(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
-		_, _ = w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -199,14 +185,8 @@ func (handler *AuthHandler) GetPrivileges(w http.ResponseWriter, r *http.Request
 }
 
 func (handler *AuthHandler) BanUser(w http.ResponseWriter, r *http.Request) {
-	var username string
-	err := json.NewDecoder(r.Body).Decode(&username)
-	if err != nil {
-		fmt.Println(err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	err = handler.AuthService.BanUser(username)
+	vars := mux.Vars(r)
+	err := handler.AuthService.BanUser(util.String2Uint(vars["profileID"]))
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)

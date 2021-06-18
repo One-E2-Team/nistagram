@@ -170,12 +170,14 @@ func (service *AuthService) GetPrivileges(id uint) *[]string {
 	return privileges
 }
 
-func (service *AuthService) BanUser(username string) error {
-	user, err := service.AuthRepository.GetUserByUsername(username)
+func (service *AuthService) BanUser(profileID uint) error {
+	user, err := service.AuthRepository.GetUserByProfileID(profileID)
 	if err != nil {
 		return err
 	}
 	user.IsDeleted = true
+	message := "Unfortunately, your account has been deleted from Nistagram due inappropriate posts!"
+	go util.SendMail(user.Email, "Deleted account", message)
 	return service.AuthRepository.UpdateUser(*user)
 }
 

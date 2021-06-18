@@ -35,14 +35,6 @@ func (repo *AuthRepository) GetUserByProfileID(id uint) (*model.User, error) {
 	return user, nil
 }
 
-func (repo *AuthRepository) GetUserByUsername(username string) (*model.User, error) {
-	user := &model.User{}
-	if err := repo.Database.Table("users").First(&user, "username = ?", username).Error; err != nil {
-		return nil, err
-	}
-	return user, nil
-}
-
 func (repo *AuthRepository) UpdateUser(user model.User) error {
 	if err := repo.Database.Save(user).Error; err != nil {
 		return err
