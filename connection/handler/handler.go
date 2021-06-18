@@ -296,7 +296,7 @@ func (handler *Handler) ToggleMuteProfile(writer http.ResponseWriter, request *h
 	vars := mux.Vars(request)
 	profileId := util.String2Uint(vars["profileId"])
 
-	_, ok := handler.ConnectionService.ToggleMuted(followerId, profileId)
+	connection, ok := handler.ConnectionService.ToggleMuted(followerId, profileId)
 
 	if !ok {
 		writer.Write([]byte("{\"status\":\"error\"}"))
@@ -305,8 +305,8 @@ func (handler *Handler) ToggleMuteProfile(writer http.ResponseWriter, request *h
 	}
 
 	writer.WriteHeader(http.StatusOK)
-	writer.Write([]byte("{\"status\":\"ok\"}"))
 	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(*connection)
 }
 
 func (handler *Handler) ToggleCloseFriendProfile(writer http.ResponseWriter, request *http.Request) {
@@ -319,7 +319,7 @@ func (handler *Handler) ToggleCloseFriendProfile(writer http.ResponseWriter, req
 	vars := mux.Vars(request)
 	profileId := util.String2Uint(vars["profileId"])
 
-	_, ok := handler.ConnectionService.ToggleCloseFriend(followerId, profileId)
+	connection, ok := handler.ConnectionService.ToggleCloseFriend(followerId, profileId)
 
 	if !ok {
 		writer.Write([]byte("{\"status\":\"error\"}"))
@@ -328,8 +328,8 @@ func (handler *Handler) ToggleCloseFriendProfile(writer http.ResponseWriter, req
 	}
 
 	writer.WriteHeader(http.StatusOK)
-	writer.Write([]byte("{\"status\":\"ok\"}"))
 	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(*connection)
 }
 
 func (handler *Handler) ToggleNotifyPostProfile(writer http.ResponseWriter, request *http.Request) {
@@ -342,7 +342,7 @@ func (handler *Handler) ToggleNotifyPostProfile(writer http.ResponseWriter, requ
 	vars := mux.Vars(request)
 	profileId := util.String2Uint(vars["profileId"])
 
-	_, ok := handler.ConnectionService.ToggleNotifyPost(followerId, profileId)
+	connection, ok := handler.ConnectionService.ToggleNotifyPost(followerId, profileId)
 
 	if !ok {
 		writer.Write([]byte("{\"status\":\"error\"}"))
@@ -351,8 +351,8 @@ func (handler *Handler) ToggleNotifyPostProfile(writer http.ResponseWriter, requ
 	}
 
 	writer.WriteHeader(http.StatusOK)
-	writer.Write([]byte("{\"status\":\"ok\"}"))
 	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(*connection)
 }
 
 func (handler *Handler) ToggleNotifyStoryProfile(writer http.ResponseWriter, request *http.Request) {
@@ -365,7 +365,7 @@ func (handler *Handler) ToggleNotifyStoryProfile(writer http.ResponseWriter, req
 	vars := mux.Vars(request)
 	profileId := util.String2Uint(vars["profileId"])
 
-	_, ok := handler.ConnectionService.ToggleNotifyStory(followerId, profileId)
+	connection, ok := handler.ConnectionService.ToggleNotifyStory(followerId, profileId)
 
 	if !ok {
 		writer.Write([]byte("{\"status\":\"error\"}"))
@@ -374,8 +374,8 @@ func (handler *Handler) ToggleNotifyStoryProfile(writer http.ResponseWriter, req
 	}
 
 	writer.WriteHeader(http.StatusOK)
-	writer.Write([]byte("{\"status\":\"ok\"}"))
 	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(*connection)
 }
 
 func (handler *Handler) ToggleNotifyMessageProfile(writer http.ResponseWriter, request *http.Request) {
@@ -388,7 +388,7 @@ func (handler *Handler) ToggleNotifyMessageProfile(writer http.ResponseWriter, r
 	vars := mux.Vars(request)
 	profileId := util.String2Uint(vars["profileId"])
 
-	_, ok := handler.ConnectionService.ToggleNotifyMessage(followerId, profileId)
+	connection, ok := handler.ConnectionService.ToggleNotifyMessage(followerId, profileId)
 
 	if !ok {
 		writer.Write([]byte("{\"status\":\"error\"}"))
@@ -397,8 +397,8 @@ func (handler *Handler) ToggleNotifyMessageProfile(writer http.ResponseWriter, r
 	}
 
 	writer.WriteHeader(http.StatusOK)
-	writer.Write([]byte("{\"status\":\"ok\"}"))
 	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(*connection)
 }
 
 func (handler *Handler) ToggleNotifyCommentProfile(writer http.ResponseWriter, request *http.Request) {
@@ -411,7 +411,7 @@ func (handler *Handler) ToggleNotifyCommentProfile(writer http.ResponseWriter, r
 	vars := mux.Vars(request)
 	profileId := util.String2Uint(vars["profileId"])
 
-	_, ok := handler.ConnectionService.ToggleNotifyComment(followerId, profileId)
+	connection, ok := handler.ConnectionService.ToggleNotifyComment(followerId, profileId)
 
 	if !ok {
 		writer.Write([]byte("{\"status\":\"error\"}"))
@@ -420,6 +420,6 @@ func (handler *Handler) ToggleNotifyCommentProfile(writer http.ResponseWriter, r
 	}
 
 	writer.WriteHeader(http.StatusOK)
-	writer.Write([]byte("{\"status\":\"ok\"}"))
 	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(*connection)
 }
