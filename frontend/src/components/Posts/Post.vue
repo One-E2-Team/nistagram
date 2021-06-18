@@ -92,6 +92,10 @@ export default {
         this.width = 600;
         this.height = 700;
         this.showTitle = true;
+      } else if(this.usage == 'MyReactions'){
+        this.width = 300;
+        this.height = 400;
+        this.showTitle = true;
       }
     }, 
     react (reactionType) {
