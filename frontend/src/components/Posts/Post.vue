@@ -7,7 +7,7 @@
       <v-list-item-content >
         <v-list-item-title  class="text-h6 d-flex justify-space-between ">
           <router-link :to="{ name: 'Profile', params: { username: post.publisherUsername }}">{{post.publisherUsername}}</router-link>
-          <v-btn dark icon v-if="comm.isUserLogged()" @click="showDialog = true">
+          <v-btn dark icon @click="showDialog = true" v-if="isUserLogged">
             <v-icon color="blue">mdi-dots-horizontal</v-icon>
           </v-btn>
         </v-list-item-title>
@@ -37,15 +37,22 @@
          </v-row>
          <v-row>
           <v-col class="d-flex justify-space-around ">
-            <v-btn-toggle v-model="reaction" color="primary" group dense>
+            <v-btn-toggle v-if="isUserLogged" v-model="reaction" color="primary" group dense>
               <v-btn :value="'like'" class="ma-2" text icon @click="react('like')">
                 <v-icon>mdi-thumb-up</v-icon>
               </v-btn>
-
               <v-btn :value="'dislike'" class="ma-2" text icon @click="react('dislike')">
                 <v-icon>mdi-thumb-down</v-icon>
               </v-btn>
             </v-btn-toggle>
+            <v-item-group v-else color="primary" group dense class="v-btn-toggle">
+              <v-btn :value="'like'" class="ma-2" text icon @click="react('like')">
+                <v-icon>mdi-thumb-up</v-icon>
+              </v-btn>
+              <v-btn :value="'dislike'" class="ma-2" text icon @click="react('dislike')">
+                <v-icon>mdi-thumb-down</v-icon>
+              </v-btn>
+            </v-item-group>
           </v-col>
          
          </v-row>
@@ -71,6 +78,7 @@ export default {
       protocol: comm.protocol,
       server: comm.server,
       reaction: null,
+      isUserLogged: comm.isUserLogged(),
     }
   },
   mounted() {
@@ -103,8 +111,11 @@ export default {
     }, 
     react (reactionType) {
       if(!comm.isUserLogged()){
-        alert('You must be logged to react on post')
-        return
+        alert('You must be logged to react on post');
+        if (this.isUserLogged) {
+           this.$router.go();
+        }
+        return;
       }
       if (reactionType == this.reaction){
         axios({
