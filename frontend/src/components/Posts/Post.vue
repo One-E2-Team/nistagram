@@ -1,8 +1,6 @@
 <template>
   <v-card
-    class="mx-auto"
-    :width="width"
-    :height="height"
+    class="mx-auto" :width="width"
   >
     <post-modal v-if="showTitle" :visible="showDialog" @close="showDialog=false" v-bind:post="post"/>
     <v-list-item v-if="showTitle">

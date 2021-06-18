@@ -29,9 +29,10 @@
 
 <script>
   import Post from '../components/Posts/Post.vue'
+  import axios from 'axios'
   import * as comm from '../configuration/communication.js'
   export default {
-    comments:{Post},
+    components:{Post},
     data () {
       return {
         reactions: ['like','dislike'],
@@ -40,17 +41,26 @@
         tabs: null,}
     },
     created(){
-        if( this.isPageAvailabe() )
-            this.$router.push({name: 'NotFound'})
-        this.showPosts('likes')
+        if(!this.isPageAvailable()) {
+          this.$router.push({name: 'NotFound'})
+          return;
+        }
+        this.showPosts('like');
     },
     methods:{
         showPosts(reaction){
-            console.log(reaction)
-            //send axios for reactions and post enter in this.posts
+          axios({
+            method: 'get',
+            url: comm.protocol + "://" + comm.server + "/api/postreaction/my-reactions/" + reaction,
+            headers: comm.getHeader(),
+          }).then(response => {
+            if(response.status == 200){
+              this.posts = response.data.collection;
+            }
+          });
         },
-        isPageAvailabe(){
-            return !comm.isUserLogged()
+        isPageAvailable(){
+            return comm.isUserLogged()
         }
     }
   }
