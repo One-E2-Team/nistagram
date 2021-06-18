@@ -45,7 +45,7 @@
         </v-row>
         <v-row justify="center" align="center" v-for="p in posts" :key="p._id">
             <v-col cols="12" sm="4" v-if="p.postType == 2">
-                <post v-bind:usage="'HomePage'" v-bind:post="p" />
+                <post v-bind:usage="'HomePage'" v-bind:post="p.post" v-bind:myReaction="p.reaction" />
              </v-col>
         </v-row>
   </v-container>

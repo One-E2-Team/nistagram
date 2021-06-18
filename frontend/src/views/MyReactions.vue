@@ -17,7 +17,7 @@
           <v-card-text>
             <v-row>
                 <v-col cols="12" sm="4" v-for="p in posts" :key="p._id">
-                    <post v-bind:usage="'MyReactions'" v-bind:post="p" />
+                    <post v-bind:usage="'MyReactions'" v-bind:post="p" v-bind:myReaction="reaction" />
                 </v-col>
             </v-row>
           </v-card-text>

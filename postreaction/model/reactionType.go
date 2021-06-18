@@ -10,6 +10,16 @@ const (
 	NONE
 )
 
+func GetReactionTypeString(reactionType ReactionType) string {
+	switch reactionType {
+	case LIKE:
+		return "like"
+	case DISLIKE:
+		return "dislike"
+	}
+	return "none"
+}
+
 func GetReactionType(reactionType string) ReactionType {
 	if strings.ToLower(reactionType) == "like" {
 		return LIKE

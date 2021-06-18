@@ -46,8 +46,8 @@
         </v-row>
         <template v-if="searchType == 'posts'">
         <v-row  >
-            <v-col cols="12" sm="3" v-for="p in postsWithTypePost" :key="p._id" >
-               <post v-bind:usage="'Explore'" v-bind:post="p"/>
+            <v-col cols="12" sm="3" v-for="p in posts" :key="p._id" >
+               <post v-bind:usage="'Explore'" v-bind:post="p.post" v-bind:myReaction="p.reaction"/>
              </v-col>
         </v-row>
         </template>
@@ -92,15 +92,18 @@ import Post from '../components/Posts/Post.vue'
       Search,
       Post
     },
-     mounted(){
-        axios.get(comm.protocol + "://" + comm.server +"/api/post/public").then((response) => {
-          if(response.status == 200){
-            this.posts = response.data.collection;
-          }
-    })
-    .catch((error) => {
-      console.log(error);
-    });
+     created(){
+      axios({
+        method: 'get',
+        url: comm.protocol + '://' + comm.server +'/api/post/public',
+        headers: comm.getHeader(),
+      }).then(response => {
+        if (response.status==200){
+          this.posts = response.data.collection;
+        }
+      }).catch((error) => {
+        console.log(error);
+      });
     },
 
     data() {

@@ -2,9 +2,11 @@ package util
 
 import (
 	"fmt"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/smtp"
 	"os"
 	"strconv"
+	"strings"
 )
 
 func SendMail(sendTo string, subject string, mailMessage string) {
@@ -43,4 +45,8 @@ func Contains(array []uint, el uint) bool {
 		}
 	}
 	return false
+}
+
+func GetStringIDFromMongoID(mongoID primitive.ObjectID) string {
+	return strings.Split(mongoID.String(), "\"")[1]
 }

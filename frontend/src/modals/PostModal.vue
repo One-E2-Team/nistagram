@@ -40,7 +40,7 @@ export default {
     }
   },
   created(){
-    this.checkIfBlocked()
+    //this.checkIfBlocked()
   },
   methods: {
       block(){
@@ -55,19 +55,19 @@ export default {
             console.log(error);
           });
       },
-      checkIfBlocked(){
-        axios({
-                method: "get",
-                url: comm.protocol + "://" + comm.server +"/api/connection/block/" + this.post.publisherId,
-                headers: comm.getHeader(),
-            }).then((response) => {
-            console.log(response.data);
-            if(response.status == 200)
-              this.isBlocked = response.data == 'true'
-            }).catch((error) => {
-                console.log(error);
-            });
-      }
+      // checkIfBlocked(){
+      //   axios({
+      //           method: "get",
+      //           url: comm.protocol + "://" + comm.server +"/api/connection/block/" + this.post.publisherId,
+      //           headers: comm.getHeader(),
+      //       }).then((response) => {
+      //       console.log(response.data);
+      //       if(response.status == 200)
+      //         this.isBlocked = response.data == 'true'
+      //       }).catch((error) => {
+      //           console.log(error);
+      //       });
+      // }
   },
   computed: {
     show: {

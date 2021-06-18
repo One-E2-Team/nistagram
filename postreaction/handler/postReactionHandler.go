@@ -98,3 +98,26 @@ func (handler *PostReactionHandler) GetMyReactions(w http.ResponseWriter, r *htt
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(js)
 }
+
+func (handler *PostReactionHandler) GetReactionTypes(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	profileID := util.String2Uint(params["profileID"])
+	type data struct {
+		Ids []string `json:"ids"`
+	}
+	var input data
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	ret := handler.PostReactionService.GetReactionTypes(profileID, input.Ids)
+	js, err := json.Marshal(ret)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(js)
+}

@@ -78,5 +78,12 @@ func (service *PostReactionService) GetMyReactions(reactionType model.ReactionTy
 		return nil, err
 	}
 	return posts, nil
+}
 
+func (service *PostReactionService) GetReactionTypes(profileID uint, postIDs []string) []string {
+	ret := make([]string, 0)
+	for _, value := range postIDs {
+		ret = append(ret, service.PostReactionRepository.GetReactionType(profileID, value))
+	}
+	return ret
 }

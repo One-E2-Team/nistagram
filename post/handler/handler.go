@@ -33,19 +33,24 @@ func (handler *Handler) GetAll(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	} else {
 		w.WriteHeader(http.StatusOK)
-		w.Write(js)
+		_, _ = w.Write(js)
 	}
 	w.Header().Set("Content-Type", "application/json")
 }
 
-func (handler Handler) GetPublic(w http.ResponseWriter, _ *http.Request) {
-	result := handler.PostService.GetPublic()
+func (handler Handler) GetPublic(w http.ResponseWriter, r *http.Request) {
+	result, err := handler.PostService.GetPublic(util.GetLoggedUserIDFromToken(r))
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
-	if js, err := json.Marshal(result) ; err != nil {
+	if js, err := json.Marshal(result); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-	}else{
+	} else {
 		w.WriteHeader(http.StatusOK)
-		w.Write(js)
+		_, _ = w.Write(js)
 	}
 	w.Header().Set("Content-Type", "application/json")
 }
@@ -54,13 +59,18 @@ func (handler Handler) GetMyPosts(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	loggedUserId := util.GetLoggedUserIDFromToken(r)
-	if loggedUserId == 0 {
+	loggedUserID := util.GetLoggedUserIDFromToken(r)
+	if loggedUserID == 0 {
 		http.Error(w, "user is not logged in", http.StatusForbidden)
 		return
 	}
 
-	result := handler.PostService.GetMyPosts(loggedUserId)
+	result, err := handler.PostService.GetMyPosts(loggedUserID)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
 	js, err := json.Marshal(result)
 	if err != nil {
@@ -79,13 +89,13 @@ func (handler Handler) GetPostsForHomePage(w http.ResponseWriter, r *http.Reques
 
 	w.Header().Set("Content-Type", "application/json")
 
-	loggedUserId := util.GetLoggedUserIDFromToken(r)
-	if loggedUserId == 0 {
+	loggedUserID := util.GetLoggedUserIDFromToken(r)
+	if loggedUserID == 0 {
 		http.Error(w, "user is not logged in", http.StatusForbidden)
 		return
 	}
 
-	resp, err := getUserFollowers(loggedUserId)
+	resp, err := getUserFollowers(loggedUserID)
 
 	if err != nil {
 		fmt.Println(err)
@@ -101,7 +111,9 @@ func (handler Handler) GetPostsForHomePage(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(resp.Body)
 
 	if err = json.Unmarshal(body, &followingProfiles); err != nil {
 		fmt.Println(err)
@@ -109,13 +121,18 @@ func (handler Handler) GetPostsForHomePage(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	result := handler.PostService.GetPostsForHomePage(followingProfiles)
+	result, err := handler.PostService.GetPostsForHomePage(followingProfiles, loggedUserID)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
 	if js, err := json.Marshal(result); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}else{
 		w.WriteHeader(http.StatusOK)
-		w.Write(js)
+		_, _ = w.Write(js)
 	}
 
 }
@@ -140,20 +157,29 @@ func (handler Handler) GetProfilesPosts(w http.ResponseWriter, r *http.Request) 
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			fmt.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
 		}
-		defer resp.Body.Close()
+		defer func(Body io.ReadCloser) {
+			_ = Body.Close()
+		}(resp.Body)
 
 		if err = json.Unmarshal(body, &followingProfiles); err != nil {
 			fmt.Println(err)
 		}
 	}
 
-	result := handler.PostService.GetProfilesPosts(followingProfiles, targetUsername)
+	result, err := handler.PostService.GetProfilesPosts(followingProfiles, targetUsername, loggedUserId)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	if js, err := json.Marshal(result); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	} else {
-		w.Write(js)
+		_, _ = w.Write(js)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -163,9 +189,13 @@ func (handler *Handler) SearchPublicByLocation(w http.ResponseWriter, r *http.Re
 	params := mux.Vars(r)
 	location := template.HTMLEscapeString(params["value"])
 
-	result := handler.PostService.GetPublicPostByLocation(location)
-
-	if err := json.NewEncoder(w).Encode(&result) ; err != nil {
+	result, err := handler.PostService.GetPublicPostByLocation(location, util.GetLoggedUserIDFromToken(r))
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	if err = json.NewEncoder(w).Encode(&result) ; err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}else{
 		w.WriteHeader(http.StatusOK)
@@ -177,9 +207,13 @@ func (handler *Handler) SearchPublicByHashTag(w http.ResponseWriter, r *http.Req
 	params := mux.Vars(r)
 	hashTag := template.HTMLEscapeString(params["value"])
 
-	result := handler.PostService.GetPublicPostByHashTag(hashTag)
-
-	if err := json.NewEncoder(w).Encode(&result) ; err != nil {
+	result, err := handler.PostService.GetPublicPostByHashTag(hashTag, util.GetLoggedUserIDFromToken(r))
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	if err = json.NewEncoder(w).Encode(&result) ; err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}else{
 		w.WriteHeader(http.StatusOK)
@@ -441,7 +475,9 @@ func (handler *Handler) createPost(profileId uint,postDto dto.PostDto, mediaName
 		return err
 	}else{
 		body, _ := io.ReadAll(resp.Body)
-		defer resp.Body.Close()
+		defer func(Body io.ReadCloser) {
+			_ = Body.Close()
+		}(resp.Body)
 		if err := json.Unmarshal(body, &profile); err != nil {
 			return err
 		}

@@ -61,7 +61,7 @@ import axios from 'axios'
 export default {
   components: { PostModal },
   name: "Post",
-  props: ['post','usage'],
+  props: ['post','usage', 'myReaction'],
   data() {
     return {
       showDialog : false,
@@ -75,6 +75,11 @@ export default {
   },
   mounted() {
     this.designView();
+    if (this.myReaction == 'none') {
+      this.reaction = null;
+      return;
+    }
+    this.reaction = this.myReaction;
   },
   methods: {
     designView() {

@@ -22,7 +22,7 @@
         </v-row>
         <v-row v-if="isFollowed || !isPrivateProfile">
             <v-col cols="12" sm="4" v-for="p in posts" :key="p._id">
-               <post v-bind:usage="'Profile'" v-bind:post="p" />
+               <post v-bind:usage="'Profile'" v-bind:post="p.post" v-bind:myReaction="p.reaction" />
             </v-col>
         </v-row>
         <v-row v-else>
@@ -106,7 +106,7 @@ export default {
                     }).then(response => {
                         if (response.status==200)
                             this.posts = response.data.collection;  
-                        });
+                    });
         },
         isUserLoggedIn(){
             return comm.isUserLogged()

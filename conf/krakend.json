@@ -467,6 +467,9 @@
           "is_collection": true,
           "target": ""
         }
+      ],
+      "headers_to_pass": [
+        "Authorization"
       ]
     },
     {
@@ -1009,6 +1012,9 @@
           "is_collection": true,
           "target": ""
         }
+      ],
+      "headers_to_pass": [
+        "Authorization"
       ]
     },
     {
@@ -1041,6 +1047,9 @@
           "is_collection": true,
           "target": ""
         }
+      ],
+      "headers_to_pass": [
+        "Authorization"
       ]
     },
     {

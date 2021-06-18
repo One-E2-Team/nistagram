@@ -70,6 +70,7 @@ export default {
           axios({
             method: "get",
             url: comm.protocol + '://' + comm.server + '/api/post/public/location/' + this.searchParams,
+            headers: comm.getHeader(),
             }).then(response => {
               if (response.status==200) {
                 let data = {
@@ -84,6 +85,7 @@ export default {
           axios({
             method: "get",
             url: comm.protocol + '://' + comm.server + '/api/post/public/hashtag/' + this.searchParams,
+            headers: comm.getHeader(),
             }).then(response => {
               if (response.status==200) {
                 let data = {
