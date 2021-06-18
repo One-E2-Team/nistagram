@@ -176,26 +176,45 @@ func (handler *AuthHandler) ValidateUser(w http.ResponseWriter, r *http.Request)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 }
 
-func (handler *AuthHandler) GetPrivileges(writer http.ResponseWriter, request *http.Request) {
-	vars := mux.Vars(request)
+func (handler *AuthHandler) GetPrivileges(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
 	id := util.String2Uint(vars["profileId"])
 	var privileges = handler.AuthService.GetPrivileges(id)
 	if privileges == nil || len(*privileges) == 0 {
 		var temp = make([]string, 0)
-		writer.WriteHeader(http.StatusBadRequest)
-		err := json.NewEncoder(writer).Encode(temp)
+		w.WriteHeader(http.StatusBadRequest)
+		err := json.NewEncoder(w).Encode(temp)
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
 	} else {
-		writer.WriteHeader(http.StatusOK)
-		err := json.NewEncoder(writer).Encode(privileges)
+		w.WriteHeader(http.StatusOK)
+		err := json.NewEncoder(w).Encode(privileges)
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
 	}
+}
+
+func (handler *AuthHandler) BanUser(w http.ResponseWriter, r *http.Request) {
+	var username string
+	err := json.NewDecoder(r.Body).Decode(&username)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	err = handler.AuthService.BanUser(username)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte("{\"success\":\"ok\"}"))
+	w.Header().Set("Content-Type", "application/json")
 }
 
 func safeRegisterDTO(dto dto.RegisterDTO) dto.RegisterDTO {

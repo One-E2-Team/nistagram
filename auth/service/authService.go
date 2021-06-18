@@ -64,7 +64,7 @@ func (service *AuthService) Register(dto dto.RegisterDTO) error {
 	}
 	fmt.Println("Bytes written: ", n)*/
 
-	user := model.User{ProfileId: util.String2Uint(dto.ProfileIdString), Password: pass, /*TotpUrl: util.EncryptedString{Data: totpUrl}, */Email: dto.Email, Username: dto.Username,
+	user := model.User{ProfileId: util.String2Uint(dto.ProfileIdString), Password: pass /*TotpUrl: util.EncryptedString{Data: totpUrl}, */, Email: dto.Email, Username: dto.Username,
 		ValidationUid: uuid.NewString(), Roles: []model.Role{*role}, IsDeleted: false, IsValidated: false, ValidationExpire: time.Now().Add(1 * time.Hour)}
 	err = service.AuthRepository.CreateUser(&user)
 	if err != nil {
@@ -168,6 +168,15 @@ func (service *AuthService) GetPrivileges(id uint) *[]string {
 		return nil
 	}
 	return privileges
+}
+
+func (service *AuthService) BanUser(username string) error {
+	user, err := service.AuthRepository.GetUserByUsername(username)
+	if err != nil {
+		return err
+	}
+	user.IsDeleted = true
+	return service.AuthRepository.UpdateUser(*user)
 }
 
 func hashAndSalt(pass string) string {
