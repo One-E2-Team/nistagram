@@ -7,7 +7,7 @@
       <v-list-item-content >
         <v-list-item-title  class="text-h6 d-flex justify-space-between ">
           <router-link :to="{ name: 'Profile', params: { username: post.publisherUsername }}">{{post.publisherUsername}}</router-link>
-          <v-btn dark icon @click="showDialog = true">
+          <v-btn dark icon v-if="comm.isUserLogged()" @click="showDialog = true">
             <v-icon color="blue">mdi-dots-horizontal</v-icon>
           </v-btn>
         </v-list-item-title>
@@ -102,6 +102,10 @@ export default {
       }
     }, 
     react (reactionType) {
+      if(!comm.isUserLogged()){
+        alert('You must be logged to react on post')
+        return
+      }
       if (reactionType == this.reaction){
         axios({
           method: "delete",
