@@ -66,7 +66,7 @@ func (service *PostService) CreatePost(postType model.PostType, post dto.PostDto
 		medias = append(medias, m)
 	}
 
-	if strings.Contains(post.Description, "@"){
+	if strings.Contains(post.Description, "@") {
 		err := canUsersBeTagged(post.Description, profile.ProfileId)
 		if err != nil {
 			return err
@@ -122,7 +122,7 @@ func canUsersBeTagged(description string, publisherId uint) error {
 				return errors.New(taggedProfile.Username + " can't be tagged!")
 			}
 
-			if !util.Contains(followingProfiles, taggedProfile.ProfileId){
+			if !util.Contains(followingProfiles, taggedProfile.ProfileId) {
 				return errors.New(taggedProfile.Username + " is not followed by this profile!")
 			}
 		}
@@ -133,7 +133,7 @@ func canUsersBeTagged(description string, publisherId uint) error {
 func getProfileByUsername(username string) (*http.Response, error) {
 	profileHost, profilePort := util.GetProfileHostAndPort()
 	resp, err := util.CrossServiceRequest(http.MethodGet,
-		util.CrossServiceProtocol+"://"+profileHost+":"+profilePort+"/get/" + username,
+		util.CrossServiceProtocol+"://"+profileHost+":"+profilePort+"/get/"+username,
 		nil, map[string]string{})
 	return resp, err
 }
@@ -171,6 +171,9 @@ func (service *PostService) ChangePrivacy(profileId uint, isPrivate bool) error 
 }
 
 func getReactionsForPosts(posts []model.Post, profileID uint) ([]dto.ResponsePostDTO, error) {
+	if len(posts) == 0 {
+		return make([]dto.ResponsePostDTO, 0), nil
+	}
 	if profileID == 0 {
 		ret := make([]dto.ResponsePostDTO, len(posts))
 		for i, value := range posts {
@@ -188,7 +191,7 @@ func getReactionsForPosts(posts []model.Post, profileID uint) ([]dto.ResponsePos
 		"ids": postIDs,
 	})
 	resp, err := util.CrossServiceRequest(http.MethodPost,
-		util.CrossServiceProtocol+"://"+postReactionHost+":"+postReactionPort+"/get-reaction-types/" + util.Uint2String(profileID),
+		util.CrossServiceProtocol+"://"+postReactionHost+":"+postReactionPort+"/get-reaction-types/"+util.Uint2String(profileID),
 		postBody, map[string]string{"Content-Type": "application/json;"})
 
 	if err != nil {

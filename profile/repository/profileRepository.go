@@ -90,7 +90,7 @@ func (repo *ProfileRepository) GetAllCategories() ([]string, error) {
 	return categories, result.Error
 }
 
-func (repo *ProfileRepository) GetVerificationRequests() ([]model.VerificationRequest, error){
+func (repo *ProfileRepository) GetVerificationRequests() ([]model.VerificationRequest, error) {
 	var requests []model.VerificationRequest
 	if err := repo.RelationalDatabase.Preload("Category").Table("verification_requests").Find(&requests, "verification_status = 0").Error; err != nil {
 		return nil, err
@@ -98,7 +98,7 @@ func (repo *ProfileRepository) GetVerificationRequests() ([]model.VerificationRe
 	return requests, nil
 }
 
-func (repo *ProfileRepository) CreateVerificationRequest(verReq *model.VerificationRequest) error{
+func (repo *ProfileRepository) CreateVerificationRequest(verReq *model.VerificationRequest) error {
 	result := repo.RelationalDatabase.Create(verReq)
 	if result.RowsAffected == 0 {
 		return fmt.Errorf("Verification request not created")
@@ -107,7 +107,7 @@ func (repo *ProfileRepository) CreateVerificationRequest(verReq *model.Verificat
 	return nil
 }
 
-func (repo *ProfileRepository) GetVerificationRequestById(id uint) (*model.VerificationRequest, error){
+func (repo *ProfileRepository) GetVerificationRequestById(id uint) (*model.VerificationRequest, error) {
 	request := &model.VerificationRequest{}
 	if err := repo.RelationalDatabase.Table("verification_requests").First(&request, "id = ?", id).Error; err != nil {
 		return nil, err

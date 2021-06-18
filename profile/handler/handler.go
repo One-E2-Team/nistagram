@@ -9,6 +9,7 @@ import (
 	"gopkg.in/go-playground/validator.v9"
 	"html/template"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"nistagram/profile/dto"
 	"nistagram/profile/service"
@@ -42,10 +43,7 @@ func (handler *Handler) Register(w http.ResponseWriter, r *http.Request) {
 			return false
 		}
 		defer func(f *os.File) {
-			err := f.Close()
-			if err != nil {
-
-			}
+			_ = f.Close()
 		}(f)
 		scanner := bufio.NewScanner(f)
 		for scanner.Scan() {
@@ -129,7 +127,7 @@ func (handler *Handler) CreateVerificationRequest(w http.ResponseWriter, r *http
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("{\"message\":\"error\"}"))
+		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
 		return
 	}
 	var reqDto dto.VerificationRequestDTO
@@ -139,7 +137,7 @@ func (handler *Handler) CreateVerificationRequest(w http.ResponseWriter, r *http
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("{\"message\":\"error\"}"))
+		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
 		return
 	}
 
@@ -154,29 +152,33 @@ func (handler *Handler) CreateVerificationRequest(w http.ResponseWriter, r *http
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("{\"message\":\"error\"}"))
+		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
 		return
 	}
 
-	f, err := os.OpenFile("../../nistagramstaticdata/data/" + fileName, os.O_WRONLY|os.O_CREATE, 0666)
-	defer f.Close()
-	defer picture.Close()
-	if err != nil{
+	f, err := os.OpenFile("../../nistagramstaticdata/data/"+fileName, os.O_WRONLY|os.O_CREATE, 0666)
+	defer func(f *os.File) {
+		_ = f.Close()
+	}(f)
+	defer func(picture multipart.File) {
+		_ = picture.Close()
+	}(picture)
+	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("{\"message\":\"error\"}"))
+		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
 		return
 	}
 	_, err = io.Copy(f, picture)
-	if err != nil{
+	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("{\"message\":\"error\"}"))
+		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("{\"message\":\"ok\"}"))
+	_, _ = w.Write([]byte("{\"message\":\"ok\"}"))
 }
 
 func (handler *Handler) Search(w http.ResponseWriter, r *http.Request) {
@@ -197,7 +199,7 @@ func (handler *Handler) SearchForTag(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("{\"message\":\"error\"}"))
+		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -205,12 +207,11 @@ func (handler *Handler) SearchForTag(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("{\"message\":\"error\"}"))
+		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
 		return
 	}
 	w.WriteHeader(http.StatusOK)
 }
-
 
 func (handler *Handler) GetProfileByUsername(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -254,21 +255,19 @@ func (handler *Handler) UpdateVerificationRequest(w http.ResponseWriter, r *http
 	var req dto.VerifyDTO
 	w.Header().Set("Content-Type", "application/json")
 	err := json.NewDecoder(r.Body).Decode(&req)
-	if err != nil{
+	if err != nil {
 		fmt.Println(err)
-		w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 
 	err = handler.ProfileService.UpdateVerificationRequest(req)
 
-	if err != nil{
+	if err != nil {
 		fmt.Println(err)
-		w.Write([]byte("{\"success\":\"error\"}"))
 		return
 	}
 
-	w.Write([]byte("{\"success\":\"ok\"}"))
+	_, _ = w.Write([]byte("{\"success\":\"ok\"}"))
 }
 
 func (handler *Handler) ChangePersonalData(w http.ResponseWriter, r *http.Request) {
@@ -398,7 +397,7 @@ func (handler *Handler) GetProfileByID(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (handler *Handler) GetVerificationRequests(w http.ResponseWriter, r *http.Request) {
+func (handler *Handler) GetVerificationRequests(w http.ResponseWriter, _ *http.Request) {
 	requests, err := handler.ProfileService.GetVerificationRequests()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

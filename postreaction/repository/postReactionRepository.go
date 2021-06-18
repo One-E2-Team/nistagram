@@ -78,7 +78,7 @@ func (repo *PostReactionRepository) GetProfileReactions(reactionType model.React
 	return reactions, nil
 }
 
-func (repo *PostReactionRepository) GetReactionType(profileID uint, postID string) string{
+func (repo *PostReactionRepository) GetReactionType(profileID uint, postID string) string {
 	reactionsCollection := repo.getCollection(reactionsCollectionName)
 	filter := bson.D{{profileIDColumn, profileID}, {postIDColumn, postID}}
 	var existingReaction model.Reaction

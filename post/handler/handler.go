@@ -25,11 +25,10 @@ type Handler struct {
 	PostService *service.PostService
 }
 
-
 func (handler *Handler) GetAll(w http.ResponseWriter, _ *http.Request) {
 	result := handler.PostService.GetAll()
 
-	if js, err := json.Marshal(result); err != nil{
+	if js, err := json.Marshal(result); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	} else {
 		w.WriteHeader(http.StatusOK)
@@ -77,12 +76,8 @@ func (handler Handler) GetMyPosts(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	if  _, err = w.Write(js); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
 	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(js)
 }
 
 func (handler Handler) GetPostsForHomePage(w http.ResponseWriter, r *http.Request) {
@@ -130,7 +125,7 @@ func (handler Handler) GetPostsForHomePage(w http.ResponseWriter, r *http.Reques
 
 	if js, err := json.Marshal(result); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-	}else{
+	} else {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write(js)
 	}
@@ -138,12 +133,9 @@ func (handler Handler) GetPostsForHomePage(w http.ResponseWriter, r *http.Reques
 }
 
 func (handler Handler) GetProfilesPosts(w http.ResponseWriter, r *http.Request) {
-
 	params := mux.Vars(r)
 	targetUsername := template.HTMLEscapeString(params["username"])
-
 	var followingProfiles []uint
-
 	loggedUserId := util.GetLoggedUserIDFromToken(r)
 
 	if loggedUserId != 0 {
@@ -195,9 +187,9 @@ func (handler *Handler) SearchPublicByLocation(w http.ResponseWriter, r *http.Re
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	if err = json.NewEncoder(w).Encode(&result) ; err != nil {
+	if err = json.NewEncoder(w).Encode(&result); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-	}else{
+	} else {
 		w.WriteHeader(http.StatusOK)
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -213,9 +205,9 @@ func (handler *Handler) SearchPublicByHashTag(w http.ResponseWriter, r *http.Req
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	if err = json.NewEncoder(w).Encode(&result) ; err != nil {
+	if err = json.NewEncoder(w).Encode(&result); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-	}else{
+	} else {
 		w.WriteHeader(http.StatusOK)
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -250,8 +242,7 @@ func (handler *Handler) Create(w http.ResponseWriter, r *http.Request) {
 
 	mediaNames := generateMediaNames(files)
 
-
-	switch err := handler.createPost(profileId,postDto,mediaNames); err{
+	switch err := handler.createPost(profileId, postDto, mediaNames); err {
 	case nil:
 		w.WriteHeader(http.StatusCreated)
 		util.Logging(util.SUCCESS, methodPath, util.GetIPAddress(r), "Success in creating post, "+util.GetLoggingStringFromID(profileId), "post")
@@ -272,7 +263,6 @@ func (handler *Handler) Create(w http.ResponseWriter, r *http.Request) {
 
 }
 
-
 func (handler *Handler) GetPost(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	postType := model.GetPostType(params["postType"])
@@ -284,13 +274,16 @@ func (handler *Handler) GetPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	switch result, err := handler.PostService.ReadPost(id, postType); err {
-		case mongo.ErrNoDocuments:
-			w.WriteHeader(http.StatusNotFound)
-		case nil :
-			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(&result)
-		default:
-			w.WriteHeader(http.StatusInternalServerError)
+	case mongo.ErrNoDocuments:
+		w.WriteHeader(http.StatusNotFound)
+	case nil:
+		w.WriteHeader(http.StatusOK)
+		err = json.NewEncoder(w).Encode(&result)
+		if err != nil {
+			return
+		}
+	default:
+		w.WriteHeader(http.StatusInternalServerError)
 	}
 	w.Header().Set("Content-Type", "application/json")
 }
@@ -299,7 +292,6 @@ func (handler *Handler) DeletePost(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	postType := model.GetPostType(params["postType"])
 	id, err := primitive.ObjectIDFromHex(params["id"])
-
 	if err != nil || postType == model.NONE {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -425,7 +417,7 @@ func (handler *Handler) GetPosts(w http.ResponseWriter, r *http.Request) {
 		case mongo.ErrNoDocuments:
 			w.WriteHeader(http.StatusNotFound)
 			return
-		case nil :
+		case nil:
 			posts = append(posts, result)
 		default:
 			w.WriteHeader(http.StatusInternalServerError)
@@ -447,7 +439,6 @@ func safePostDto(postDto dto.PostDto) dto.PostDto {
 	return postDto
 }
 
-
 func getUserFollowers(loggedUserId uint) (*http.Response, error) {
 	connHost, connPort := util.GetConnectionHostAndPort()
 	resp, err := util.CrossServiceRequest(http.MethodGet,
@@ -464,7 +455,7 @@ func getProfileByProfileId(profileId uint) (*http.Response, error) {
 	return resp, err
 }
 
-func (handler *Handler) createPost(profileId uint,postDto dto.PostDto, mediaNames []string) error {
+func (handler *Handler) createPost(profileId uint, postDto dto.PostDto, mediaNames []string) error {
 	postType := model.GetPostType(postDto.PostType)
 	if postType == model.NONE {
 		return errors.InvalidArgumentError("input value")
@@ -473,7 +464,7 @@ func (handler *Handler) createPost(profileId uint,postDto dto.PostDto, mediaName
 	var profile dto.ProfileDto
 	if resp, err := getProfileByProfileId(profileId); err != nil {
 		return err
-	}else{
+	} else {
 		body, _ := io.ReadAll(resp.Body)
 		defer func(Body io.ReadCloser) {
 			_ = Body.Close()
@@ -500,14 +491,17 @@ func generateMediaNames(files []*multipart.FileHeader) []string {
 	return mediaNames
 }
 
-
-func insertIntoFiles(files []*multipart.FileHeader,mediaNames []string) error {
+func insertIntoFiles(files []*multipart.FileHeader, mediaNames []string) error {
 	for i := 0; i < len(files); i++ {
 		file, err := files[i].Open()
-		if err != nil { return  err }
+		if err != nil {
+			return err
+		}
 
 		f, err := os.OpenFile("../../nistagramstaticdata/data/"+mediaNames[i], os.O_WRONLY|os.O_CREATE, 0666)
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 		if _, err = io.Copy(f, file); err != nil {
 			return err
 		}

@@ -106,12 +106,12 @@ func (service *ProfileService) SearchForTag(loggedUserId uint, username string) 
 
 	fmt.Println(followingProfiles)
 
-	for i := 0; i < len(usernames); i++{
+	for i := 0; i < len(usernames); i++ {
 		profile, err := service.GetProfileByUsername(usernames[i])
-		if err != nil{
+		if err != nil {
 			fmt.Println("Can't get profile by username!")
 		}
-		if util.Contains(followingProfiles, profile.ID) && profile.ProfileSettings.CanBeTagged{
+		if util.Contains(followingProfiles, profile.ID) && profile.ProfileSettings.CanBeTagged {
 			ret = append(ret, profile.Username)
 		}
 	}
@@ -222,7 +222,7 @@ func (service *ProfileService) GetAllCategories() ([]string, error) {
 
 func (service *ProfileService) CreateVerificationRequest(profileId uint, requestDTO dto.VerificationRequestDTO, fileName string) error {
 	category, err := service.ProfileRepository.GetCategoryByName(requestDTO.Category)
-	if err != nil{
+	if err != nil {
 		fmt.Println(err)
 		return err
 	}
@@ -234,22 +234,22 @@ func (service *ProfileService) CreateVerificationRequest(profileId uint, request
 
 func (service *ProfileService) UpdateVerificationRequest(verifyDTO dto.VerifyDTO) error {
 	request, err := service.ProfileRepository.GetVerificationRequestById(verifyDTO.VerificationId)
-	if err != nil{
+	if err != nil {
 		return err
 	}
-	if verifyDTO.Status{
+	if verifyDTO.Status {
 		request.VerificationStatus = model.VERIFIED
 		err = service.ProfileRepository.UpdateVerificationRequest(*request)
-		if err != nil{
+		if err != nil {
 			return err
 		}
-		profile,err := service.ProfileRepository.GetProfileByID(request.ProfileID)
-		if err != nil{
+		profile, err := service.ProfileRepository.GetProfileByID(request.ProfileID)
+		if err != nil {
 			return err
 		}
 		profile.IsVerified = true
 		err = service.ProfileRepository.UpdateProfile(profile)
-	}else{
+	} else {
 		err = service.ProfileRepository.DeleteVerificationRequest(request)
 	}
 
