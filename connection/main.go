@@ -103,6 +103,10 @@ func handleFunc(handler *handler.Handler) {
 		util.RBAC(handler.ToggleNotifyCommentProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT") //frontend func
 	router.HandleFunc("/connection/notify/message/{profileId}",
 		util.RBAC(handler.ToggleNotifyMessageProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT") //frontend func
+	router.HandleFunc("/connection/block/{profileId}",
+		util.RBAC(handler.IsBlocked, "READ_CONNECTION_STATUS", false)).Methods("GET") //frontend func
+	router.HandleFunc("/connection/unfollow/{profileId}",
+		util.RBAC(handler.UnfollowProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT") //frontend func
 	fmt.Println("Starting server..")
 	host, port := util.GetConnectionHostAndPort()
 	var err error

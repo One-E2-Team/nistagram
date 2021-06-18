@@ -131,10 +131,13 @@ func (repo *BlockRepository) GetBlockedProfiles(id uint, directed bool) *[]uint 
 		}
 		return ret, err
 	})
+	var ret []uint
 	if err != nil {
 		fmt.Println(err.Error())
+	} else {
+		temp := profileIDs.([]uint)
+		ret = temp
 	}
-	ret := profileIDs.([]uint)
 	if !directed{
 		profileIDsInv, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
 			result, err := transaction.Run(
@@ -154,8 +157,9 @@ func (repo *BlockRepository) GetBlockedProfiles(id uint, directed bool) *[]uint 
 		})
 		if err != nil {
 			fmt.Println(err.Error())
+		} else {
+			ret = append(ret, profileIDsInv.([]uint)...)
 		}
-		ret = append(ret, profileIDsInv.([]uint)...)
 	}
 	return &ret
 }

@@ -90,6 +90,47 @@ func (handler *Handler) FollowRequest(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (handler *Handler) UnfollowProfile(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id1, e1 := strconv.ParseUint(vars["profileId"], 10, 32)
+	if e1 != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	id := util.GetLoggedUserIDFromToken(r)
+	if id == 0 {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	connection, ok := handler.ConnectionService.Unfollow(id, uint(id1))
+	if ok {
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte("{\"status\":\"ok\"}"))
+		json.NewEncoder(w).Encode(*connection)
+	} else {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
+func (handler *Handler) IsBlocked(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id1, e1 := strconv.ParseUint(vars["profileId"], 10, 32)
+	if e1 != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	id := util.GetLoggedUserIDFromToken(r)
+	if id == 0 {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	ok := handler.ConnectionService.IsInBlockingRelationship(id, uint(id1))
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(ok)
+}
+
 func (handler *Handler) FollowApprove(w http.ResponseWriter, r *http.Request) {
 	method := "nistagram/connection/handler.FollowApprove"
 	vars := mux.Vars(r)

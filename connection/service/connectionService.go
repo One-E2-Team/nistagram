@@ -59,7 +59,7 @@ func getProfile(id uint) *model2.Profile {
 }
 
 func (service *ConnectionService) FollowRequest(followerId, profileId uint) (*model.Connection, bool) {
-	if service.isInBlockingRelationship(followerId, profileId) {
+	if service.IsInBlockingRelationship(followerId, profileId) {
 		return nil, false
 	}
 	connection := service.ConnectionRepository.SelectOrCreateConnection(followerId, profileId)
@@ -137,7 +137,7 @@ func (service *ConnectionService) MessageConnect(followerId, profileId uint) (*m
 }
 
 func (service *ConnectionService) MessageRequest(followerId, profileId uint) (*model.Connection, bool) {
-	if service.isInBlockingRelationship(followerId, profileId) {
+	if service.IsInBlockingRelationship(followerId, profileId) {
 		return nil, false
 	}
 	connection := service.ConnectionRepository.SelectOrCreateConnection(followerId, profileId)
@@ -199,7 +199,7 @@ func (service *ConnectionService) ApproveConnection(followerId, profileId uint) 
 }
 
 func (service *ConnectionService) ToggleNotifyComment(followerId, profileId uint) (*model.Connection, bool) {
-	if service.isInBlockingRelationship(followerId, profileId) {
+	if service.IsInBlockingRelationship(followerId, profileId) {
 		return nil, false
 	}
 	connection, okSelect := service.ConnectionRepository.SelectConnection(followerId, profileId, false)
@@ -216,7 +216,7 @@ func (service *ConnectionService) ToggleNotifyComment(followerId, profileId uint
 }
 
 func (service *ConnectionService) ToggleNotifyMessage(followerId, profileId uint) (*model.Connection, bool) {
-	if service.isInBlockingRelationship(followerId, profileId) {
+	if service.IsInBlockingRelationship(followerId, profileId) {
 		return nil, false
 	}
 	connection, okSelect := service.ConnectionRepository.SelectConnection(followerId, profileId, false)
@@ -233,7 +233,7 @@ func (service *ConnectionService) ToggleNotifyMessage(followerId, profileId uint
 }
 
 func (service *ConnectionService) ToggleNotifyStory(followerId, profileId uint) (*model.Connection, bool) {
-	if service.isInBlockingRelationship(followerId, profileId) {
+	if service.IsInBlockingRelationship(followerId, profileId) {
 		return nil, false
 	}
 	connection, okSelect := service.ConnectionRepository.SelectConnection(followerId, profileId, false)
@@ -250,7 +250,7 @@ func (service *ConnectionService) ToggleNotifyStory(followerId, profileId uint) 
 }
 
 func (service *ConnectionService) ToggleNotifyPost(followerId, profileId uint) (*model.Connection, bool) {
-	if service.isInBlockingRelationship(followerId, profileId) {
+	if service.IsInBlockingRelationship(followerId, profileId) {
 		return nil, false
 	}
 	connection, okSelect := service.ConnectionRepository.SelectConnection(followerId, profileId, false)
@@ -267,7 +267,7 @@ func (service *ConnectionService) ToggleNotifyPost(followerId, profileId uint) (
 }
 
 func (service *ConnectionService) ToggleCloseFriend(followerId, profileId uint) (*model.Connection, bool) {
-	if service.isInBlockingRelationship(followerId, profileId) {
+	if service.IsInBlockingRelationship(followerId, profileId) {
 		return nil, false
 	}
 	connection, okSelect := service.ConnectionRepository.SelectConnection(followerId, profileId, false)
@@ -284,7 +284,7 @@ func (service *ConnectionService) ToggleCloseFriend(followerId, profileId uint) 
 }
 
 func (service *ConnectionService) ToggleMuted(followerId, profileId uint) (*model.Connection, bool) {
-	if service.isInBlockingRelationship(followerId, profileId) {
+	if service.IsInBlockingRelationship(followerId, profileId) {
 		return nil, false
 	}
 	connection, okSelect := service.ConnectionRepository.SelectConnection(followerId, profileId, false)
@@ -372,12 +372,45 @@ func (service *ConnectionService) GetAllFollowRequests(id uint) *[]dto.UserDTO {
 	return &ret
 }
 
-func (service *ConnectionService) isInBlockingRelationship(id1, id2 uint) bool {
+func (service *ConnectionService) IsInBlockingRelationship(id1, id2 uint) bool {
 	lst := service.BlockRepository.GetBlockedProfiles(id1, false)
+	if lst == nil || len(*lst) == 0 {
+		return false
+	}
 	for _, val := range *lst {
 		if val == id2 {
 			return true
 		}
 	}
 	return false
+}
+
+func (service *ConnectionService) Unfollow(followerId, profileId uint) (*model.Connection, bool) {
+	if service.IsInBlockingRelationship(followerId, profileId) {
+		return nil, false
+	}
+	connection, okSelect := service.ConnectionRepository.SelectConnection(followerId, profileId, false)
+	if okSelect && connection == nil {
+		return connection, false
+	}
+	newConnection := model.Connection{
+		PrimaryProfile:    connection.PrimaryProfile,
+		SecondaryProfile:  connection.SecondaryProfile,
+		Muted:             false,
+		CloseFriend:       false,
+		NotifyPost:        false,
+		NotifyStory:       false,
+		NotifyMessage:     false,
+		NotifyComment:     false,
+		ConnectionRequest: false,
+		Approved:          false,
+		MessageRequest:    connection.MessageRequest,
+		MessageConnected:  connection.MessageConnected,
+	}
+	resConnection, ok := service.ConnectionRepository.UpdateConnection(&newConnection)
+	if ok {
+		return resConnection, true
+	} else {
+		return connection, false
+	}
 }
