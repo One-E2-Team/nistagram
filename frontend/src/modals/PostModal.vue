@@ -7,7 +7,7 @@
 
       <v-card>
         <v-card-text>
-            <v-btn
+            <v-btn v-if="isBlocked"
               label="Report"
               class="my-2"
               style="color:red"
@@ -35,8 +35,12 @@ export default {
   props: ['visible', 'post'],
   data(){
     return {
-      showReportModal: false
+      showReportModal: false,
+      isBlocked: true,
     }
+  },
+  created(){
+    this.checkIfBlocked()
   },
   methods: {
       block(){
@@ -46,10 +50,23 @@ export default {
                 headers: comm.getHeader(),
             }).then((response) => {
             console.log(response.data);
-    })
-    .catch((error) => {
-      console.log(error);
-    });
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      },
+      checkIfBlocked(){
+        axios({
+                method: "get",
+                url: comm.protocol + "://" + comm.server +"/api/connection/block/" + this.post.publisherId,
+                headers: comm.getHeader(),
+            }).then((response) => {
+            console.log(response.data);
+            if(response.status == 200)
+              this.isBlocked = response.data == 'true'
+            }).catch((error) => {
+                console.log(error);
+            });
       }
   },
   computed: {
