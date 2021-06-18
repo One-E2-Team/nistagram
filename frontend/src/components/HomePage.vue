@@ -44,7 +44,7 @@
           <v-col></v-col>
         </v-row>
         <v-row justify="center" align="center" v-for="p in posts" :key="p._id">
-            <v-col cols="12" sm="4" v-if="p.postType == 2">
+            <v-col cols="12" sm="4" v-if="p.post.postType == 2">
                 <post v-bind:usage="'HomePage'" v-bind:post="p.post" v-bind:myReaction="p.reaction" />
              </v-col>
         </v-row>
@@ -60,18 +60,17 @@
 
     name: 'HomePage',
 
-    mounted(){
-        axios({
-                method: "get",
-                url: comm.protocol + "://" + comm.server +"/api/post/homePage",
-                headers: comm.getHeader(),
-            }).then((response) => {
-            let res = response.data.collection;
-            this.posts = res;
-    })
-    .catch((error) => {
-      console.log(error);
-    });
+    created(){
+      axios({
+        method: "get",
+        url: comm.protocol + "://" + comm.server +"/api/post/homePage",
+        headers: comm.getHeader(),
+      }).then((response) => {
+        this.posts = response.data.collection;
+      })
+      .catch((error) => {
+        console.log(error);
+      });
     },
 
     data() {return {

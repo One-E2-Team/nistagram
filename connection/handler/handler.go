@@ -106,7 +106,7 @@ func (handler *Handler) UnfollowProfile(w http.ResponseWriter, r *http.Request) 
 	if ok {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte("{\"status\":\"ok\"}"))
+		_, _ = w.Write([]byte("{\"status\":\"ok\"}"))
 		json.NewEncoder(w).Encode(*connection)
 	} else {
 		w.WriteHeader(http.StatusInternalServerError)
