@@ -83,7 +83,7 @@ methods: {
             if(response.status==200){
                 this.profile = response.data;
                 this.isMyProfile = comm.getLoggedUserID() == this.profile.ID;
-                this.$emit('loaded-user', this.profile.ID)
+                this.$emit('loaded-user', this.profile)
             }else{
               this.$router.push({name: 'NotFound'})
             }

@@ -101,7 +101,6 @@ func (handler Handler) GetPostsForHomePage(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	fmt.Println("Body: ", body)
 	defer resp.Body.Close()
 
 	if err = json.Unmarshal(body, &followingProfiles); err != nil {
@@ -365,6 +364,45 @@ func (handler *Handler) ChangePrivacy(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	default:
 		w.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
+func (handler *Handler) GetPosts(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	postType := model.GetPostType(params["postType"])
+	type data struct {
+		Ids []string `json:"ids"`
+	}
+	var input data
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	var posts []model.Post
+	for _, value := range input.Ids {
+		postID, err := primitive.ObjectIDFromHex(value)
+		if err != nil || postType == model.NONE {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		switch result, err := handler.PostService.ReadPost(postID, postType); err {
+		case mongo.ErrNoDocuments:
+			w.WriteHeader(http.StatusNotFound)
+			return
+		case nil :
+			posts = append(posts, result)
+		default:
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	}
+	if js, err := json.Marshal(posts); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	} else {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write(js)
 	}
 }
 

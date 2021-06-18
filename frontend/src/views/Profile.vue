@@ -1,30 +1,33 @@
 <template>
     <v-container>
         <v-row align="left" >
-            <v-col cols="12" sm="11" >
+            <v-col cols="12" sm="11">
                 <personal-data v-on:loaded-user='profileLoaded($event)' style="height:200px" v-bind:username="username"/>
-                <v-btn v-if="!isMyProfile && !isFollowed" color="warning" elevation="8" @click="follow">
-                    Follow
-                </v-btn>
-                <v-btn v-if="!isMyProfile && isFollowed" color="normal" elevation="8" @click="unfollow">
-                    Unfollow
-                </v-btn>
-                <follow-requests v-if="isMyProfile"/>
-                <v-btn v-if="isMyProfile"
-                color="normal"
-                elevation="8"
-                @click="redirectToCreatePost()"
-                >
-                Create post
-                </v-btn>
-                <profile-options-drop-menu v-if="!isMyProfile" v-bind:profileId="profileId" class="mx-2">
-                    <v-icon>mdi-menu-down</v-icon>
-                </profile-options-drop-menu>
+                <template v-if="isUserLoggedIn()">
+                    <v-btn v-if="!isMyProfile && !isFollowed" color="warning" elevation="8" @click="follow">
+                        Follow
+                    </v-btn>
+                    <v-btn v-if="!isMyProfile && isFollowed" color="normal" elevation="8" @click="unfollow">
+                        Unfollow
+                    </v-btn>
+                    <follow-requests v-if="isMyProfile"/>
+                    <v-btn v-if="isMyProfile" color="normal" elevation="8" @click="redirectToCreatePost()">
+                    Create post
+                    </v-btn>
+                    <profile-options-drop-menu v-if="!isMyProfile" v-bind:profileId="profileId" class="mx-2">
+                        <v-icon>mdi-menu-down</v-icon>
+                    </profile-options-drop-menu>
+                </template>
             </v-col>
         </v-row>
-        <v-row>
+        <v-row v-if="isFollowed || !isPrivateProfile">
             <v-col cols="12" sm="4" v-for="p in posts" :key="p._id">
                <post v-bind:usage="'Profile'" v-bind:post="p" />
+            </v-col>
+        </v-row>
+        <v-row v-else>
+            <v-col cols="12" sm="4">
+               <h3 class="display-2 font-weight-bold mb-3"> This profile is private !</h3>
             </v-col>
         </v-row>
     </v-container>
@@ -53,6 +56,7 @@ export default {
             protocol: comm.protocol,
             showFollowOption: false,
             isFollowed: false,
+            isPrivateProfile: true
         }
     },
     methods: {
@@ -63,7 +67,7 @@ export default {
                 headers: comm.getHeader(),
             }).then(response => {
               if (response.status==200){
-                  alert('Success');
+                  this.isFollowed = true;
               }
             })
         },
@@ -71,9 +75,10 @@ export default {
             alert('I need endpoint to do that you know igor fy_master -_- ')
             //TODO: send axios for unfollow and when response status is 200 then this.isFollowed set on false
         },
-        profileLoaded(loadedProfileID){
-            this.profileId = loadedProfileID;
-            this.isMyProfile = comm.getLoggedUserID() == loadedProfileID;
+        profileLoaded(loadedProfile){
+            this.profileId = loadedProfile.ID;
+            this.isPrivateProfile = loadedProfile.profileSettings.isPrivate
+            this.isMyProfile = comm.getLoggedUserID() == loadedProfile.ID;
             if (this.isMyProfile){
                 this.loadMyPosts();
             } else {
@@ -96,13 +101,16 @@ export default {
                             this.posts = response.data.collection;  
                         });
         },
+        isUserLoggedIn(){
+            return comm.isUserLogged()
+        },
         loadPostsFromUsername(){
             axios({ method: "get",
                     url: comm.protocol + '://' + comm.server + '/api/post/profile/' + this.username, 
                     headers: comm.getHeader(),
                     }).then(response => {
                         if(response.status==200)
-                            this.posts = response.data;
+                            this.posts = response.data.collection;
                         });
         },
         loadIfUserAreFollowed(){
@@ -113,7 +121,7 @@ export default {
                         if(response.status==200)
                             this.isFollowed = response.data;
                         });
-        }
+        },
     },
 }
 </script>

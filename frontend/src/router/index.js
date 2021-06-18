@@ -89,6 +89,12 @@ const routes = [{
     name: 'VerificationRequests',
     component: () =>
       import ('./../components/VerificationRequests.vue')
+  },
+  {
+    path: '/reactions',
+    name: 'Reactions',
+    component: () =>
+      import ('../views/MyReactions.vue')
   }
 ]
 const router = new VueRouter({

@@ -1,14 +1,12 @@
 <template>
   <v-card
-    class="mx-auto"
-    :width="width"
-    :height="height"
+    class="mx-auto" :width="width"
   >
     <post-modal v-if="showTitle" :visible="showDialog" @close="showDialog=false" v-bind:post="post"/>
     <v-list-item v-if="showTitle">
       <v-list-item-content >
         <v-list-item-title  class="text-h6 d-flex justify-space-between ">
-          <label> {{post.publisherUsername}} </label>
+          <router-link :to="{ name: 'Profile', params: { username: post.publisherUsername }}">{{post.publisherUsername}}</router-link>
           <v-btn dark icon @click="showDialog = true">
             <v-icon color="blue">mdi-dots-horizontal</v-icon>
           </v-btn>
@@ -91,6 +89,10 @@ export default {
       } else if(this.usage == 'HomePage') {
         this.width = 600;
         this.height = 700;
+        this.showTitle = true;
+      } else if(this.usage == 'MyReactions'){
+        this.width = 300;
+        this.height = 400;
         this.showTitle = true;
       }
     }, 

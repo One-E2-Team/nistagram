@@ -86,22 +86,25 @@ func (service *ProfileService) SearchForTag(loggedUserId uint, username string) 
 	var ret []string
 	usernames := service.ProfileRepository.FindUsernameContains(username)
 
-	var followingProfiles []uint
-
 	resp, err := getUserFollowers(loggedUserId)
+
 	if err != nil {
 		return nil, err
 	}
 
+	var followingProfiles []uint
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
+
 	defer resp.Body.Close()
 
 	if err = json.Unmarshal(body, &followingProfiles); err != nil {
 		return nil, err
 	}
+
+	fmt.Println(followingProfiles)
 
 	for i := 0; i < len(usernames); i++{
 		profile, err := service.GetProfileByUsername(usernames[i])
