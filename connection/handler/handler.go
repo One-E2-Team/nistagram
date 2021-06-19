@@ -125,7 +125,7 @@ func (handler *Handler) IsBlocked(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	ok := handler.ConnectionService.IsInBlockingRelationship(id, uint(id1))
+	ok := handler.ConnectionService.IsBlocked(id, uint(id1))
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(ok)

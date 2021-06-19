@@ -385,6 +385,19 @@ func (service *ConnectionService) IsInBlockingRelationship(id1, id2 uint) bool {
 	return false
 }
 
+func (service *ConnectionService) IsBlocked(id1, id2 uint) bool {
+	lst := service.BlockRepository.GetBlockedProfiles(id1, true)
+	if lst == nil || len(*lst) == 0 {
+		return false
+	}
+	for _, val := range *lst {
+		if val == id2 {
+			return true
+		}
+	}
+	return false
+}
+
 func (service *ConnectionService) Unfollow(followerId, profileId uint) (*model.Connection, bool) {
 	if service.IsInBlockingRelationship(followerId, profileId) {
 		return nil, false
