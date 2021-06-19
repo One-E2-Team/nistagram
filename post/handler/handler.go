@@ -25,18 +25,6 @@ type Handler struct {
 	PostService *service.PostService
 }
 
-func (handler *Handler) GetAll(w http.ResponseWriter, _ *http.Request) {
-	result := handler.PostService.GetAll()
-
-	if js, err := json.Marshal(result); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	} else {
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write(js)
-	}
-	w.Header().Set("Content-Type", "application/json")
-}
-
 func (handler Handler) GetPublic(w http.ResponseWriter, r *http.Request) {
 	result, err := handler.PostService.GetPublic(util.GetLoggedUserIDFromToken(r))
 	if err != nil {
@@ -265,15 +253,14 @@ func (handler *Handler) Create(w http.ResponseWriter, r *http.Request) {
 
 func (handler *Handler) GetPost(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	postType := model.GetPostType(params["postType"])
 
 	id, err := primitive.ObjectIDFromHex(params["id"])
-	if err != nil || postType == model.NONE {
+	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	switch result, err := handler.PostService.ReadPost(id, postType); err {
+	switch result, err := handler.PostService.ReadPost(id); err {
 	case mongo.ErrNoDocuments:
 		w.WriteHeader(http.StatusNotFound)
 	case nil:
@@ -290,14 +277,13 @@ func (handler *Handler) GetPost(w http.ResponseWriter, r *http.Request) {
 
 func (handler *Handler) DeletePost(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	postType := model.GetPostType(params["postType"])
 	id, err := primitive.ObjectIDFromHex(params["id"])
-	if err != nil || postType == model.NONE {
+	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	switch err = handler.PostService.DeletePost(id, postType); err {
+	switch err = handler.PostService.DeletePost(id); err {
 	case mongo.ErrNoDocuments:
 		w.WriteHeader(http.StatusNotFound)
 	case nil:
@@ -309,9 +295,8 @@ func (handler *Handler) DeletePost(w http.ResponseWriter, r *http.Request) {
 
 func (handler *Handler) UpdatePost(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	postType := model.GetPostType(params["postType"])
 	id, err := primitive.ObjectIDFromHex(params["id"])
-	if err != nil || postType == model.NONE {
+	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -324,7 +309,7 @@ func (handler *Handler) UpdatePost(w http.ResponseWriter, r *http.Request) {
 
 	postDto = safePostDto(postDto)
 
-	switch err = handler.PostService.UpdatePost(id, postType, postDto); err {
+	switch err = handler.PostService.UpdatePost(id, postDto); err {
 	case mongo.ErrNoDocuments:
 		w.WriteHeader(http.StatusNotFound)
 	case nil:
@@ -394,8 +379,6 @@ func (handler *Handler) ChangePrivacy(w http.ResponseWriter, r *http.Request) {
 }
 
 func (handler *Handler) GetPosts(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	postType := model.GetPostType(params["postType"])
 	type data struct {
 		Ids []string `json:"ids"`
 	}
@@ -408,12 +391,12 @@ func (handler *Handler) GetPosts(w http.ResponseWriter, r *http.Request) {
 	var posts []model.Post
 	for _, value := range input.Ids {
 		postID, err := primitive.ObjectIDFromHex(value)
-		if err != nil || postType == model.NONE {
+		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 
-		switch result, err := handler.PostService.ReadPost(postID, postType); err {
+		switch result, err := handler.PostService.ReadPost(postID); err {
 		case mongo.ErrNoDocuments:
 			w.WriteHeader(http.StatusNotFound)
 			return
@@ -430,32 +413,6 @@ func (handler *Handler) GetPosts(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write(js)
 	}
-}
-
-func (handler *Handler) GetPostById(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	id, err := primitive.ObjectIDFromHex(params["id"])
-	if err != nil{
-		fmt.Println(err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	result, err := handler.PostService.GetPostById(id)
-	if err != nil{
-		fmt.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	if js, err := json.Marshal(result); err != nil {
-		fmt.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-	} else {
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write(js)
-	}
-	w.Header().Set("Content-Type", "application/json")
 }
 
 func safePostDto(postDto dto.PostDto) dto.PostDto {

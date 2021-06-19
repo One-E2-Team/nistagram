@@ -98,35 +98,50 @@ func (service *PostReactionService) GetAllReports() ([]dto.ShowReportDTO, error)
 		return nil, err
 	}
 
+	var repIds []string
+
 	for i := 0; i < len(reports); i++{
-		post, err := getPostByPostId(reports[i].PostID)
-		if err != nil{
-			return nil, err
-		}
+		repIds = append(repIds, reports[i].PostID)
+	}
+
+	posts, err := getPostsByPostsIds(repIds)
+	if err != nil{
+		return nil, err
+	}
+
+	for i := 0; i < len(posts); i++{
 		retDto := dto.ShowReportDTO{ReportID: util.GetStringIDFromMongoID(reports[i].ID),
-			PostID: util.GetStringIDFromMongoID(post.ID), Reason: reports[i].Reason,
-		PublisherId: post.PublisherId, PublisherUsername: post.PublisherUsername,
-		Medias: post.Medias, Description: post.Description}
+			PostID: util.GetStringIDFromMongoID(posts[i].ID), Reason: reports[i].Reason,
+		PublisherId: posts[i].PublisherId, PublisherUsername: posts[i].PublisherUsername,
+		Medias: posts[i].Medias, Description: posts[i].Description}
 		ret = append(ret, retDto)
 	}
 
 	return ret, nil
 }
 
-func getPostByPostId(postId string) (dto.PostDTO, error) {
-	var ret dto.PostDTO
+func getPostsByPostsIds(postsIds []string) ([]dto.PostDTO, error) {
+	var ret []dto.PostDTO
+	type data struct {
+		Ids []string `json:"ids"`
+	}
+	bodyData := data{Ids: postsIds}
+	jsonBody, err := json.Marshal(bodyData)
+	if err != nil{
+		return nil, err
+	}
 	postHost, postPort := util.GetPostHostAndPort()
 	resp, err := util.CrossServiceRequest(http.MethodGet,
-		util.CrossServiceProtocol+"://"+postHost+":"+postPort+"/" + postId,
-		nil, map[string]string{})
+		util.CrossServiceProtocol+"://"+postHost+":"+postPort+"/posts",
+		jsonBody, map[string]string{})
 
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
 
 	defer func(Body io.ReadCloser) {
@@ -134,7 +149,7 @@ func getPostByPostId(postId string) (dto.PostDTO, error) {
 	}(resp.Body)
 
 	if err = json.Unmarshal(body, &ret); err != nil {
-		return ret, err
+		return nil, err
 	}
 
 	return ret, nil

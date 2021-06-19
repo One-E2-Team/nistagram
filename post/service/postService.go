@@ -19,42 +19,56 @@ type PostService struct {
 	PostRepository *repository.PostRepository
 }
 
-func (service *PostService) GetAll() []model.Post {
-	return service.PostRepository.GetAll()
-}
-
 func (service *PostService) GetPublic(loggedUserID uint) ([]dto.ResponsePostDTO, error) {
-	posts := service.PostRepository.GetPublic()
+	posts, err := service.PostRepository.GetPublic()
+	if err != nil{
+		return nil, err
+	}
 	responseDTO, err := getReactionsForPosts(posts, loggedUserID)
 	return responseDTO, err
 }
 
 func (service *PostService) GetProfilesPosts(followingProfiles []uint, targetUsername string, loggedUserID uint) ([]dto.ResponsePostDTO, error) {
-	posts := service.PostRepository.GetProfilesPosts(followingProfiles, targetUsername)
+	posts, err := service.PostRepository.GetProfilesPosts(followingProfiles, targetUsername)
+	if err != nil{
+		return nil, err
+	}
 	responseDTO, err := getReactionsForPosts(posts, loggedUserID)
 	return responseDTO, err
 }
 
 func (service *PostService) GetPublicPostByLocation(location string, loggedUserID uint) ([]dto.ResponsePostDTO, error) {
-	posts := service.PostRepository.GetPublicPostByLocation(location)
+	posts, err := service.PostRepository.GetPublicPostByLocation(location)
+	if err != nil{
+		return nil, err
+	}
 	responseDTO, err := getReactionsForPosts(posts, loggedUserID)
 	return responseDTO, err
 }
 
 func (service *PostService) GetPublicPostByHashTag(hashTag string, loggedUserID uint) ([]dto.ResponsePostDTO, error) {
-	posts := service.PostRepository.GetPublicPostByHashTag(hashTag)
+	posts, err := service.PostRepository.GetPublicPostByHashTag(hashTag)
+	if err != nil{
+		return nil, err
+	}
 	responseDTO, err := getReactionsForPosts(posts, loggedUserID)
 	return responseDTO, err
 }
 
 func (service *PostService) GetMyPosts(loggedUserID uint) ([]dto.ResponsePostDTO, error) {
-	posts := service.PostRepository.GetMyPosts(loggedUserID)
+	posts, err := service.PostRepository.GetMyPosts(loggedUserID)
+	if err != nil{
+		return nil, err
+	}
 	responseDTO, err := getReactionsForPosts(posts, loggedUserID)
 	return responseDTO, err
 }
 
 func (service *PostService) GetPostsForHomePage(followingProfiles []uint, loggedUserID uint) ([]dto.ResponsePostDTO, error) {
-	posts := service.PostRepository.GetPostsForHomePage(followingProfiles)
+	posts, err := service.PostRepository.GetPostsForHomePage(followingProfiles)
+	if err != nil{
+		return nil, err
+	}
 	responseDTO, err := getReactionsForPosts(posts, loggedUserID)
 	return responseDTO, err
 }
@@ -82,8 +96,28 @@ func (service *PostService) CreatePost(postType model.PostType, post dto.PostDto
 	return service.PostRepository.Create(&newPost)
 }
 
-func (service *PostService) GetPostById(postId primitive.ObjectID) (model.Post, error) {
-	return service.PostRepository.GetPostById(postId)
+func (service *PostService) ReadPost(id primitive.ObjectID) (model.Post, error) {
+	return service.PostRepository.Read(id)
+}
+
+func (service *PostService) DeletePost(id primitive.ObjectID) error {
+	return service.PostRepository.Delete(id)
+}
+
+func (service *PostService) UpdatePost(id primitive.ObjectID, post dto.PostDto) error {
+	return service.PostRepository.Update(id, post)
+}
+
+func (service *PostService) DeleteUserPosts(profileId uint) error {
+	return service.PostRepository.DeleteUserPosts(profileId)
+}
+
+func (service *PostService) ChangeUsername(profileId uint, username string) error {
+	return service.PostRepository.ChangeUsername(profileId, username)
+}
+
+func (service *PostService) ChangePrivacy(profileId uint, isPrivate bool) error {
+	return service.PostRepository.ChangePrivacy(profileId, isPrivate)
 }
 
 func canUsersBeTagged(description string, publisherId uint) error {
@@ -134,14 +168,6 @@ func canUsersBeTagged(description string, publisherId uint) error {
 	return nil
 }
 
-func getProfileByUsername(username string) (*http.Response, error) {
-	profileHost, profilePort := util.GetProfileHostAndPort()
-	resp, err := util.CrossServiceRequest(http.MethodGet,
-		util.CrossServiceProtocol+"://"+profileHost+":"+profilePort+"/get/"+username,
-		nil, map[string]string{})
-	return resp, err
-}
-
 func getUserFollowers(loggedUserId uint) (*http.Response, error) {
 	connHost, connPort := util.GetConnectionHostAndPort()
 	resp, err := util.CrossServiceRequest(http.MethodGet,
@@ -150,28 +176,12 @@ func getUserFollowers(loggedUserId uint) (*http.Response, error) {
 	return resp, err
 }
 
-func (service *PostService) ReadPost(id primitive.ObjectID, postType model.PostType) (model.Post, error) {
-	return service.PostRepository.Read(id, postType)
-}
-
-func (service *PostService) DeletePost(id primitive.ObjectID, postType model.PostType) error {
-	return service.PostRepository.Delete(id, postType)
-}
-
-func (service *PostService) UpdatePost(id primitive.ObjectID, postType model.PostType, post dto.PostDto) error {
-	return service.PostRepository.Update(id, postType, post)
-}
-
-func (service *PostService) DeleteUserPosts(profileId uint) error {
-	return service.PostRepository.DeleteUserPosts(profileId)
-}
-
-func (service *PostService) ChangeUsername(profileId uint, username string) error {
-	return service.PostRepository.ChangeUsername(profileId, username)
-}
-
-func (service *PostService) ChangePrivacy(profileId uint, isPrivate bool) error {
-	return service.PostRepository.ChangePrivacy(profileId, isPrivate)
+func getProfileByUsername(username string) (*http.Response, error) {
+	profileHost, profilePort := util.GetProfileHostAndPort()
+	resp, err := util.CrossServiceRequest(http.MethodGet,
+		util.CrossServiceProtocol+"://"+profileHost+":"+profilePort+"/get/"+username,
+		nil, map[string]string{})
+	return resp, err
 }
 
 func getReactionsForPosts(posts []model.Post, profileID uint) ([]dto.ResponsePostDTO, error) {

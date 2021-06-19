@@ -2,8 +2,6 @@ package repository
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -14,329 +12,211 @@ import (
 	"time"
 )
 
+const postsCollectionName = "posts"
+const postDbName = "postdb"
+
 type PostRepository struct {
 	Client *mongo.Client
 }
 
-func (repo *PostRepository) GetAll() []model.Post {
-	postCollection, err := repo.getCollection(model.GetPostType("post"))
+func (repo *PostRepository) GetProfilesPosts(followingProfiles []uint, targetUsername string) ([]model.Post, error) {
+	collection := repo.getCollection()
+
+	filter := bson.D{{"isdeleted", false}, {"publisherusername", targetUsername}}
+
+	cursor, err := collection.Find(context.TODO(), filter)
 	if err != nil {
-		fmt.Println("Error: can't get post collection!")
+		return nil, err
 	}
-	storyCollection, err := repo.getCollection(model.GetPostType("story"))
-	if err != nil {
-		fmt.Println("Error: can't get story collection!")
-	}
-	postCursor, err := postCollection.Find(context.TODO(), bson.D{})
-	if err != nil {
-		fmt.Println("Error: can't find posts!")
-	}
-	storyCursor, err := storyCollection.Find(context.TODO(), bson.D{})
-	if err != nil {
-		fmt.Println("Error: can't find stories!")
-	}
+
 	var posts []model.Post
 
-	for postCursor.Next(context.TODO()) {
+	for cursor.Next(context.TODO()) {
 		var result model.Post
-		err = postCursor.Decode(&result)
+		err = cursor.Decode(&result)
+		if result.IsPrivate == false || util.Contains(followingProfiles, result.PublisherId) {
+			if result.PostType == model.GetPostType("story") {
+				duration, err := time.ParseDuration("24h")
+				if err != nil {
+					return nil, err
+				}
+				if result.IsHighlighted || time.Now().Before(result.PublishDate.Add(duration)) {
+					posts = append(posts, result)
+				}
+			} else {
+				posts = append(posts, result)
+			}
+		}
+	}
+
+	return posts, nil
+}
+
+func (repo *PostRepository) GetPublic() ([]model.Post, error) {
+	collection := repo.getCollection()
+
+	filter := bson.D{{"isdeleted", false}, {"isprivate", false}}
+
+	cursor, err := collection.Find(context.TODO(), filter)
+	if err != nil {
+		return nil, err
+	}
+
+	var posts []model.Post
+
+	for cursor.Next(context.TODO()) {
+		var result model.Post
+		err = cursor.Decode(&result)
+		if result.PostType == model.GetPostType("story") {
+			duration, err := time.ParseDuration("24h")
+			if err != nil {
+				return nil, err
+			}
+			if time.Now().Before(result.PublishDate.Add(duration)) {
+				posts = append(posts, result)
+			}
+		} else {
+			posts = append(posts, result)
+		}
+	}
+
+	return posts, nil
+}
+
+func (repo *PostRepository) GetPublicPostByLocation(location string) ([]model.Post, error) {
+	collection := repo.getCollection()
+
+	filter := bson.D{{"isdeleted", false}, {"isprivate", false}}
+
+	cursor, err := collection.Find(context.TODO(), filter)
+	if err != nil {
+		return nil, err
+	}
+
+	var posts []model.Post
+
+	for cursor.Next(context.TODO()) {
+		var result model.Post
+		err = cursor.Decode(&result)
+		if strings.Contains(result.Location, location) {
+			if result.PostType == model.GetPostType("story") {
+				duration, err := time.ParseDuration("24h")
+				if err != nil {
+					return nil, err
+				}
+				if time.Now().Before(result.PublishDate.Add(duration)) {
+					posts = append(posts, result)
+				}
+			} else {
+				posts = append(posts, result)
+			}
+		}
+	}
+
+	return posts, nil
+}
+
+func (repo *PostRepository) GetPublicPostByHashTag(hashTag string) ([]model.Post, error) {
+	collection := repo.getCollection()
+
+	filter := bson.D{{"isdeleted", false}, {"isprivate", false}}
+
+	cursor, err := collection.Find(context.TODO(), filter)
+	if err != nil {
+		return nil, err
+	}
+
+	var posts []model.Post
+
+	for cursor.Next(context.TODO()) {
+		var result model.Post
+		err = cursor.Decode(&result)
+		if strings.Contains(result.HashTags, hashTag) {
+			if result.PostType == model.GetPostType("story") {
+				duration, err := time.ParseDuration("24h")
+				if err != nil {
+					return nil, err
+				}
+				if time.Now().Before(result.PublishDate.Add(duration)) {
+					posts = append(posts, result)
+				}
+			} else {
+				posts = append(posts, result)
+			}
+		}
+	}
+
+	return posts, nil
+}
+
+func (repo *PostRepository) GetMyPosts(loggedUserId uint) ([]model.Post, error) {
+	collection := repo.getCollection()
+
+	filter := bson.D{{"isdeleted", false}, {"publisherid", loggedUserId}}
+
+	cursor, err := collection.Find(context.TODO(), filter)
+	if err != nil {
+		return nil, err
+	}
+
+	var posts []model.Post
+
+	for cursor.Next(context.TODO()) {
+		var result model.Post
+		err = cursor.Decode(&result)
 		posts = append(posts, result)
 	}
 
-	for storyCursor.Next(context.TODO()) {
-		var result model.Post
-		err = storyCursor.Decode(&result)
-		posts = append(posts, result)
-	}
-
-	return posts
+	return posts, nil
 }
 
-func (repo *PostRepository) GetProfilesPosts(followingProfiles []uint, targetUsername string) []model.Post {
-	postCollection, err := repo.getCollection(model.GetPostType("post"))
+func (repo *PostRepository) GetPostsForHomePage(followingProfiles []uint) ([]model.Post, error) {
+	collection := repo.getCollection()
+
+	cursor, err := collection.Find(context.TODO(), bson.D{})
 	if err != nil {
-		fmt.Println("Error: can't get post collection!")
+		return nil, err
 	}
-	storyCollection, err := repo.getCollection(model.GetPostType("story"))
-	if err != nil {
-		fmt.Println("Error: can't get story collection!")
-	}
-	postCursor, err := postCollection.Find(context.TODO(), bson.D{})
-	if err != nil {
-		fmt.Println("Error: can't find posts!")
-	}
-	storyCursor, err := storyCollection.Find(context.TODO(), bson.D{})
-	if err != nil {
-		fmt.Println("Error: can't find stories!")
-	}
+
 	var posts []model.Post
 
-	for postCursor.Next(context.TODO()) {
+	for cursor.Next(context.TODO()) {
 		var result model.Post
-		err = postCursor.Decode(&result)
-		if result.PublisherUsername == targetUsername &&
-			(result.IsPrivate == false || util.Contains(followingProfiles, result.PublisherId)) {
-			posts = append(posts, result)
-		}
-	}
-
-	for storyCursor.Next(context.TODO()) {
-		var result model.Post
-		err = storyCursor.Decode(&result)
-		if result.PublisherUsername == targetUsername &&
-			(result.IsPrivate == false || util.Contains(followingProfiles, result.PublisherId)) {
-			duration, err := time.ParseDuration("24h")
-			if err != nil {
-				fmt.Println(err)
-			}
-			if result.IsHighlighted || time.Now().Before(result.PublishDate.Add(duration)) {
-				posts = append(posts, result)
-			}
-		}
-	}
-
-	return posts
-}
-
-func (repo *PostRepository) GetPublic() []model.Post {
-	postCollection, err := repo.getCollection(model.GetPostType("post"))
-	if err != nil {
-		fmt.Println("Error: can't get post collection!")
-	}
-	storyCollection, err := repo.getCollection(model.GetPostType("story"))
-	if err != nil {
-		fmt.Println("Error: can't get story collection!")
-	}
-	postCursor, err := postCollection.Find(context.TODO(), bson.D{})
-	if err != nil {
-		fmt.Println("Error: can't find posts!")
-	}
-	storyCursor, err := storyCollection.Find(context.TODO(), bson.D{})
-	if err != nil {
-		fmt.Println("Error: can't find stories!")
-	}
-	var posts []model.Post
-
-	for postCursor.Next(context.TODO()) {
-		var result model.Post
-		err = postCursor.Decode(&result)
-		if result.IsPrivate == false {
-			posts = append(posts, result)
-		}
-	}
-
-	for storyCursor.Next(context.TODO()) {
-		var result model.Post
-		err = storyCursor.Decode(&result)
-		if result.IsPrivate == false {
-			duration, err := time.ParseDuration("24h")
-			if err != nil {
-				fmt.Println(err)
-			}
-			if time.Now().Before(result.PublishDate.Add(duration)) {
-				posts = append(posts, result)
-			}
-		}
-	}
-
-	return posts
-}
-
-func (repo *PostRepository) GetPublicPostByLocation(location string) []model.Post {
-	postCollection, err := repo.getCollection(model.GetPostType("post"))
-	if err != nil {
-		fmt.Println("Error: can't get post collection!")
-	}
-	storyCollection, err := repo.getCollection(model.GetPostType("story"))
-	if err != nil {
-		fmt.Println("Error: can't get story collection!")
-	}
-	postCursor, err := postCollection.Find(context.TODO(), bson.D{})
-	if err != nil {
-		fmt.Println("Error: can't find posts!")
-	}
-	storyCursor, err := storyCollection.Find(context.TODO(), bson.D{})
-	if err != nil {
-		fmt.Println("Error: can't find stories!")
-	}
-	var posts []model.Post
-
-	for postCursor.Next(context.TODO()) {
-		var result model.Post
-		err = postCursor.Decode(&result)
-		if result.IsPrivate == false && strings.Contains(result.Location, location) {
-			posts = append(posts, result)
-		}
-	}
-
-	for storyCursor.Next(context.TODO()) {
-		var result model.Post
-		err = storyCursor.Decode(&result)
-		if result.IsPrivate == false && strings.Contains(result.Location, location) {
-			duration, err := time.ParseDuration("24h")
-			if err != nil {
-				fmt.Println(err)
-			}
-			if time.Now().Before(result.PublishDate.Add(duration)) {
-				posts = append(posts, result)
-			}
-		}
-	}
-
-	return posts
-}
-
-func (repo *PostRepository) GetPublicPostByHashTag(hashTag string) []model.Post {
-	postCollection, err := repo.getCollection(model.GetPostType("post"))
-	if err != nil {
-		fmt.Println("Error: can't get post collection!")
-	}
-	storyCollection, err := repo.getCollection(model.GetPostType("story"))
-	if err != nil {
-		fmt.Println("Error: can't get story collection!")
-	}
-	postCursor, err := postCollection.Find(context.TODO(), bson.D{})
-	if err != nil {
-		fmt.Println("Error: can't find posts!")
-	}
-	storyCursor, err := storyCollection.Find(context.TODO(), bson.D{})
-	if err != nil {
-		fmt.Println("Error: can't find stories!")
-	}
-	var posts []model.Post
-
-	for postCursor.Next(context.TODO()) {
-		var result model.Post
-		err = postCursor.Decode(&result)
-		if result.IsPrivate == false && strings.Contains(result.HashTags, hashTag) {
-			posts = append(posts, result)
-		}
-	}
-
-	for storyCursor.Next(context.TODO()) {
-		var result model.Post
-		err = storyCursor.Decode(&result)
-		if result.IsPrivate == false && strings.Contains(result.HashTags, hashTag) {
-			duration, err := time.ParseDuration("24h")
-			if err != nil {
-				fmt.Println(err)
-			}
-			if time.Now().Before(result.PublishDate.Add(duration)) {
-				posts = append(posts, result)
-			}
-		}
-	}
-
-	return posts
-}
-
-func (repo *PostRepository) GetMyPosts(loggedUserId uint) []model.Post {
-	postCollection, err := repo.getCollection(model.GetPostType("post"))
-	if err != nil {
-		fmt.Println("Error: can't get post collection!")
-	}
-	storyCollection, err := repo.getCollection(model.GetPostType("story"))
-	if err != nil {
-		fmt.Println("Error: can't get story collection!")
-	}
-	postCursor, err := postCollection.Find(context.TODO(), bson.D{})
-	if err != nil {
-		fmt.Println("Error: can't find posts!")
-	}
-	storyCursor, err := storyCollection.Find(context.TODO(), bson.D{})
-	if err != nil {
-		fmt.Println("Error: can't find stories!")
-	}
-	var posts []model.Post
-
-	for postCursor.Next(context.TODO()) {
-		var result model.Post
-		err = postCursor.Decode(&result)
-		if result.PublisherId == loggedUserId {
-			posts = append(posts, result)
-		}
-	}
-
-	for storyCursor.Next(context.TODO()) {
-		var result model.Post
-		err = storyCursor.Decode(&result)
-		if result.PublisherId == loggedUserId {
-			posts = append(posts, result)
-		}
-	}
-
-	return posts
-}
-
-func (repo *PostRepository) GetPostsForHomePage(followingProfiles []uint) []model.Post {
-	postCollection, err := repo.getCollection(model.GetPostType("post"))
-	if err != nil {
-		fmt.Println("Error: can't get post collection!")
-	}
-	storyCollection, err := repo.getCollection(model.GetPostType("story"))
-	if err != nil {
-		fmt.Println("Error: can't get story collection!")
-	}
-	postCursor, err := postCollection.Find(context.TODO(), bson.D{})
-	if err != nil {
-		fmt.Println("Error: can't find posts!")
-	}
-	storyCursor, err := storyCollection.Find(context.TODO(), bson.D{})
-	if err != nil {
-		fmt.Println("Error: can't find stories!")
-	}
-	var posts []model.Post
-
-	for postCursor.Next(context.TODO()) {
-		var result model.Post
-		err = postCursor.Decode(&result)
+		err = cursor.Decode(&result)
 		if util.Contains(followingProfiles, result.PublisherId) {
-			posts = append(posts, result)
-		}
-	}
-
-	for storyCursor.Next(context.TODO()) {
-		var result model.Post
-		err = storyCursor.Decode(&result)
-		if util.Contains(followingProfiles, result.PublisherId) {
-			duration, err := time.ParseDuration("24h")
-			if err != nil {
-				fmt.Println(err)
-			}
-			if time.Now().Before(result.PublishDate.Add(duration)) {
+			if result.PostType == model.GetPostType("story") {
+				duration, err := time.ParseDuration("24h")
+				if err != nil {
+					return nil, err
+				}
+				if time.Now().Before(result.PublishDate.Add(duration)) {
+					posts = append(posts, result)
+				}
+			} else {
 				posts = append(posts, result)
 			}
 		}
 	}
 
-	return posts
+	return posts, nil
 }
 
 func (repo *PostRepository) Create(post *model.Post) error {
-	collection, err := repo.getCollection(post.PostType)
-	if err != nil {
-		return err
-	}
-	_, err = collection.InsertOne(context.TODO(), post)
+	collection := repo.getCollection()
+	_, err := collection.InsertOne(context.TODO(), post)
 	return err
 }
 
-func (repo *PostRepository) Read(id primitive.ObjectID, postType model.PostType) (model.Post, error) {
-	collection, err := repo.getCollection(postType)
-	if err != nil {
-		return model.Post{}, err
-	}
-	filter := bson.D{{"_id", id}}
+func (repo *PostRepository) Read(id primitive.ObjectID) (model.Post, error) {
+	collection := repo.getCollection()
+	filter := bson.D{{"_id", id}, {"isdeleted", false}}
 	var result model.Post
-	err = collection.FindOne(context.TODO(), filter).Decode(&result)
+	err := collection.FindOne(context.TODO(), filter).Decode(&result)
 	return result, err
 }
 
-func (repo *PostRepository) Delete(id primitive.ObjectID, postType model.PostType) error {
-	collection, err := repo.getCollection(postType)
-	if err != nil {
-		return err
-	}
+func (repo *PostRepository) Delete(id primitive.ObjectID) error {
+	collection := repo.getCollection()
 	filter := bson.D{{"_id", id}}
 	update := bson.D{
 		{"$set", bson.D{
@@ -350,12 +230,9 @@ func (repo *PostRepository) Delete(id primitive.ObjectID, postType model.PostTyp
 	return nil
 }
 
-func (repo *PostRepository) Update(id primitive.ObjectID, postType model.PostType, post dto.PostDto) error {
+func (repo *PostRepository) Update(id primitive.ObjectID, post dto.PostDto) error {
 
-	collection, err := repo.getCollection(postType)
-	if err != nil {
-		return err
-	}
+	collection := repo.getCollection()
 
 	filter := bson.D{{"_id", id}}
 	update := bson.D{
@@ -380,8 +257,7 @@ func (repo *PostRepository) DeleteUserPosts(id uint) error {
 		}},
 	}
 
-	return repo.updateManyInPostAndStoryCollections(filter, update)
-
+	return repo.updateMany(filter, update)
 }
 
 func (repo *PostRepository) ChangeUsername(id uint, username string) error {
@@ -392,7 +268,7 @@ func (repo *PostRepository) ChangeUsername(id uint, username string) error {
 		}},
 	}
 
-	return repo.updateManyInPostAndStoryCollections(filter, update)
+	return repo.updateMany(filter, update)
 }
 
 func (repo *PostRepository) ChangePrivacy(id uint, isPrivate bool) error {
@@ -403,41 +279,20 @@ func (repo *PostRepository) ChangePrivacy(id uint, isPrivate bool) error {
 		}},
 	}
 
-	return repo.updateManyInPostAndStoryCollections(filter, update)
+	return repo.updateMany(filter, update)
 }
 
-func (repo *PostRepository) GetPostById(id primitive.ObjectID) (model.Post, error) {
-	filter := bson.D{{"_id", id}}
-	var result model.Post
+func (repo *PostRepository) updateMany(filter bson.D, update bson.D) error {
+	collection := repo.getCollection()
 
-	collection := repo.Client.Database("postdb").Collection("posts")
-	err := collection.FindOne(context.TODO(), filter).Decode(&result)
-	if err != nil{
-		collection := repo.Client.Database("postdb").Collection("stories")
-		err = collection.FindOne(context.TODO(), filter).Decode(&result)
-	}
+	result, _ := collection.UpdateMany(context.TODO(), filter, update)
 
-	return result, err
-}
-
-func (repo *PostRepository) updateManyInPostAndStoryCollections(filter bson.D, update bson.D) error {
-	collPosts, _ := repo.getCollection(model.POST)
-	collStories, _ := repo.getCollection(model.STORY)
-
-	result1, _ := collPosts.UpdateMany(context.TODO(), filter, update)
-	result2, _ := collStories.UpdateMany(context.TODO(), filter, update)
-
-	if result1.MatchedCount == 0 && result2.MatchedCount == 0 {
+	if result.MatchedCount == 0 {
 		return mongo.ErrNoDocuments
 	}
 	return nil
 }
 
-func (repo *PostRepository) getCollection(postType model.PostType) (*mongo.Collection, error) {
-	if postType == model.POST {
-		return repo.Client.Database("postdb").Collection("posts"), nil
-	} else if postType == model.STORY {
-		return repo.Client.Database("postdb").Collection("stories"), nil
-	}
-	return nil, errors.New("collection doesn't exist!")
+func (repo *PostRepository) getCollection() *mongo.Collection {
+	return repo.Client.Database(postDbName).Collection(postsCollectionName)
 }
