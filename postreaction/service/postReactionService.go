@@ -3,6 +3,7 @@ package service
 import (
 	"encoding/json"
 	"fmt"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"io"
 	"net/http"
 	postModel "nistagram/post/model"
@@ -18,9 +19,12 @@ type PostReactionService struct {
 }
 
 func (service *PostReactionService) ReactOnPost(postID string, loggedUserID uint, reactionType model.ReactionType) error {
-	_, err := postExists(postID)
+	post, err := getPost(postID)
 	if err != nil {
 		return err
+	}
+	if post.PostType == postModel.GetPostType("story") {
+		return fmt.Errorf("Cannot react on story!")
 	}
 	reaction := model.Reaction{ReactionType: reactionType, PostID: postID, ProfileID: loggedUserID}
 	return service.PostReactionRepository.ReactOnPost(&reaction)
@@ -31,9 +35,12 @@ func (service *PostReactionService) DeleteReaction(postID string, loggedUserID u
 }
 
 func (service *PostReactionService) CommentPost(commentDTO dto.CommentDTO, loggedUserID uint) error {
-	_, err := postExists(commentDTO.PostID)
+	post, err := getPost(commentDTO.PostID)
 	if err != nil {
 		return err
+	}
+	if post.PostType == postModel.GetPostType("story") {
+		return fmt.Errorf("Cannot comment on story!")
 	}
 	comment := model.Comment{PostID: commentDTO.PostID, ProfileID: loggedUserID,
 		Content: commentDTO.Content, Time: time.Now()}
@@ -41,11 +48,11 @@ func (service *PostReactionService) CommentPost(commentDTO dto.CommentDTO, logge
 }
 
 func (service *PostReactionService) ReportPost(postID string, reason string) error {
-	_, err := postExists(postID)
+	_, err := getPost(postID)
 	if err != nil {
 		return err
 	}
-	report := model.Report{PostID: postID, Time: time.Now(), Reason: reason}
+	report := model.Report{ID: primitive.NewObjectID(), PostID: postID, Time: time.Now(), Reason: reason}
 	return service.PostReactionRepository.ReportPost(&report)
 }
 
@@ -63,7 +70,7 @@ func (service *PostReactionService) GetMyReactions(reactionType model.ReactionTy
 		"ids": ret,
 	})
 	resp, err := util.CrossServiceRequest(http.MethodPost,
-		util.CrossServiceProtocol+"://"+postHost+":"+postPort+"/get-collection/post",
+		util.CrossServiceProtocol+"://"+postHost+":"+postPort+"/posts",
 		postBody, map[string]string{"Content-Type": "application/json;"})
 
 	if err != nil {
@@ -138,7 +145,7 @@ func getPostsByPostsIds(postsIds []string) ([]dto.PostDTO, error) {
 		return nil, err
 	}
 	postHost, postPort := util.GetPostHostAndPort()
-	resp, err := util.CrossServiceRequest(http.MethodGet,
+	resp, err := util.CrossServiceRequest(http.MethodPost,
 		util.CrossServiceProtocol+"://"+postHost+":"+postPort+"/posts",
 		jsonBody, map[string]string{})
 
@@ -161,16 +168,31 @@ func getPostsByPostsIds(postsIds []string) ([]dto.PostDTO, error) {
 
 	return ret, nil
 }
-func postExists(postID string) (bool, error) {
+func getPost(postID string) (*postModel.Post, error) {
 	postHost, postPort := util.GetPostHostAndPort()
 	resp, err := util.CrossServiceRequest(http.MethodGet,
-		util.CrossServiceProtocol+"://"+postHost+":"+postPort+"/collection/post/"+postID,
+		util.CrossServiceProtocol+"://"+postHost+":"+postPort+"/post/"+postID,
 		nil, map[string]string{})
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 	if resp.StatusCode != 200 {
-		return false, fmt.Errorf("BAD_POST_ID")
+		return nil, fmt.Errorf("BAD_POST_ID")
 	}
-	return true, nil
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(resp.Body)
+
+	var post postModel.Post
+
+	if err = json.Unmarshal(body, &post); err != nil {
+		return nil, err
+	}
+	return &post, nil
 }

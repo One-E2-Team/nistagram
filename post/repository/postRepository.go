@@ -220,7 +220,7 @@ func (repo *PostRepository) Delete(id primitive.ObjectID) error {
 	filter := bson.D{{"_id", id}}
 	update := bson.D{
 		{"$set", bson.D{
-			{"isDeleted", true},
+			{"isdeleted", true},
 		}},
 	}
 	result, _ := collection.UpdateOne(context.TODO(), filter, update)

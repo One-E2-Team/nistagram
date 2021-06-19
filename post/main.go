@@ -80,7 +80,8 @@ func handleFunc(handler *handler.Handler) {
 		util.MSAuth(handler.GetPost, []string{"postreaction"})).Methods("GET")
 	router.HandleFunc("/posts",
 		util.MSAuth(handler.GetPosts, []string{"postreaction"})).Methods("POST")
-	router.HandleFunc("/{id}", handler.DeletePost).Methods("DELETE")
+	router.HandleFunc("/{id}",
+		util.RBAC(handler.DeletePost, "DELETE_POST", false)).Methods("DELETE") // frontend func
 	router.HandleFunc("/{id}", handler.UpdatePost).Methods("PUT")
 	fmt.Println("Starting server..")
 	host, port := util.GetPostHostAndPort()
