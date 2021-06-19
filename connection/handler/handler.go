@@ -13,7 +13,7 @@ import (
 )
 
 type Handler struct {
-	ConnectionService *service.ConnectionService
+	ConnectionService *service.Service
 }
 
 func (handler *Handler) AddProfile(w http.ResponseWriter, r *http.Request) {
@@ -164,14 +164,13 @@ func (handler *Handler) FollowApprove(w http.ResponseWriter, r *http.Request) {
 func (handler *Handler) GetFollowedProfilesNotMuted(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, _ := strconv.ParseUint(vars["id"], 10, 32)
-	conn := model.Connection{
+	conn := model.ConnectionEdge{
 		PrimaryProfile:    uint(id),
 		SecondaryProfile:  0,
 		Muted:             false,
 		CloseFriend:       false,
 		NotifyPost:        false,
 		NotifyStory:       false,
-		NotifyMessage:     false,
 		NotifyComment:     false,
 		ConnectionRequest: false,
 		Approved:          true,
@@ -185,14 +184,13 @@ func (handler *Handler) GetFollowedProfilesNotMuted(w http.ResponseWriter, r *ht
 func (handler *Handler) GetFollowedProfiles(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, _ := strconv.ParseUint(vars["id"], 10, 32)
-	conn := model.Connection{
+	conn := model.ConnectionEdge{
 		PrimaryProfile:    uint(id),
 		SecondaryProfile:  0,
 		Muted:             false,
 		CloseFriend:       false,
 		NotifyPost:        false,
 		NotifyStory:       false,
-		NotifyMessage:     false,
 		NotifyComment:     false,
 		ConnectionRequest: false,
 		Approved:          true,
@@ -204,7 +202,7 @@ func (handler *Handler) GetFollowedProfiles(w http.ResponseWriter, r *http.Reque
 }
 
 func (handler *Handler) UpdateConnection(w http.ResponseWriter, r *http.Request) {
-	var dto model.Connection
+	var dto model.ConnectionEdge
 	err := json.NewDecoder(r.Body).Decode(&dto)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -376,7 +374,7 @@ func (handler *Handler) ToggleNotifyStoryProfile(writer http.ResponseWriter, req
 	writer.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(writer).Encode(*connection)
 }
-
+/*
 func (handler *Handler) ToggleNotifyMessageProfile(writer http.ResponseWriter, request *http.Request) {
 	followerId := util.GetLoggedUserIDFromToken(request)
 	if followerId == 0 {
@@ -398,7 +396,7 @@ func (handler *Handler) ToggleNotifyMessageProfile(writer http.ResponseWriter, r
 	writer.WriteHeader(http.StatusOK)
 	writer.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(writer).Encode(*connection)
-}
+}*/
 
 func (handler *Handler) ToggleNotifyCommentProfile(writer http.ResponseWriter, request *http.Request) {
 	followerId := util.GetLoggedUserIDFromToken(request)

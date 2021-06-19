@@ -21,7 +21,7 @@ func initDB() *neo4j.Driver {
 		err    error
 	)
 	time.Sleep(10 * time.Second)
-	var dbHost, dbPort, dbusername, dbpassword = "localhost", "7687", "neo4j", "neo4j" // dev.db environment
+	var dbHost, dbPort, dbusername, dbpassword = "localhost", "7687", "neo4j", "root" // dev.db environment
 	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD")                                       // production environment
 	if ok {
 		dbHost = "graphdb_connection"
@@ -56,11 +56,11 @@ func initConnectionRepo(databaseDriver *neo4j.Driver) *repository.Repository {
 	return &repository.Repository{DatabaseDriver: databaseDriver}
 }
 
-func initService(connectionRepo *repository.Repository) *service.ConnectionService {
-	return &service.ConnectionService{ConnectionRepository: connectionRepo}
+func initService(connectionRepo *repository.Repository) *service.Service {
+	return &service.Service{ConnectionRepository: connectionRepo}
 }
 
-func initHandler(service *service.ConnectionService) *handler.Handler {
+func initHandler(service *service.Service) *handler.Handler {
 	return &handler.Handler{ConnectionService: service}
 }
 
@@ -94,8 +94,8 @@ func handleFunc(handler *handler.Handler) {
 		util.RBAC(handler.ToggleNotifyStoryProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT") //frontend func
 	router.HandleFunc("/connection/notify/comment/{profileId}",
 		util.RBAC(handler.ToggleNotifyCommentProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT") //frontend func
-	router.HandleFunc("/connection/notify/message/{profileId}",
-		util.RBAC(handler.ToggleNotifyMessageProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT") //frontend func
+	/*router.HandleFunc("/connection/notify/message/{profileId}",
+		util.RBAC(handler.ToggleNotifyMessageProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT")*/ //frontend func
 	router.HandleFunc("/connection/block/{profileId}",
 		util.RBAC(handler.IsBlocked, "READ_CONNECTION_STATUS", false)).Methods("GET") //frontend func
 	router.HandleFunc("/connection/unfollow/{profileId}",

@@ -7,10 +7,10 @@ import (
 	"nistagram/connection/model"
 )
 
-func (repo *Repository) CreateBlock(id1, id2 uint) (*model.Block, bool) {
+func (repo *Repository) CreateBlock(id1, id2 uint) (*model.BlockEdge, bool) {
 	session := (*repo.DatabaseDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close()
-	block := model.Block{
+	block := model.BlockEdge{
 		PrimaryProfile:    id1,
 		SecondaryProfile:  id2,
 	}
@@ -32,7 +32,7 @@ func (repo *Repository) CreateBlock(id1, id2 uint) (*model.Block, bool) {
 			}
 		res := record.Values[0].(dbtype.Relationship)
 		fmt.Println(res)
-		var ret = model.Block{
+		var ret = model.BlockEdge{
 			PrimaryProfile:    id1,
 			SecondaryProfile:  id2,
 		}
@@ -42,14 +42,14 @@ func (repo *Repository) CreateBlock(id1, id2 uint) (*model.Block, bool) {
 		fmt.Println(err.Error())
 		return nil, false
 	}
-	var ret = resultingBlock.(model.Block)
+	var ret = resultingBlock.(model.BlockEdge)
 	return &ret, true
 }
 
-func (repo *Repository) SelectBlock(id1, id2 uint) (*model.Block, bool) {
+func (repo *Repository) SelectBlock(id1, id2 uint) (*model.BlockEdge, bool) {
 	session := (*repo.DatabaseDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close()
-	block := model.Block{
+	block := model.BlockEdge{
 		PrimaryProfile:    id1,
 		SecondaryProfile:  id2,
 	}
@@ -70,7 +70,7 @@ func (repo *Repository) SelectBlock(id1, id2 uint) (*model.Block, bool) {
 		}
 		res := record.Values[0].(dbtype.Relationship)
 		fmt.Println(res)
-		var ret = model.Block{
+		var ret = model.BlockEdge{
 			PrimaryProfile:    id1,
 			SecondaryProfile:  id2,
 		}
@@ -80,11 +80,11 @@ func (repo *Repository) SelectBlock(id1, id2 uint) (*model.Block, bool) {
 		fmt.Println(err.Error())
 		return nil, false
 	}
-	var ret = resultingBlock.(model.Block)
+	var ret = resultingBlock.(model.BlockEdge)
 	return &ret, true
 }
 
-func (repo *Repository) DeleteBlock(followerId, profileId uint) (*model.Block, bool) {
+func (repo *Repository) DeleteBlock(followerId, profileId uint) (*model.BlockEdge, bool) {
 	block, ok := repo.SelectBlock(followerId, profileId)
 	if !ok {
 		return nil, false
@@ -105,7 +105,7 @@ func (repo *Repository) DeleteBlock(followerId, profileId uint) (*model.Block, b
 }
 
 func (repo *Repository) GetBlockedProfiles(id uint, directed bool) *[]uint {
-	block := model.Block{
+	block := model.BlockEdge{
 		PrimaryProfile:   id,
 		SecondaryProfile: 0,
 	}

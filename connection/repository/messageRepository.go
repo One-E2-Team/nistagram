@@ -7,10 +7,10 @@ import (
 	"nistagram/connection/model"
 )
 
-func (repo *Repository) CreateOrUpdateMessageRelationship(id1, id2 uint, connected bool) (*model.Message, bool) {
+func (repo *Repository) CreateOrUpdateMessageRelationship(id1, id2 uint, connected bool) (*model.MessageEdge, bool) {
 	session := (*repo.DatabaseDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close()
-	message := model.Message{
+	message := model.MessageEdge{
 		PrimaryProfile:		id1,
 		SecondaryProfile:	id2,
 		Approved: 			connected,
@@ -35,7 +35,7 @@ func (repo *Repository) CreateOrUpdateMessageRelationship(id1, id2 uint, connect
 		}
 		res := record.Values[0].(dbtype.Relationship).Props
 		fmt.Println(res)
-		var ret = model.Message{
+		var ret = model.MessageEdge{
 			PrimaryProfile:		id1,
 			SecondaryProfile:	id2,
 			Approved:			res["approved"].(bool),
@@ -46,14 +46,14 @@ func (repo *Repository) CreateOrUpdateMessageRelationship(id1, id2 uint, connect
 		fmt.Println(err.Error())
 		return nil, false
 	}
-	var ret = resultingBlock.(model.Message)
+	var ret = resultingBlock.(model.MessageEdge)
 	return &ret, true
 }
 
-func (repo *Repository) SelectMessage(id1, id2 uint) (*model.Message, bool) {
+func (repo *Repository) SelectMessage(id1, id2 uint) (*model.MessageEdge, bool) {
 	session := (*repo.DatabaseDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close()
-	block := model.Message{
+	block := model.MessageEdge{
 		PrimaryProfile:    id1,
 		SecondaryProfile:  id2,
 	}
@@ -74,7 +74,7 @@ func (repo *Repository) SelectMessage(id1, id2 uint) (*model.Message, bool) {
 		}
 		res := record.Values[0].(dbtype.Relationship).Props
 		fmt.Println(res)
-		var ret = model.Message{
+		var ret = model.MessageEdge{
 			PrimaryProfile:		id1,
 			SecondaryProfile:	id2,
 			Approved: 			res["approved"].(bool),
@@ -85,11 +85,11 @@ func (repo *Repository) SelectMessage(id1, id2 uint) (*model.Message, bool) {
 		fmt.Println(err.Error())
 		return nil, false
 	}
-	var ret = resultingBlock.(model.Message)
+	var ret = resultingBlock.(model.MessageEdge)
 	return &ret, true
 }
 
-func (repo *Repository) DeleteMessage(followerId, profileId uint) (*model.Message, bool) {
+func (repo *Repository) DeleteMessage(followerId, profileId uint) (*model.MessageEdge, bool) {
 	message, ok := repo.SelectMessage(followerId, profileId)
 	if !ok {
 		return nil, false
