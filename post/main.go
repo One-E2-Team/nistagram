@@ -73,15 +73,15 @@ func handleFunc(handler *handler.Handler) {
 		util.RBAC(handler.Create, "CREATE_POST", false)).Methods("POST") // frontend func
 	router.HandleFunc("/user/{loggedUserId}/privacy",
 		util.MSAuth(handler.ChangePrivacy, []string{"profile"})).Methods("PUT")
-	router.HandleFunc("/user", handler.DeleteUserPosts).Methods("DELETE")
+	router.HandleFunc("/user/{id}", handler.DeleteUserPosts).Methods("DELETE")
 	router.HandleFunc("/user/{loggedUserId}/username",
 		util.MSAuth(handler.ChangeUsername, []string{"profile"})).Methods("PUT")
-	router.HandleFunc("/collection/{postType}/{id}",
+	router.HandleFunc("/post/{id}",
 		util.MSAuth(handler.GetPost, []string{"postreaction"})).Methods("GET")
-	router.HandleFunc("/get-collection/{postType}",
+	router.HandleFunc("/posts",
 		util.MSAuth(handler.GetPosts, []string{"postreaction"})).Methods("POST")
-	router.HandleFunc("/{postType}/{id}", handler.DeletePost).Methods("DELETE")
-	router.HandleFunc("/{postType}/{id}", handler.UpdatePost).Methods("PUT")
+	router.HandleFunc("/{id}", handler.DeletePost).Methods("DELETE")
+	router.HandleFunc("/{id}", handler.UpdatePost).Methods("PUT")
 	fmt.Println("Starting server..")
 	host, port := util.GetPostHostAndPort()
 	var err error

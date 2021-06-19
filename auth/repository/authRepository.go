@@ -42,6 +42,13 @@ func (repo *AuthRepository) UpdateUser(user model.User) error {
 	return nil
 }
 
+func (repo *AuthRepository) DeleteUser(user *model.User) error {
+	if err := repo.Database.Delete(user).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
 func (repo *AuthRepository) GetRoleByName(name string) (*model.Role, error) {
 	role := &model.Role{}
 	if err := repo.Database.Table("roles").First(&role, "name = ?", name).Error; err != nil {

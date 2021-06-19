@@ -41,7 +41,6 @@ func (service *PostReactionService) CommentPost(commentDTO dto.CommentDTO, logge
 }
 
 func (service *PostReactionService) ReportPost(postID string, reason string) error {
-	//TODO: check if post or story exists
 	_, err := postExists(postID)
 	if err != nil {
 		return err
@@ -98,6 +97,70 @@ func (service *PostReactionService) GetReactionTypes(profileID uint, postIDs []s
 	return ret
 }
 
+func (service *PostReactionService) GetAllReports() ([]dto.ShowReportDTO, error) {
+	var ret []dto.ShowReportDTO
+
+	reports, err := service.PostReactionRepository.GetAllReports()
+	if err != nil {
+		return nil, err
+	}
+
+	var repIds []string
+
+	for i := 0; i < len(reports); i++{
+		repIds = append(repIds, reports[i].PostID)
+	}
+
+	posts, err := getPostsByPostsIds(repIds)
+	if err != nil{
+		return nil, err
+	}
+
+	for i := 0; i < len(posts); i++{
+		retDto := dto.ShowReportDTO{ReportID: util.GetStringIDFromMongoID(reports[i].ID),
+			PostID: util.GetStringIDFromMongoID(posts[i].ID), Reason: reports[i].Reason,
+		PublisherId: posts[i].PublisherId, PublisherUsername: posts[i].PublisherUsername,
+		Medias: posts[i].Medias, Description: posts[i].Description}
+		ret = append(ret, retDto)
+	}
+
+	return ret, nil
+}
+
+func getPostsByPostsIds(postsIds []string) ([]dto.PostDTO, error) {
+	var ret []dto.PostDTO
+	type data struct {
+		Ids []string `json:"ids"`
+	}
+	bodyData := data{Ids: postsIds}
+	jsonBody, err := json.Marshal(bodyData)
+	if err != nil{
+		return nil, err
+	}
+	postHost, postPort := util.GetPostHostAndPort()
+	resp, err := util.CrossServiceRequest(http.MethodGet,
+		util.CrossServiceProtocol+"://"+postHost+":"+postPort+"/posts",
+		jsonBody, map[string]string{})
+
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(resp.Body)
+
+	if err = json.Unmarshal(body, &ret); err != nil {
+		return nil, err
+	}
+
+	return ret, nil
+}
 func postExists(postID string) (bool, error) {
 	postHost, postPort := util.GetPostHostAndPort()
 	resp, err := util.CrossServiceRequest(http.MethodGet,
