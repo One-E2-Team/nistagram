@@ -14,7 +14,7 @@
                     <v-btn v-if="isMyProfile" color="normal" elevation="8" @click="redirectToCreatePost()">
                     Create post
                     </v-btn>
-                    <profile-options-drop-menu v-if="!isMyProfile" v-bind:profileId="profileId" v-bind:connection="connection" v-bind:blocked="isBlocked" v-on:connectionChanged='connection=$event' class="mx-2">
+                    <profile-options-drop-menu v-if="!isMyProfile" v-bind:profileId="profileId" v-bind:conn="connection" v-bind:blocked="isBlocked" v-on:connectionChanged='connection=$event' class="mx-2">
                         <v-icon>mdi-menu-down</v-icon>
                     </profile-options-drop-menu>
                 </template>
@@ -59,7 +59,7 @@ export default {
             isPrivateProfile: true,
             unfollowType: '',
             isBlocked: false,
-            connection: {},
+            connection: null,
         }
     },
     methods: {
@@ -152,12 +152,12 @@ export default {
         checkIsUserBlocked(){
             axios({
                     method: "get",
-                    url: comm.protocol + "://" + comm.server +"/api/connection/block/" + this.post.publisherId,
+                    url: comm.protocol + "://" + comm.server +"/api/connection/block/" + this.profileId,
                     headers: comm.getHeader(),
                 }).then((response) => {
                 console.log(response.data);
                 if(response.status == 200)
-                this.isBlocked = response.data == 'true'
+                this.isBlocked = response.data.blocked
                 }).catch((error) => {
                     console.log(error);
                 });

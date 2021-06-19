@@ -60,11 +60,12 @@
 import axios from 'axios'
 import * as comm from '../../configuration/communication.js'
 export default {
-    props: ['profileId', 'connection','blocked'],
+    props: ['profileId', 'conn','blocked'],
     name: 'ProfileOptions',
     data(){
         return{
             isBlocked: true,
+            connection: null,
         }
     },
     created(){
@@ -92,7 +93,6 @@ export default {
             }).then((response) => {
                 if(response.status == 200)
                     this.isBlocked = !this.isBlocked
-
             })
             .catch((error) => {
                 console.log(error);
@@ -102,6 +102,9 @@ export default {
     watch:{
         blocked: function() { 
           this.isBlocked = this.blocked
+        },
+        conn: function() {
+            this.connection = this.conn
         }
     }
 }
