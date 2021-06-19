@@ -10,10 +10,13 @@ import (
 
 const reactionsCollectionName = "reactions"
 const reportsCollectionName = "reports"
+const commentsCollectionName = "comments"
 
 const profileIDColumn = "profileid"
 const postIDColumn = "postid"
 const reactionTypeColumn = "reactiontype"
+
+var emptyContext = context.TODO()
 
 type PostReactionRepository struct {
 	Client *mongo.Client
@@ -23,9 +26,9 @@ func (repo *PostReactionRepository) ReactOnPost(reaction *model.Reaction) error 
 	reactionsCollection := repo.getCollection(reactionsCollectionName)
 	filter := bson.D{{profileIDColumn, reaction.ProfileID}, {postIDColumn, reaction.PostID}}
 	var existingReaction model.Reaction
-	exists := reactionsCollection.FindOne(context.TODO(), filter).Decode(&existingReaction)
+	exists := reactionsCollection.FindOne(emptyContext, filter).Decode(&existingReaction)
 	if exists != nil {
-		_, err := reactionsCollection.InsertOne(context.TODO(), reaction)
+		_, err := reactionsCollection.InsertOne(emptyContext, reaction)
 		return err
 	}
 	update := bson.D{
@@ -33,7 +36,7 @@ func (repo *PostReactionRepository) ReactOnPost(reaction *model.Reaction) error 
 			{reactionTypeColumn, reaction.ReactionType},
 		}},
 	}
-	result, _ := reactionsCollection.UpdateOne(context.TODO(), filter, update)
+	result, _ := reactionsCollection.UpdateOne(emptyContext, filter, update)
 	if result.MatchedCount == 0 {
 		return mongo.ErrNoDocuments
 	}
@@ -44,29 +47,35 @@ func (repo *PostReactionRepository) DeleteReaction(postID string, loggedUserID u
 	reactionsCollection := repo.getCollection(reactionsCollectionName)
 	filter := bson.D{{profileIDColumn, loggedUserID}, {postIDColumn, postID}}
 	var existingReaction model.Reaction
-	err := reactionsCollection.FindOne(context.TODO(), filter).Decode(&existingReaction)
+	err := reactionsCollection.FindOne(emptyContext, filter).Decode(&existingReaction)
 	if err != nil {
 		return err
 	}
-	_, err = reactionsCollection.DeleteOne(context.TODO(), existingReaction)
+	_, err = reactionsCollection.DeleteOne(emptyContext, existingReaction)
+	return err
+}
+
+func (repo *PostReactionRepository) CommentPost(comment *model.Comment) error {
+	commentsCollection := repo.getCollection(commentsCollectionName)
+	_, err := commentsCollection.InsertOne(emptyContext, comment)
 	return err
 }
 
 func (repo *PostReactionRepository) ReportPost(report *model.Report) error {
 	reportsCollection := repo.getCollection(reportsCollectionName)
-	_, err := reportsCollection.InsertOne(context.TODO(), report)
+	_, err := reportsCollection.InsertOne(emptyContext, report)
 	return err
 }
 
 func (repo *PostReactionRepository) GetProfileReactions(reactionType model.ReactionType, profileID uint) ([]model.Reaction, error) {
 	reactionsCollection := repo.getCollection(reactionsCollectionName)
 	filter := bson.D{{profileIDColumn, profileID}, {reactionTypeColumn, reactionType}}
-	reactionCursor, err := reactionsCollection.Find(context.TODO(), filter)
+	reactionCursor, err := reactionsCollection.Find(emptyContext, filter)
 	if err != nil {
 		return nil, err
 	}
 	var reactions []model.Reaction
-	for reactionCursor.Next(context.TODO()) {
+	for reactionCursor.Next(emptyContext) {
 		var result model.Reaction
 		err = reactionCursor.Decode(&result)
 		if err != nil {
@@ -82,7 +91,7 @@ func (repo *PostReactionRepository) GetReactionType(profileID uint, postID strin
 	reactionsCollection := repo.getCollection(reactionsCollectionName)
 	filter := bson.D{{profileIDColumn, profileID}, {postIDColumn, postID}}
 	var existingReaction model.Reaction
-	err := reactionsCollection.FindOne(context.TODO(), filter).Decode(&existingReaction)
+	err := reactionsCollection.FindOne(emptyContext, filter).Decode(&existingReaction)
 	if err != nil {
 		return "none"
 	}
