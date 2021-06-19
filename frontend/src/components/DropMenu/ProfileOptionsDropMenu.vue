@@ -93,6 +93,7 @@ export default {
             }).then((response) => {
                 if(response.status == 200)
                     this.isBlocked = !this.isBlocked
+                    this.$emit('blockChanged', this.isBlocked)
             })
             .catch((error) => {
                 console.log(error);

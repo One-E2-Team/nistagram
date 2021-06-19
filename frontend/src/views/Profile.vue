@@ -14,8 +14,10 @@
                     <v-btn v-if="isMyProfile" color="normal" elevation="8" @click="redirectToCreatePost()">
                     Create post
                     </v-btn>
-                    <profile-options-drop-menu v-if="!isMyProfile" v-bind:profileId="profileId" v-bind:conn="connection" v-bind:blocked="isBlocked" v-on:connectionChanged='connection=$event' class="mx-2">
-                        <v-icon>mdi-menu-down</v-icon>
+                    <profile-options-drop-menu v-if="!isMyProfile" 
+                        v-bind:profileId="profileId" v-bind:conn="connection" v-bind:blocked="isBlocked" 
+                        v-on:connectionChanged='connection=$event' v-on:blockChanged='isBlocked=$event' class="mx-2">
+                            <v-icon>mdi-menu-down</v-icon>
                     </profile-options-drop-menu>
                 </template>
             </v-col>
@@ -96,6 +98,7 @@ export default {
             }).then(response => {
               if (response.status==200 && response.data.status == 'ok'){
                   this.isFollowed = false;
+                  this.connection = null;
                   this.posts = [];
               }
             })
