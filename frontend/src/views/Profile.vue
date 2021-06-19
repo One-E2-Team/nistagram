@@ -4,11 +4,11 @@
             <v-col cols="12" sm="11">
                 <personal-data v-on:loaded-user='profileLoaded($event)' style="height:200px" v-bind:username="username"/>
                 <template v-if="isUserLoggedIn()">
-                    <v-btn v-if="!isMyProfile && !isFollowed" color="warning" elevation="8" @click="follow">
+                    <v-btn v-if="!isMyProfile && followType==followTypeValues[1]" color="warning" elevation="8" @click="follow">
                         Follow
                     </v-btn>
-                    <v-btn v-if="!isMyProfile && isFollowed" color="normal" elevation="8" @click="unfollow">
-                        {{unfollowType}}
+                    <v-btn v-if="!isMyProfile && followType!=followTypeValues[1]" color="normal" elevation="8" @click="unfollow">
+                        {{unfollowButtonText}}
                     </v-btn>
                     <follow-requests v-if="isMyProfile"/>
                     <v-btn v-if="isMyProfile" color="normal" elevation="8" @click="redirectToCreatePost()">
@@ -22,12 +22,12 @@
                 </template>
             </v-col>
         </v-row>
-        <v-row v-if="isFollowed || !isPrivateProfile || isMyProfile">
+        <v-row v-if="followType == followTypeValues[0] || !isPrivateProfile || isMyProfile">
             <v-col cols="12" sm="4" v-for="p in posts" :key="p._id">
                <post v-bind:usage="'Profile'" v-bind:post="p.post" v-bind:myReaction="p.reaction" />
             </v-col>
         </v-row>
-        <v-row v-else>
+        <v-row v-else-if="followType != followTypeValues[0] && isPrivateProfile">
             <v-col cols="12" sm="4">
                <h3 class="display-2 font-weight-bold mb-3"> This profile is private !</h3>
             </v-col>
@@ -57,9 +57,11 @@ export default {
             server: comm.server,
             protocol: comm.protocol,
             showFollowOption: false,
-            isFollowed: false,
+            //isFollowed: false,
+            followTypeValues: ['following', 'not_following', 'sent_request'],
+            followType: '',
             isPrivateProfile: true,
-            unfollowType: '',
+            unfollowButtonText: '',
             isBlocked: false,
             connection: null,
         }
@@ -85,9 +87,14 @@ export default {
                 url: comm.protocol + '://' + comm.server + '/api/connection/following/request/' + this.profileId,
                 headers: comm.getHeader(),
             }).then(response => {
-              if (response.status==200){
-                  this.prepareFollowButtons(response.data);
-              }
+                if (response.status==200) {
+                    this.prepareFollowButtons(response.data);
+                    if (!response.data.approved) {
+                        this.connection = null;
+                    } else {
+                        this.connection = response.data;
+                    }
+                }
             })
         },
         unfollow(){
@@ -97,7 +104,7 @@ export default {
                 headers: comm.getHeader(),
             }).then(response => {
               if (response.status==200 && response.data.status == 'ok'){
-                  this.isFollowed = false;
+                  this.followType = this.followTypeValues[1];
                   this.connection = null;
                   this.posts = [];
               }
@@ -137,19 +144,27 @@ export default {
                 }).then(response => {
                     if(response.status==200) {
                         this.prepareFollowButtons(response.data);
-                        this.connection = response.data
+                        if (!response.data.approved) {
+                            this.connection = null;
+                        } else {
+                            this.connection = response.data;
+                        }
                     }
                 });
         },
         prepareFollowButtons(responseData) {
+            if (responseData == null) { //TODO: improve response
+                this.followType = this.followTypeValues[1];
+                return;
+            }
             if (!responseData.approved && responseData.connectionRequest) {
-                this.unfollowType = 'Cancel follow request';
-                this.isFollowed = true;
+                this.unfollowButtonText = 'Cancel follow request';
+                this.followType = this.followTypeValues[2];
             } else if (!responseData.approved) {
-                this.isFollowed = false;
+                this.followType = this.followTypeValues[1];
             } else {
-                this.unfollowType = 'Unfollow';
-                this.isFollowed = true;
+                this.unfollowButtonText = 'Unfollow';
+                this.followType = this.followTypeValues[0];
             }
         },
         checkIsUserBlocked(){

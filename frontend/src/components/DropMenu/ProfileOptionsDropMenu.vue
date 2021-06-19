@@ -8,10 +8,10 @@
 
         <v-list>
             <v-list-item v-if="isBlocked">
-                <v-list-item-title @click="toggle('block')">Unblock</v-list-item-title>
+                <v-list-item-title @click="toggleBlock()">Unblock</v-list-item-title>
             </v-list-item>
             <v-list-item v-else>
-                <v-list-item-title @click="toggle('block')">Block</v-list-item-title>
+                <v-list-item-title @click="toggleBlock()">Block</v-list-item-title>
             </v-list-item>
             <template v-if="connection != null">
                 <v-list-item v-if="connection.muted">
@@ -91,9 +91,10 @@ export default {
                 url: comm.protocol + "://" + comm.server +"/api/connection/block/" + this.profileId,
                 headers: comm.getHeader(),
             }).then((response) => {
-                if(response.status == 200)
+                if(response.status == 200) {
                     this.isBlocked = !this.isBlocked
-                    this.$emit('blockChanged', this.isBlocked)
+                    this.$emit('blockChanged', this.isBlocked);
+                }
             })
             .catch((error) => {
                 console.log(error);
