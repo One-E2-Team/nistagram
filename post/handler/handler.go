@@ -320,7 +320,9 @@ func (handler *Handler) UpdatePost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (handler *Handler) DeleteUserPosts(w http.ResponseWriter, r *http.Request) {
-	switch err := handler.PostService.DeleteUserPosts(util.GetLoggedUserIDFromToken(r)); err {
+	params := mux.Vars(r)
+	profileId := util.String2Uint(params["id"])
+	switch err := handler.PostService.DeleteUserPosts(profileId); err {
 	case mongo.ErrNoDocuments:
 		w.WriteHeader(http.StatusNotFound)
 	case nil:
