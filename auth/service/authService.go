@@ -175,10 +175,13 @@ func (service *AuthService) BanUser(profileID uint) error {
 	if err != nil {
 		return err
 	}
-	user.IsDeleted = true
+	err = service.AuthRepository.DeleteUser(user)
+	if err != nil {
+		return err
+	}
 	message := "Unfortunately, your account has been deleted from Nistagram due inappropriate posts!"
 	go util.SendMail(user.Email, "Deleted account", message)
-	return service.AuthRepository.UpdateUser(*user)
+	return nil
 }
 
 func hashAndSalt(pass string) string {

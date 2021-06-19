@@ -432,6 +432,32 @@ func (handler *Handler) GetPosts(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (handler *Handler) GetPostById(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	id, err := primitive.ObjectIDFromHex(params["id"])
+	if err != nil{
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	result, err := handler.PostService.GetPostById(id)
+	if err != nil{
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if js, err := json.Marshal(result); err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+	} else {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write(js)
+	}
+	w.Header().Set("Content-Type", "application/json")
+}
+
 func safePostDto(postDto dto.PostDto) dto.PostDto {
 	postDto.Description = template.HTMLEscapeString(postDto.Description)
 	postDto.HashTags = template.HTMLEscapeString(postDto.HashTags)

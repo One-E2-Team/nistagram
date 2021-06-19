@@ -69,6 +69,8 @@ func handleFunc(handler *handler.PostReactionHandler) {
 		util.RBAC(handler.GetMyReactions, "READ_REACTIONS", true)).Methods("GET") //frontend func
 	router.HandleFunc("/get-reaction-types/{profileID}",
 		util.MSAuth(handler.GetReactionTypes, []string{"post"})).Methods("POST")
+	router.HandleFunc("/report",
+		util.RBAC(handler.GetAllReports, "READ_REPORTS", true)).Methods("GET")	  //frontend func
 	fmt.Println("Post reaction server started...")
 	host, port := util.GetPostReactionHostAndPort()
 	var err error

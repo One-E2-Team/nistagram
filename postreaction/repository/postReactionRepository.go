@@ -92,3 +92,21 @@ func (repo *PostReactionRepository) GetReactionType(profileID uint, postID strin
 func (repo *PostReactionRepository) getCollection(name string) *mongo.Collection {
 	return repo.Client.Database("postReactionDB").Collection(name)
 }
+
+func (repo *PostReactionRepository) GetAllReports() ([]model.Report,error) {
+	var reports []model.Report
+	reportsCollection := repo.getCollection(reportsCollectionName)
+	cursor, err := reportsCollection.Find(context.TODO(), bson.D{})
+	if err != nil{
+		return nil, err
+	}
+	for cursor.Next(context.TODO()) {
+		var result model.Report
+		err = cursor.Decode(&result)
+		if err != nil {
+			return nil, err
+		}
+		reports = append(reports, result)
+	}
+	return reports, nil
+}

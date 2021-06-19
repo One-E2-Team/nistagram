@@ -82,6 +82,10 @@ func (service *PostService) CreatePost(postType model.PostType, post dto.PostDto
 	return service.PostRepository.Create(&newPost)
 }
 
+func (service *PostService) GetPostById(postId primitive.ObjectID) (model.Post, error) {
+	return service.PostRepository.GetPostById(postId)
+}
+
 func canUsersBeTagged(description string, publisherId uint) error {
 	var followingProfiles []uint
 

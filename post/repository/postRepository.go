@@ -406,6 +406,20 @@ func (repo *PostRepository) ChangePrivacy(id uint, isPrivate bool) error {
 	return repo.updateManyInPostAndStoryCollections(filter, update)
 }
 
+func (repo *PostRepository) GetPostById(id primitive.ObjectID) (model.Post, error) {
+	filter := bson.D{{"_id", id}}
+	var result model.Post
+
+	collection := repo.Client.Database("postdb").Collection("posts")
+	err := collection.FindOne(context.TODO(), filter).Decode(&result)
+	if err != nil{
+		collection := repo.Client.Database("postdb").Collection("stories")
+		err = collection.FindOne(context.TODO(), filter).Decode(&result)
+	}
+
+	return result, err
+}
+
 func (repo *PostRepository) updateManyInPostAndStoryCollections(filter bson.D, update bson.D) error {
 	collPosts, _ := repo.getCollection(model.POST)
 	collStories, _ := repo.getCollection(model.STORY)

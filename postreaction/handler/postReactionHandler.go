@@ -121,3 +121,21 @@ func (handler *PostReactionHandler) GetReactionTypes(w http.ResponseWriter, r *h
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(js)
 }
+
+func (handler *PostReactionHandler) GetAllReports(w http.ResponseWriter, r *http.Request) {
+	reports, err := handler.PostReactionService.GetAllReports()
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	js, err := json.Marshal(reports)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(js)
+	w.Header().Set("Content-Type", "application/json")
+}

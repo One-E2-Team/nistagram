@@ -1491,7 +1491,7 @@
       "method": "PUT",
       "output_encoding": "json",
       "extra_config": {},
-	  "headers_to_pass": [
+      "headers_to_pass": [
         "Authorization"
       ],
       "backend": [
@@ -1505,6 +1505,30 @@
             "https://connection:8080"
           ],
           "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/postreaction/report",
+      "method": "GET",
+      "output_encoding": "json",
+      "extra_config": {},
+      "headers_to_pass": [
+        "Authorization"
+      ],
+      "backend": [
+        {
+          "url_pattern": "/report",
+          "encoding": "json",
+          "sd": "static",
+          "method": "GET",
+          "extra_config": {},
+          "host": [
+            "https://postreaction:8080"
+          ],
+          "disable_host_sanitize": false,
+          "is_collection": true,
+          "target": ""
         }
       ]
     }
