@@ -60,12 +60,15 @@
 import axios from 'axios'
 import * as comm from '../../configuration/communication.js'
 export default {
-    props: ['profileId', 'connection'],
+    props: ['profileId', 'connection','blocked'],
     name: 'ProfileOptions',
     data(){
         return{
             isBlocked: true,
         }
+    },
+    created(){
+        this.isBlocked = this.blocked
     },
     methods:{
         toggle(point){
@@ -95,18 +98,10 @@ export default {
                 console.log(error);
             });
         },
-        checkIfBlocked(){
-            axios({
-                    method: "get",
-                    url: comm.protocol + "://" + comm.server +"/api/connection/block/" + this.post.publisherId,
-                    headers: comm.getHeader(),
-                }).then((response) => {
-                console.log(response.data);
-                if(response.status == 200)
-                this.isBlocked = response.data == 'true'
-                }).catch((error) => {
-                    console.log(error);
-                });
+    },
+    watch:{
+        blocked: function() { 
+          this.isBlocked = this.blocked
         }
     }
 }

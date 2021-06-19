@@ -14,7 +14,7 @@
                     <v-btn v-if="isMyProfile" color="normal" elevation="8" @click="redirectToCreatePost()">
                     Create post
                     </v-btn>
-                    <profile-options-drop-menu v-if="!isMyProfile" v-bind:profileId="profileId" v-bind:connection="connection" v-on:connectionChanged='connection=$event' class="mx-2">
+                    <profile-options-drop-menu v-if="!isMyProfile" v-bind:profileId="profileId" v-bind:connection="connection" v-bind:blocked="isBlocked" v-on:connectionChanged='connection=$event' class="mx-2">
                         <v-icon>mdi-menu-down</v-icon>
                     </profile-options-drop-menu>
                 </template>
@@ -58,6 +58,7 @@ export default {
             isFollowed: false,
             isPrivateProfile: true,
             unfollowType: '',
+            isBlocked: false,
             connection: {},
         }
     },
@@ -71,7 +72,8 @@ export default {
             } else {
                 this.loadPostsFromUsername();
                 if (comm.isUserLogged()) {
-                    this.loadIfUserAreFollowed();
+                    this.checkIsUserBlocked()
+                    this.loadUsersConnection();
                 }
             }
         },
@@ -125,7 +127,7 @@ export default {
                             this.posts = response.data.collection;
                     });
         },
-        loadIfUserAreFollowed(){
+        loadUsersConnection(){
             axios({ method: "get",
                 url: comm.protocol + '://' + comm.server + '/api/connection/following/my-properties/' + this.profileId, 
                 headers: comm.getHeader(),
@@ -146,6 +148,19 @@ export default {
                 this.unfollowType = 'Unfollow';
                 this.isFollowed = true;
             }
+        },
+        checkIsUserBlocked(){
+            axios({
+                    method: "get",
+                    url: comm.protocol + "://" + comm.server +"/api/connection/block/" + this.post.publisherId,
+                    headers: comm.getHeader(),
+                }).then((response) => {
+                console.log(response.data);
+                if(response.status == 200)
+                this.isBlocked = response.data == 'true'
+                }).catch((error) => {
+                    console.log(error);
+                });
         }
     },
 }
