@@ -412,6 +412,24 @@ func (handler *Handler) GetVerificationRequests(w http.ResponseWriter, _ *http.R
 	fmt.Println(requests, err)
 }
 
+func (handler *Handler) DeleteProfile(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	vars := mux.Vars(r)
+	profileId := util.String2Uint(vars["id"])
+	err := handler.ProfileService.DeleteProfile(profileId)
+
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte("{\"message\":\"ok\"}"))
+	w.Header().Set("Content-Type", "application/json")
+}
+
 func safeRegistrationDto(dto dto.RegistrationDto) dto.RegistrationDto {
 	dto.Username = template.HTMLEscapeString(dto.Username)
 	dto.Name = template.HTMLEscapeString(dto.Name)
