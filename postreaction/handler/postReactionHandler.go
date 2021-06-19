@@ -146,15 +146,33 @@ func (handler *PostReactionHandler) GetAllReports(w http.ResponseWriter, r *http
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
 		return
 	}
 	js, err := json.Marshal(reports)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
 		return
 	}
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(js)
 	w.Header().Set("Content-Type", "application/json")
 }
+
+func (handler *PostReactionHandler) DeletePostsReports(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	postId := vars["postId"]
+	err := handler.PostReactionService.DeletePostsReports(postId)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte("{\"message\":\"ok\"}"))
+	w.Header().Set("Content-Type", "application/json")
+}
+

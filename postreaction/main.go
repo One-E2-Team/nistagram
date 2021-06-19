@@ -73,6 +73,8 @@ func handleFunc(handler *handler.PostReactionHandler) {
 		util.MSAuth(handler.GetReactionTypes, []string{"post"})).Methods("POST")
 	router.HandleFunc("/report",
 		util.RBAC(handler.GetAllReports, "READ_REPORTS", true)).Methods("GET")	  //frontend func
+	router.HandleFunc("/report/{postId}",
+		util.MSAuth(handler.DeletePostsReports, []string{"post"})).Methods("DELETE")
 	fmt.Println("Post reaction server started...")
 	host, port := util.GetPostReactionHostAndPort()
 	var err error

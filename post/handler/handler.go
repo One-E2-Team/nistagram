@@ -279,18 +279,22 @@ func (handler *Handler) DeletePost(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id, err := primitive.ObjectIDFromHex(params["id"])
 	if err != nil {
+		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
 		return
 	}
 
-	switch err = handler.PostService.DeletePost(id); err {
-	case mongo.ErrNoDocuments:
-		w.WriteHeader(http.StatusNotFound)
-	case nil:
-		w.WriteHeader(http.StatusOK)
-	default:
+	err = handler.PostService.DeletePost(id)
+	if err != nil {
+		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
+		return
 	}
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte("{\"message\":\"ok\"}"))
+	w.Header().Set("Content-Type", "application/json")
 }
 
 func (handler *Handler) UpdatePost(w http.ResponseWriter, r *http.Request) {

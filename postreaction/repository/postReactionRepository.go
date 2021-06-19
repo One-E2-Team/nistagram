@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"nistagram/postreaction/model"
 )
@@ -98,14 +99,11 @@ func (repo *PostReactionRepository) GetReactionType(profileID uint, postID strin
 	return model.GetReactionTypeString(existingReaction.ReactionType)
 }
 
-func (repo *PostReactionRepository) getCollection(name string) *mongo.Collection {
-	return repo.Client.Database("postReactionDB").Collection(name)
-}
-
 func (repo *PostReactionRepository) GetAllReports() ([]model.Report,error) {
 	var reports []model.Report
 	reportsCollection := repo.getCollection(reportsCollectionName)
-	cursor, err := reportsCollection.Find(context.TODO(), bson.D{})
+	filter := bson.D{{"isdeleted", false}}
+	cursor, err := reportsCollection.Find(context.TODO(), filter)
 	if err != nil{
 		return nil, err
 	}
@@ -118,4 +116,44 @@ func (repo *PostReactionRepository) GetAllReports() ([]model.Report,error) {
 		reports = append(reports, result)
 	}
 	return reports, nil
+}
+
+func (repo *PostReactionRepository) GetReportsByPostId(postId string) ([]model.Report,error) {
+	var reports []model.Report
+	reportsCollection := repo.getCollection(reportsCollectionName)
+	filter := bson.D{{"postid", postId}}
+	cursor, err := reportsCollection.Find(context.TODO(), filter)
+	if err != nil{
+		return nil, err
+	}
+	for cursor.Next(context.TODO()) {
+		var result model.Report
+		err = cursor.Decode(&result)
+		if err != nil {
+			return nil, err
+		}
+		reports = append(reports, result)
+	}
+	return reports, nil
+}
+
+func (repo *PostReactionRepository) DeleteReport(reportId primitive.ObjectID) error {
+	reportsCollection := repo.getCollection(reportsCollectionName)
+	filter := bson.D{{"_id", reportId}}
+	update := bson.D{
+		{"$set", bson.D{
+			{"isdeleted", true},
+		}},
+	}
+
+	_, err := reportsCollection.UpdateOne(context.TODO(), filter, update)
+	if err != nil{
+		return err
+	}
+
+	return nil
+}
+
+func (repo *PostReactionRepository) getCollection(name string) *mongo.Collection {
+	return repo.Client.Database("postReactionDB").Collection(name)
 }

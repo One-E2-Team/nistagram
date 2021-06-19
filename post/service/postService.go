@@ -101,7 +101,13 @@ func (service *PostService) ReadPost(id primitive.ObjectID) (model.Post, error) 
 }
 
 func (service *PostService) DeletePost(id primitive.ObjectID) error {
-	return service.PostRepository.Delete(id)
+	err := service.PostRepository.Delete(id)
+	if err != nil{
+		return err
+	}
+
+	err = deletePostsReports(id)
+	return err
 }
 
 func (service *PostService) UpdatePost(id primitive.ObjectID, post dto.PostDto) error {
@@ -109,7 +115,17 @@ func (service *PostService) UpdatePost(id primitive.ObjectID, post dto.PostDto) 
 }
 
 func (service *PostService) DeleteUserPosts(profileId uint) error {
-	return service.PostRepository.DeleteUserPosts(profileId)
+	posts, err := service.PostRepository.GetMyPosts(profileId)
+	if err != nil {
+		return err
+	}
+	for i := 0; i < len(posts); i++{
+		err = service.DeletePost(posts[i].ID)
+		if err != nil{
+			return err
+		}
+	}
+	return nil
 }
 
 func (service *PostService) ChangeUsername(profileId uint, username string) error {
@@ -118,6 +134,14 @@ func (service *PostService) ChangeUsername(profileId uint, username string) erro
 
 func (service *PostService) ChangePrivacy(profileId uint, isPrivate bool) error {
 	return service.PostRepository.ChangePrivacy(profileId, isPrivate)
+}
+
+func deletePostsReports(postId primitive.ObjectID) error {
+	postReactionHost, postReactionPort := util.GetPostReactionHostAndPort()
+	_, err := util.CrossServiceRequest(http.MethodDelete,
+		util.CrossServiceProtocol+"://"+postReactionHost+":"+postReactionPort+"/report/"+ util.GetStringIDFromMongoID(postId),
+		nil, map[string]string{})
+	return err
 }
 
 func canUsersBeTagged(description string, publisherId uint) error {
