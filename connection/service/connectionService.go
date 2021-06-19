@@ -387,6 +387,7 @@ func (service *ConnectionService) IsInBlockingRelationship(id1, id2 uint) bool {
 
 func (service *ConnectionService) IsBlocked(id1, id2 uint) bool {
 	lst := service.BlockRepository.GetBlockedProfiles(id1, true)
+	fmt.Println(*lst,id1, id2)
 	if lst == nil || len(*lst) == 0 {
 		return false
 	}

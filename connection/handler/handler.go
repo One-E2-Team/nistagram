@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"nistagram/connection/dto"
 	"nistagram/connection/model"
@@ -128,7 +129,11 @@ func (handler *Handler) IsBlocked(w http.ResponseWriter, r *http.Request) {
 	ok := handler.ConnectionService.IsBlocked(id, uint(id1))
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(ok)
+	type resp struct {
+		Blocked bool `json:"blocked"`
+	}
+	fmt.Println(resp{Blocked: ok})
+	json.NewEncoder(w).Encode(resp{Blocked: ok})
 }
 
 func (handler *Handler) FollowApprove(w http.ResponseWriter, r *http.Request) {
