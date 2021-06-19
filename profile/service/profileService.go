@@ -292,6 +292,47 @@ func (service *ProfileService) GetVerificationRequests() ([]model.VerificationRe
 	return service.ProfileRepository.GetVerificationRequests()
 }
 
+func (service *ProfileService) DeleteProfile(profileId uint) error {
+	err := service.ProfileRepository.DeleteProfile(profileId)
+	if err != nil {
+		return err
+	}
+
+	err = service.deleteProfileInAuth(profileId)
+	if err != nil {
+		return err
+	}
+
+	err = service.deleteProfilesPosts(profileId)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (service *ProfileService) deleteProfileInAuth(profileId uint) error{
+	authHost, authPort := util.GetAuthHostAndPort()
+	_, err := util.CrossServiceRequest(http.MethodDelete,
+		util.CrossServiceProtocol+"://"+authHost+":"+authPort+"/ban/" + util.Uint2String(profileId), nil,
+		map[string]string{})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (service *ProfileService) deleteProfilesPosts(profileId uint) error{
+	postHost, postPort := util.GetPostHostAndPort()
+	_, err := util.CrossServiceRequest(http.MethodDelete,
+		util.CrossServiceProtocol+"://"+postHost+":"+postPort+"/user/" + util.Uint2String(profileId), nil,
+		map[string]string{})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (service *ProfileService) Test(key string) error {
 	return service.ProfileRepository.InsertInRedis(key, "test")
 }

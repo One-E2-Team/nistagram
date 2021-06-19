@@ -52,7 +52,8 @@ func (service *PostReactionService) ReportPost(postID string, reason string) err
 	if err != nil {
 		return err
 	}
-	report := model.Report{ID: primitive.NewObjectID(), PostID: postID, Time: time.Now(), Reason: reason}
+	report := model.Report{ID: primitive.NewObjectID(), PostID: postID, Time: time.Now(), Reason: reason,
+		IsDeleted: false}
 	return service.PostReactionRepository.ReportPost(&report)
 }
 
@@ -132,6 +133,23 @@ func (service *PostReactionService) GetAllReports() ([]dto.ShowReportDTO, error)
 	}
 
 	return ret, nil
+}
+
+func (service *PostReactionService) DeletePostsReports(postId string) error {
+
+	reports, err := service.PostReactionRepository.GetReportsByPostId(postId)
+	if err != nil {
+		return err
+	}
+
+	for i := 0; i < len(reports); i++{
+		err = service.PostReactionRepository.DeleteReport(reports[i].ID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func getPostsByPostsIds(postsIds []string) ([]dto.PostDTO, error) {

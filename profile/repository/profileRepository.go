@@ -150,6 +150,14 @@ func (repo *ProfileRepository) InsertInRedis(key string, value string) error {
 
 }
 
+func (repo *ProfileRepository) DeleteProfile(profileId uint) error {
+	profile, err := repo.GetProfileByID(profileId)
+	if err != nil {
+		return err
+	}
+	return repo.RelationalDatabase.Delete(profile).Error
+}
+
 func (repo *ProfileRepository) GetFromRedis(key string) (string, error) {
 	value := repo.Client.Get(repo.Context, key)
 	if value.Err() != nil {

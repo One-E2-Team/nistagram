@@ -73,7 +73,8 @@ func handleFunc(handler *handler.Handler) {
 		util.RBAC(handler.Create, "CREATE_POST", false)).Methods("POST") // frontend func
 	router.HandleFunc("/user/{loggedUserId}/privacy",
 		util.MSAuth(handler.ChangePrivacy, []string{"profile"})).Methods("PUT")
-	router.HandleFunc("/user/{id}", handler.DeleteUserPosts).Methods("DELETE")
+	router.HandleFunc("/user/{id}",
+		util.MSAuth(handler.DeleteUserPosts, []string{"profile"})).Methods("DELETE")
 	router.HandleFunc("/user/{loggedUserId}/username",
 		util.MSAuth(handler.ChangeUsername, []string{"profile"})).Methods("PUT")
 	router.HandleFunc("/post/{id}",
