@@ -41,6 +41,7 @@ func (service *PostReactionService) CommentPost(commentDTO dto.CommentDTO, logge
 }
 
 func (service *PostReactionService) ReportPost(postID string, reason string) error {
+	//TODO: check if post or story exists
 	_, err := postExists(postID)
 	if err != nil {
 		return err

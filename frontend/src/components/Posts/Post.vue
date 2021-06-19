@@ -54,8 +54,15 @@
               </v-btn>
             </v-item-group>
           </v-col>
-         
          </v-row>
+         <v-row cols="12" md="6">
+            <v-col>
+              <v-textarea solo placeholder="Enter comment..." rows="4" v-model="comment"></v-textarea>
+              <v-btn color="normal" elevation="2" @click="commentPost()">
+                Comment
+              </v-btn>
+            </v-col>
+          </v-row>
        </v-container>
     </v-card-text>
   </v-card>
@@ -67,7 +74,7 @@ import * as comm from '../../configuration/communication.js'
 import axios from 'axios'
 export default {
   components: { PostModal },
-  name: "Post",
+  name: 'Post',
   props: ['post','usage', 'myReaction'],
   data() {
     return {
@@ -79,6 +86,7 @@ export default {
       server: comm.server,
       reaction: null,
       isUserLogged: comm.isUserLogged(),
+      comment: '',
     }
   },
   mounted() {
@@ -110,38 +118,59 @@ export default {
       }
     }, 
     react (reactionType) {
-      if(!comm.isUserLogged()){
-        alert('You must be logged to react on post');
-        if (this.isUserLogged) {
-           this.$router.go();
-        }
+      if (this.preventActionIfUnauthorized()) {
         return;
       }
       if (reactionType == this.reaction){
         axios({
-          method: "delete",
-          url: comm.protocol + "://" + comm.server + "/api/postreaction/react/" + this.post.id,
-          headers: comm.getHeader()
+          method: 'delete',
+          url: comm.protocol + '://' + comm.server + '/api/postreaction/react/' + this.post.id,
+          headers: comm.getHeader(),
         }).then(response => {
           console.log(response.data);
         });
       } else {
-        let dto = {"postId" : this.post.id, "reactionType" : reactionType}
+        let dto = {'postId' : this.post.id, 'reactionType' : reactionType}
         axios({
-          method: "post",
-          url: comm.protocol + "://" + comm.server + "/api/postreaction/react",
+          method: 'post',
+          url: comm.protocol + '://' + comm.server + '/api/postreaction/react',
           data: JSON.stringify(dto),
-          headers: comm.getHeader()
+          headers: comm.getHeader(),
         }).then(response => {
           console.log(response.data);
         });
       }
+    },
+    commentPost() {
+      if (this.preventActionIfUnauthorized()) {
+        return;
+      }
+      let dto = {'postId' : this.post.id, 'content' : this.comment}
+      axios({
+        method: 'post',
+        url: comm.protocol + '://' + comm.server + '/api/postreaction/comment',
+        data: JSON.stringify(dto),
+        headers: comm.getHeader(),
+      }).then(response => {
+        console.log(response.data);
+      });
+    },
+    preventActionIfUnauthorized() {
+      if(!comm.isUserLogged()){
+        alert('You must be logged to react on post');
+        this.comment = '';
+        if (this.isUserLogged) {
+          this.$router.go();
+        }
+        return true;
+      }
+      return false;
     },
   },
   watch: {
     usage(){
       this.designView();
     }
-  }
+  },
 }
 </script>
