@@ -13,13 +13,17 @@ type Connection struct {
 	NotifyComment     bool `json:"notifyComment"`
 	ConnectionRequest bool `json:"connectionRequest"`
 	Approved          bool `json:"approved"`
-	MessageRequest    bool `json:"messageRequest"`
-	MessageConnected  bool `json:"messageConnected"`
 }
 
 type Block struct {
 	PrimaryProfile    uint `json:"primary"`
 	SecondaryProfile  uint `json:"secondary"`
+}
+
+type Message struct {
+	PrimaryProfile		uint `json:"primary"`
+	SecondaryProfile	uint `json:"secondary"`
+	Approved			bool `json:"approved"`
 }
 
 func (conn *Connection) ToMap() map[string]interface{} {
@@ -33,5 +37,12 @@ func (block *Block) ToMap() map[string]interface{} {
 	var res map[string]interface{}
 	blockJson, _ := json.Marshal(block)
 	json.Unmarshal([]byte(blockJson), &res)
+	return res
+}
+
+func (message *Message) ToMap() map[string]interface{} {
+	var res map[string]interface{}
+	messageJson, _ := json.Marshal(message)
+	json.Unmarshal([]byte(messageJson), &res)
 	return res
 }

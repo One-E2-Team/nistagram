@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"nistagram/connection/dto"
 	"nistagram/connection/model"
@@ -132,7 +131,6 @@ func (handler *Handler) IsBlocked(w http.ResponseWriter, r *http.Request) {
 	type resp struct {
 		Blocked bool `json:"blocked"`
 	}
-	fmt.Println(resp{Blocked: ok})
 	json.NewEncoder(w).Encode(resp{Blocked: ok})
 }
 
@@ -177,8 +175,6 @@ func (handler *Handler) GetFollowedProfilesNotMuted(w http.ResponseWriter, r *ht
 		NotifyComment:     false,
 		ConnectionRequest: false,
 		Approved:          true,
-		MessageRequest:    false,
-		MessageConnected:  false,
 	}
 	profiles := handler.ConnectionService.GetConnectedProfiles(conn, true, false)
 	w.WriteHeader(http.StatusOK)
@@ -200,8 +196,6 @@ func (handler *Handler) GetFollowedProfiles(w http.ResponseWriter, r *http.Reque
 		NotifyComment:     false,
 		ConnectionRequest: false,
 		Approved:          true,
-		MessageRequest:    false,
-		MessageConnected:  false,
 	}
 	profiles := handler.ConnectionService.GetConnectedProfiles(conn, false, false)
 	w.WriteHeader(http.StatusOK)

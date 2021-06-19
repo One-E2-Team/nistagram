@@ -7,11 +7,7 @@ import (
 	"nistagram/connection/model"
 )
 
-type ConnectionRepository struct {
-	DatabaseDriver *neo4j.Driver
-}
-
-func (repo *ConnectionRepository) CreateProfile(profile model.Profile) *model.Profile {
+func (repo *Repository) CreateProfile(profile model.Profile) *model.Profile {
 	session := (*repo.DatabaseDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close()
 	profileID, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
@@ -41,11 +37,9 @@ func (repo *ConnectionRepository) CreateProfile(profile model.Profile) *model.Pr
 	return &ret
 }
 
-func (repo *ConnectionRepository) GetConnectedProfiles(conn model.Connection, excludeMuted bool) *[]uint {
+func (repo *Repository) GetConnectedProfiles(conn model.Connection, excludeMuted bool) *[]uint {
 	var additionalSelector string = ""
-	if conn.MessageConnected == true {
-		additionalSelector += "AND e.messageConnected = $messageConnected "
-	} else if conn.Approved == true {
+	if conn.Approved == true {
 		additionalSelector += "AND e.approved = $approved "
 		if conn.CloseFriend {
 			additionalSelector += "AND e.closeFriend = $closeFriend "
@@ -95,12 +89,12 @@ func (repo *ConnectionRepository) GetConnectedProfiles(conn model.Connection, ex
 	return &ret
 }
 
-func (repo *ConnectionRepository) SelectOrCreateConnection(id1, id2 uint) *model.Connection {
+func (repo *Repository) SelectOrCreateConnection(id1, id2 uint) *model.Connection {
 	conn, _ := repo.SelectConnection(id1, id2, true)
 	return conn
 }
 
-func (repo *ConnectionRepository) SelectConnection(id1, id2 uint, doCreate bool) (*model.Connection, bool) {
+func (repo *Repository) SelectConnection(id1, id2 uint, doCreate bool) (*model.Connection, bool) {
 	session := (*repo.DatabaseDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close()
 	conn := model.Connection{
@@ -114,8 +108,6 @@ func (repo *ConnectionRepository) SelectConnection(id1, id2 uint, doCreate bool)
 		NotifyComment:     false,
 		ConnectionRequest: false,
 		Approved:          false,
-		MessageRequest:    false,
-		MessageConnected:  false,
 	}
 	fmt.Println(conn.ToMap())
 	resultingConn, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
@@ -130,8 +122,7 @@ func (repo *ConnectionRepository) SelectConnection(id1, id2 uint, doCreate bool)
 				"MATCH (a:Profile), (b:Profile) \n"+
 					"WHERE a.profileID = $primary AND b.profileID = $secondary \n"+
 					"MERGE (a)-[e:FOLLOWS {muted: FALSE, closeFriend: FALSE, notifyPost: FALSE, notifyStory: "+
-					"FALSE, notifyMessage: FALSE, notifyComment: FALSE, connectionRequest: FALSE, approved: FALSE, "+
-					"messageRequest: FALSE, messageConnected: FALSE}]->(b) \n"+
+					"FALSE, notifyMessage: FALSE, notifyComment: FALSE, connectionRequest: FALSE, approved: FALSE}]->(b) \n"+
 					"RETURN e",
 				conn.ToMap())
 			if err1 != nil {
@@ -159,8 +150,6 @@ func (repo *ConnectionRepository) SelectConnection(id1, id2 uint, doCreate bool)
 			NotifyComment:     res["notifyComment"].(bool),
 			ConnectionRequest: res["connectionRequest"].(bool),
 			Approved:          res["approved"].(bool),
-			MessageRequest:    res["messageRequest"].(bool),
-			MessageConnected:  res["messageConnected"].(bool),
 		}
 		return ret, err
 	})
@@ -173,7 +162,7 @@ func (repo *ConnectionRepository) SelectConnection(id1, id2 uint, doCreate bool)
 	return &ret, true
 }
 
-func (repo *ConnectionRepository) UpdateConnection(conn *model.Connection) (*model.Connection, bool) {
+func (repo *Repository) UpdateConnection(conn *model.Connection) (*model.Connection, bool) {
 	session := (*repo.DatabaseDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close()
 	resultingConn, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
@@ -182,8 +171,7 @@ func (repo *ConnectionRepository) UpdateConnection(conn *model.Connection) (*mod
 				"WHERE a.profileID = $primary AND b.profileID = $secondary \n"+
 				"SET e.muted = $muted, e.closeFriend = $closeFriend, e.notifyPost = $notifyPost, "+
 				"e.notifyStory = $notifyStory, e.notifyMessage = $notifyMessage, e.notifyComment = $notifyComment, "+
-				"e.connectionRequest = $connectionRequest, e.approved = $approved, e.messageRequest = $messageRequest, "+
-				"e.messageConnected = $messageConnected \n"+
+				"e.connectionRequest = $connectionRequest, e.approved = $approved \n"+
 				"RETURN e\n",
 			conn.ToMap())
 		if err != nil {
@@ -204,8 +192,6 @@ func (repo *ConnectionRepository) UpdateConnection(conn *model.Connection) (*mod
 			NotifyComment:     res["notifyComment"].(bool),
 			ConnectionRequest: res["connectionRequest"].(bool),
 			Approved:          res["approved"].(bool),
-			MessageRequest:    res["messageRequest"].(bool),
-			MessageConnected:  res["messageConnected"].(bool),
 		}
 		return ret, err
 	})
@@ -218,7 +204,7 @@ func (repo *ConnectionRepository) UpdateConnection(conn *model.Connection) (*mod
 	return &ret, true
 }
 
-func (repo *ConnectionRepository) DeleteConnection(followerId, profileId uint) (*model.Connection, bool) {
+func (repo *Repository) DeleteConnection(followerId, profileId uint) (*model.Connection, bool) {
 	conn, ok := repo.SelectConnection(followerId, profileId, false)
 	if !ok {
 		return nil, false
@@ -238,7 +224,7 @@ func (repo *ConnectionRepository) DeleteConnection(followerId, profileId uint) (
 	return conn, true
 }
 
-func (repo *ConnectionRepository) GetAllFollowRequests(id uint) *[]uint {
+func (repo *Repository) GetAllFollowRequests(id uint) *[]uint {
 	conn := model.Connection{
 		PrimaryProfile:    0,
 		SecondaryProfile:  id,
@@ -250,8 +236,6 @@ func (repo *ConnectionRepository) GetAllFollowRequests(id uint) *[]uint {
 		NotifyComment:     false,
 		ConnectionRequest: true,
 		Approved:          false,
-		MessageRequest:    false,
-		MessageConnected:  false,
 	}
 	session := (*repo.DatabaseDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	defer session.Close()

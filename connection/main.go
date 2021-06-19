@@ -52,19 +52,12 @@ func initDB() *neo4j.Driver {
 	return &driver
 }
 
-func initConnectionRepo(databaseDriver *neo4j.Driver) *repository.ConnectionRepository {
-	return &repository.ConnectionRepository{DatabaseDriver: databaseDriver}
+func initConnectionRepo(databaseDriver *neo4j.Driver) *repository.Repository {
+	return &repository.Repository{DatabaseDriver: databaseDriver}
 }
 
-func initBlockRepo(databaseDriver *neo4j.Driver) *repository.BlockRepository {
-	return &repository.BlockRepository{DatabaseDriver: databaseDriver}
-}
-
-func initService(connectionRepo *repository.ConnectionRepository, blockRepo *repository.BlockRepository) *service.ConnectionService {
-	return &service.ConnectionService{
-		ConnectionRepository: connectionRepo,
-		BlockRepository:      blockRepo,
-	}
+func initService(connectionRepo *repository.Repository) *service.ConnectionService {
+	return &service.ConnectionService{ConnectionRepository: connectionRepo}
 }
 
 func initHandler(service *service.ConnectionService) *handler.Handler {
@@ -125,8 +118,7 @@ func main() {
 	db := initDB()
 	defer (*db).Close()
 	connectionRepo := initConnectionRepo(db)
-	blockRepo := initBlockRepo(db)
-	connectionService := initService(connectionRepo, blockRepo)
+	connectionService := initService(connectionRepo)
 	connectionHandler := initHandler(connectionService)
 	_ = util.SetupMSAuth("connection")
 	handleFunc(connectionHandler)

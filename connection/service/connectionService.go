@@ -14,8 +14,7 @@ import (
 )
 
 type ConnectionService struct {
-	ConnectionRepository *repository.ConnectionRepository
-	BlockRepository *repository.BlockRepository
+	ConnectionRepository *repository.Repository
 }
 
 func (service *ConnectionService) AddProfile(id uint) (*model.Profile, bool) {
@@ -66,7 +65,7 @@ func (service *ConnectionService) FollowRequest(followerId, profileId uint) (*mo
 	if connection.Approved {
 		return nil, false
 	}
-	//conn2, ok2 := service.ConnectionRepository.SelectConnection(followerId, profileId, false)
+	//conn2, ok2 := service.Repository.SelectConnection(followerId, profileId, false)
 	//profile1 := getProfile(followerId)
 	profile2 := getProfile(profileId)
 	if /*profile1 == nil ||*/ profile2 == nil {
@@ -92,31 +91,17 @@ func (service *ConnectionService) FollowRequest(followerId, profileId uint) (*mo
 }
 
 func (service *ConnectionService) ToggleBlock(followerId, profileId uint) (*model.Block, bool) {
-	block, ok := service.BlockRepository.SelectBlock(followerId, profileId)
+	block, ok := service.ConnectionRepository.SelectBlock(followerId, profileId)
 	if !ok || block == nil {
-		service.ConnectionRepository.SelectOrCreateConnection(followerId, profileId)
-		connection := model.Connection{
-			PrimaryProfile:    followerId,
-			SecondaryProfile:  profileId,
-			Muted:             false,
-			CloseFriend:       false,
-			NotifyPost:        false,
-			NotifyStory:       false,
-			NotifyMessage:     false,
-			NotifyComment:     false,
-			ConnectionRequest: false,
-			Approved:          false,
-			MessageRequest:    false,
-			MessageConnected:  false,
-		}
-		service.ConnectionRepository.UpdateConnection(&connection)
-		block, ok = service.BlockRepository.CreateBlock(followerId, profileId)
+		service.ConnectionRepository.DeleteConnection(followerId, profileId)
+		service.ConnectionRepository.DeleteConnection(profileId, followerId)
+		block, ok = service.ConnectionRepository.CreateBlock(followerId, profileId)
 	} else {
-		block, ok = service.BlockRepository.DeleteBlock(followerId, profileId)
+		block, ok = service.ConnectionRepository.DeleteBlock(followerId, profileId)
 	}
 	return block, ok
 }
-
+/*
 func (service *ConnectionService) MessageConnect(followerId, profileId uint) (*model.Connection, bool) {
 	connection, ok := service.ConnectionRepository.SelectConnection(followerId, profileId, false)
 	conn2, ok2 := service.ConnectionRepository.SelectConnection(profileId, followerId, false)
@@ -160,13 +145,13 @@ func (service *ConnectionService) MessageRequest(followerId, profileId uint) (*m
 		return connection, false
 	}
 }
-
+*/
 func (service *ConnectionService) ApproveConnection(followerId, profileId uint) (*model.Connection, bool) {
 	connection, okSelect := service.ConnectionRepository.SelectConnection(followerId, profileId, false)
 	if okSelect && connection == nil {
 		return connection, false
 	}
-	//conn2, ok2 := service.ConnectionRepository.SelectConnection(profileId, followerId, false)
+	//conn2, ok2 := service.Repository.SelectConnection(profileId, followerId, false)
 	profile1 := getProfile(followerId)
 	profile2 := getProfile(profileId)
 	if profile1 == nil || profile2 == nil {
@@ -179,7 +164,7 @@ func (service *ConnectionService) ApproveConnection(followerId, profileId uint) 
 		return nil, false
 	}
 	if conn2 == nil {
-		conn2 = service.ConnectionRepository.SelectOrCreateConnection(profileId, followerId)
+		conn2 = service.Repository.SelectOrCreateConnection(profileId, followerId)
 	}*/
 	if !connection.ConnectionRequest {
 		return nil, false
@@ -190,7 +175,7 @@ func (service *ConnectionService) ApproveConnection(followerId, profileId uint) 
 	//conn2.Approved = true
 	return service.ConnectionRepository.UpdateConnection(connection)
 	/*var ok bool
-	conn2, ok = service.ConnectionRepository.UpdateConnection(conn2)
+	conn2, ok = service.Repository.UpdateConnection(conn2)
 	if ok {
 		return conn2, true
 	} else {
@@ -317,7 +302,7 @@ func (service *ConnectionService) GetConnectedProfiles(conn model.Connection, ex
 	}
 	if !excludeBlocked {
 		var final []uint
-		blocking := service.BlockRepository.GetBlockedProfiles(conn.PrimaryProfile, false)
+		blocking := service.ConnectionRepository.GetBlockedProfiles(conn.PrimaryProfile, false)
 		for _, val := range *ret {
 			if !contains(blocking, val) {
 				final = append(final, val)
@@ -373,7 +358,7 @@ func (service *ConnectionService) GetAllFollowRequests(id uint) *[]dto.UserDTO {
 }
 
 func (service *ConnectionService) IsInBlockingRelationship(id1, id2 uint) bool {
-	lst := service.BlockRepository.GetBlockedProfiles(id1, false)
+	lst := service.ConnectionRepository.GetBlockedProfiles(id1, false)
 	if lst == nil || len(*lst) == 0 {
 		return false
 	}
@@ -386,8 +371,7 @@ func (service *ConnectionService) IsInBlockingRelationship(id1, id2 uint) bool {
 }
 
 func (service *ConnectionService) IsBlocked(id1, id2 uint) bool {
-	lst := service.BlockRepository.GetBlockedProfiles(id1, true)
-	fmt.Println(*lst,id1, id2)
+	lst := service.ConnectionRepository.GetBlockedProfiles(id1, true)
 	if lst == nil || len(*lst) == 0 {
 		return false
 	}
@@ -418,8 +402,6 @@ func (service *ConnectionService) Unfollow(followerId, profileId uint) (*model.C
 		NotifyComment:     false,
 		ConnectionRequest: false,
 		Approved:          false,
-		MessageRequest:    connection.MessageRequest,
-		MessageConnected:  connection.MessageConnected,
 	}
 	resConnection, ok := service.ConnectionRepository.UpdateConnection(&newConnection)
 	if ok {

@@ -7,11 +7,7 @@ import (
 	"nistagram/connection/model"
 )
 
-type BlockRepository struct {
-	DatabaseDriver *neo4j.Driver
-}
-
-func (repo *BlockRepository) CreateBlock(id1, id2 uint) (*model.Block, bool) {
+func (repo *Repository) CreateBlock(id1, id2 uint) (*model.Block, bool) {
 	session := (*repo.DatabaseDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close()
 	block := model.Block{
@@ -50,7 +46,7 @@ func (repo *BlockRepository) CreateBlock(id1, id2 uint) (*model.Block, bool) {
 	return &ret, true
 }
 
-func (repo *BlockRepository) SelectBlock(id1, id2 uint) (*model.Block, bool) {
+func (repo *Repository) SelectBlock(id1, id2 uint) (*model.Block, bool) {
 	session := (*repo.DatabaseDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close()
 	block := model.Block{
@@ -88,7 +84,7 @@ func (repo *BlockRepository) SelectBlock(id1, id2 uint) (*model.Block, bool) {
 	return &ret, true
 }
 
-func (repo *BlockRepository) DeleteBlock(followerId, profileId uint) (*model.Block, bool) {
+func (repo *Repository) DeleteBlock(followerId, profileId uint) (*model.Block, bool) {
 	block, ok := repo.SelectBlock(followerId, profileId)
 	if !ok {
 		return nil, false
@@ -108,7 +104,7 @@ func (repo *BlockRepository) DeleteBlock(followerId, profileId uint) (*model.Blo
 	return block, true
 }
 
-func (repo *BlockRepository) GetBlockedProfiles(id uint, directed bool) *[]uint {
+func (repo *Repository) GetBlockedProfiles(id uint, directed bool) *[]uint {
 	block := model.Block{
 		PrimaryProfile:   id,
 		SecondaryProfile: 0,
