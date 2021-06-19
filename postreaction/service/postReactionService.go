@@ -3,7 +3,6 @@ package service
 import (
 	"encoding/json"
 	"fmt"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"io"
 	"net/http"
 	postModel "nistagram/post/model"
@@ -19,15 +18,9 @@ type PostReactionService struct {
 }
 
 func (service *PostReactionService) ReactOnPost(postID string, loggedUserID uint, reactionType model.ReactionType) error {
-	postHost, postPort := util.GetPostHostAndPort()
-	resp, err := util.CrossServiceRequest(http.MethodGet,
-		util.CrossServiceProtocol+"://"+postHost+":"+postPort+"/collection/post/"+postID,
-		nil, map[string]string{})
+	_, err := postExists(postID)
 	if err != nil {
 		return err
-	}
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("BAD_POST_ID")
 	}
 	reaction := model.Reaction{ReactionType: reactionType, PostID: postID, ProfileID: loggedUserID}
 	return service.PostReactionRepository.ReactOnPost(&reaction)
@@ -37,8 +30,22 @@ func (service *PostReactionService) DeleteReaction(postID string, loggedUserID u
 	return service.PostReactionRepository.DeleteReaction(postID, loggedUserID)
 }
 
+func (service *PostReactionService) CommentPost(commentDTO dto.CommentDTO, loggedUserID uint) error {
+	_, err := postExists(commentDTO.PostID)
+	if err != nil {
+		return err
+	}
+	comment := model.Comment{PostID: commentDTO.PostID, ProfileID: loggedUserID,
+		Content: commentDTO.Content, Time: time.Now()}
+	return service.PostReactionRepository.CommentPost(&comment)
+}
+
 func (service *PostReactionService) ReportPost(postID string, reason string) error {
-	report := model.Report{ID: primitive.NewObjectID(), PostID: postID, Time: time.Now(), Reason: reason}
+	_, err := postExists(postID)
+	if err != nil {
+		return err
+	}
+	report := model.Report{PostID: postID, Time: time.Now(), Reason: reason}
 	return service.PostReactionRepository.ReportPost(&report)
 }
 
@@ -153,4 +160,17 @@ func getPostsByPostsIds(postsIds []string) ([]dto.PostDTO, error) {
 	}
 
 	return ret, nil
+}
+func postExists(postID string) (bool, error) {
+	postHost, postPort := util.GetPostHostAndPort()
+	resp, err := util.CrossServiceRequest(http.MethodGet,
+		util.CrossServiceProtocol+"://"+postHost+":"+postPort+"/collection/post/"+postID,
+		nil, map[string]string{})
+	if err != nil {
+		return false, err
+	}
+	if resp.StatusCode != 200 {
+		return false, fmt.Errorf("BAD_POST_ID")
+	}
+	return true, nil
 }
