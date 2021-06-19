@@ -60,32 +60,14 @@
 import axios from 'axios'
 import * as comm from '../../configuration/communication.js'
 export default {
-    props: ['profileId'],
+    props: ['profileId', 'connection'],
     name: 'ProfileOptions',
     data(){
         return{
             isBlocked: true,
-            connection: {},
         }
     },
-
-    created(){
-        this.checkConnection()
-    },
     methods:{
-        checkConnection(){
-            axios({
-                method: "get",
-                url: comm.protocol + "://" + comm.server +"/api/connection/following/my-properties/" + this.profileId,
-                headers: comm.getHeader(),
-            }).then((response) => {
-                if(response.status == 200)
-                    this.connection = response.data
-            })
-            .catch((error) => {
-                console.log(error);
-            });
-        },
         toggle(point){
             axios({
                 method: "put",
@@ -93,7 +75,7 @@ export default {
                 headers: comm.getHeader(),
             }).then((response) => {
                 if(response.status == 200)
-                    this.connection = response.data
+                    this.$emit('connectionChanged', response.data)
             })
             .catch((error) => {
                 console.log(error);

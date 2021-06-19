@@ -14,7 +14,7 @@
                     <v-btn v-if="isMyProfile" color="normal" elevation="8" @click="redirectToCreatePost()">
                     Create post
                     </v-btn>
-                    <profile-options-drop-menu v-if="!isMyProfile" v-bind:profileId="profileId" class="mx-2">
+                    <profile-options-drop-menu v-if="!isMyProfile" v-bind:profileId="profileId" v-bind:connection="connection" v-on:connectionChanged='connection=$event' class="mx-2">
                         <v-icon>mdi-menu-down</v-icon>
                     </profile-options-drop-menu>
                 </template>
@@ -58,6 +58,7 @@ export default {
             isFollowed: false,
             isPrivateProfile: true,
             unfollowType: '',
+            connection: {},
         }
     },
     methods: {
@@ -131,6 +132,7 @@ export default {
                 }).then(response => {
                     if(response.status==200) {
                         this.prepareFollowButtons(response.data);
+                        this.connection = response.data
                     }
                 });
         },
