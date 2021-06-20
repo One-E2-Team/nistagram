@@ -76,6 +76,10 @@ func initDBs() (*gorm.DB, *redis.Client) {
 	if err != nil {
 		return nil, nil
 	}
+	err = db.AutoMigrate(&model.AgentRequest{})
+	if err != nil {
+		return nil, nil
+	}
 
 	//TODO: parametrize
 	client := redis.NewClient(&redis.Options{
@@ -105,16 +109,16 @@ func initHandler(service *service.ProfileService) *handler.Handler {
 
 func handleFunc(handler *handler.Handler) {
 	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/", handler.Register).Methods("POST")                          // frontend func
-	router.HandleFunc("/search/{username}", handler.Search).Methods("GET")            // frontend func
+	router.HandleFunc("/", handler.Register).Methods("POST")               // frontend func
+	router.HandleFunc("/search/{username}", handler.Search).Methods("GET") // frontend func
 	router.HandleFunc("/search-for-tag/{username}", handler.SearchForTag).Methods("GET")
 	router.HandleFunc("/get/{username}", handler.GetProfileByUsername).Methods("GET") // frontend func
 	router.HandleFunc("/interests", handler.GetAllInterests).Methods("GET")           // frontend func
-	router.HandleFunc("/categories", handler.GetAllCategories).Methods("GET")			// frontend func
+	router.HandleFunc("/categories", handler.GetAllCategories).Methods("GET")         // frontend func
 	router.HandleFunc("/verification-request",
-		util.RBAC(handler.CreateVerificationRequest, "CREATE_VERIFICATION_REQUEST", false)).Methods("POST")		// frontend func
+		util.RBAC(handler.CreateVerificationRequest, "CREATE_VERIFICATION_REQUEST", false)).Methods("POST") // frontend func
 	router.HandleFunc("/verification-request",
-		util.RBAC(handler.UpdateVerificationRequest, "UPDATE_VERIFICATION_REQUEST", false)).Methods("PUT")			//frontend func
+		util.RBAC(handler.UpdateVerificationRequest, "UPDATE_VERIFICATION_REQUEST", false)).Methods("PUT") //frontend func
 	router.HandleFunc("/change-profile-settings",
 		util.RBAC(handler.ChangeProfileSettings, "EDIT_PROFILE_DATA", false)).Methods("PUT") // frontend func
 	router.HandleFunc("/change-personal-data",
@@ -130,7 +134,11 @@ func handleFunc(handler *handler.Handler) {
 	router.HandleFunc("/get-by-ids",
 		util.MSAuth(handler.GetProfileUsernamesByIDs, []string{"postreaction"})).Methods("POST")
 	router.HandleFunc("/{id}",
-		util.RBAC(handler.DeleteProfile, "DELETE_PROFILE", false)).Methods("DELETE")
+		util.RBAC(handler.DeleteProfile, "DELETE_PROFILE", false)).Methods("DELETE") //frontend func
+	router.HandleFunc("/send-agent-request",
+		util.RBAC(handler.SendAgentRequest, "CREATE_AGENT_REQUEST", false)).Methods("POST") //frontend func
+	router.HandleFunc("/agent-requests",
+		util.RBAC(handler.GetAgentRequests, "READ_AGENT_REQUEST", true)).Methods("GET") //frontend func
 	router.HandleFunc("/test", handler.Test).Methods("GET")
 	fmt.Println("Starting server..")
 	host, port := util.GetProfileHostAndPort()

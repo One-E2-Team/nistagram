@@ -117,7 +117,6 @@ func (handler *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write([]byte("{\"message\":\"ok\"}"))
 	}
-	return
 }
 
 func (handler *Handler) CreateVerificationRequest(w http.ResponseWriter, r *http.Request) {
@@ -427,6 +426,37 @@ func (handler *Handler) DeleteProfile(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write([]byte("{\"message\":\"ok\"}"))
+	w.Header().Set("Content-Type", "application/json")
+}
+
+func (handler *Handler) SendAgentRequest(w http.ResponseWriter, r *http.Request) {
+	loggedUserID := util.GetLoggedUserIDFromToken(r)
+	err := handler.ProfileService.SendAgentRequest(loggedUserID)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte("{\"success\":\"ok\"}"))
+	w.Header().Set("Content-Type", "application/json")
+}
+
+func (handler *Handler) GetAgentRequests(w http.ResponseWriter, r *http.Request) {
+	requests, err := handler.ProfileService.GetAgentRequests()
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	js, err := json.Marshal(requests)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(js)
 	w.Header().Set("Content-Type", "application/json")
 }
 

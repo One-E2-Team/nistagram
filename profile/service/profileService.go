@@ -311,7 +311,29 @@ func (service *ProfileService) DeleteProfile(profileId uint) error {
 	return nil
 }
 
-func (service *ProfileService) GetProfileUsernamesByIDs(ids []string) ([]string, error){
+func (service *ProfileService) SendAgentRequest(loggedUserID uint) error {
+	request := model.AgentRequest{ProfileId: loggedUserID}
+	return service.ProfileRepository.SendAgentRequest(&request)
+}
+
+func (service *ProfileService) GetAgentRequests() ([]dto.AgentRequestDTO, error) {
+	requests, err := service.ProfileRepository.GetAgentRequests()
+	if err != nil {
+		return nil, err
+	}
+	ret := make([]dto.AgentRequestDTO, 0)
+	for _, value := range requests {
+		profile, err := service.ProfileRepository.GetProfileByID(value.ProfileId)
+		if err != nil {
+			return nil, err
+		}
+		ret = append(ret, dto.AgentRequestDTO{Username: profile.Username, ProfileID: profile.ID,
+			Email: profile.Email, Website: profile.Website})
+	}
+	return ret, nil
+}
+
+func (service *ProfileService) GetProfileUsernamesByIDs(ids []string) ([]string, error) {
 	ret := make([]string, 0)
 	for _, value := range ids {
 		profile, err := service.GetProfileByID(util.String2Uint(value))
@@ -324,10 +346,10 @@ func (service *ProfileService) GetProfileUsernamesByIDs(ids []string) ([]string,
 
 }
 
-func (service *ProfileService) deleteProfileInAuth(profileId uint) error{
+func (service *ProfileService) deleteProfileInAuth(profileId uint) error {
 	authHost, authPort := util.GetAuthHostAndPort()
 	_, err := util.CrossServiceRequest(http.MethodDelete,
-		util.CrossServiceProtocol+"://"+authHost+":"+authPort+"/ban/" + util.Uint2String(profileId), nil,
+		util.CrossServiceProtocol+"://"+authHost+":"+authPort+"/ban/"+util.Uint2String(profileId), nil,
 		map[string]string{})
 	if err != nil {
 		return err
@@ -335,10 +357,10 @@ func (service *ProfileService) deleteProfileInAuth(profileId uint) error{
 	return nil
 }
 
-func (service *ProfileService) deleteProfilesPosts(profileId uint) error{
+func (service *ProfileService) deleteProfilesPosts(profileId uint) error {
 	postHost, postPort := util.GetPostHostAndPort()
 	_, err := util.CrossServiceRequest(http.MethodDelete,
-		util.CrossServiceProtocol+"://"+postHost+":"+postPort+"/user/" + util.Uint2String(profileId), nil,
+		util.CrossServiceProtocol+"://"+postHost+":"+postPort+"/user/"+util.Uint2String(profileId), nil,
 		map[string]string{})
 	if err != nil {
 		return err
