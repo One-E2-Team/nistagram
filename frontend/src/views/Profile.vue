@@ -1,6 +1,6 @@
 <template>
     <v-container>
-        <v-row align="left" >
+        <v-row>
             <v-col cols="12" sm="11">
                 <personal-data v-on:loaded-user='profileLoaded($event)' style="height:200px" v-bind:username="username"/>
                 <template v-if="isUserLoggedIn()">
@@ -51,7 +51,7 @@ export default {
     props: ['username'],
     data() {
         return {
-            isMyProfile: false,
+            profile: {},
             profileId: 0,
             posts: [],
             server: comm.server,
@@ -68,18 +68,39 @@ export default {
     },
     methods: {
         profileLoaded(loadedProfile){
-            this.profileId = loadedProfile.ID;
-            this.isPrivateProfile = loadedProfile.profileSettings.isPrivate
-            this.isMyProfile = comm.getLoggedUserID() == loadedProfile.ID;
-            if (this.isMyProfile){
+            this.profile = loadedProfile
+            
+            if (this.isMyProfile()){
                 this.loadMyPosts();
-            } else {
-                this.loadPostsFromUsername();
-                if (comm.isUserLogged()) {
-                    this.checkIsUserBlocked()
-                    this.loadUsersConnection();
-                }
+                return
             }
+    
+            this.loadConnectionAndPosts();
+            
+            if (comm.isUserLogged()) {
+                this.checkIsUserBlocked();
+            }
+            
+        },
+        loadConnectionAndPosts(){
+             axios({ method: "get",
+                    url: comm.protocol + '://' + comm.server + '/api/connection/following/my-properties/' + this.profile.ID, 
+                    headers: comm.getHeader(),
+                }).then(response => {
+                    if(response.status==200) {
+                        this.prepareFollowButtons(response.data);
+                        if (response.data && !response.data.approved) {
+                            this.connection = null;
+                        } else {
+                            this.connection = response.data;
+                        }
+                        if (!this.profile.isPrivate || (this.connection != null && this.connection.approved)) //TODO: ucitaj postove ako se prate
+                            this.loadPostsFromUsername()            
+                    }
+                });
+        },
+        isMyProfile(){
+            return comm.getLoggedUserID() == this.profile.ID;
         },
         follow(){
             axios({
@@ -89,7 +110,7 @@ export default {
             }).then(response => {
                 if (response.status==200) {
                     this.prepareFollowButtons(response.data);
-                    if (!response.data.approved) {
+                    if (response.data && !response.data.approved) {
                         this.connection = null;
                     } else {
                         this.connection = response.data;
@@ -130,27 +151,12 @@ export default {
         },
         loadPostsFromUsername(){
             axios({ method: "get",
-                    url: comm.protocol + '://' + comm.server + '/api/post/profile/' + this.username, 
+                    url: comm.protocol + '://' + comm.server + '/api/post/profile/' + this.profile.username, 
                     headers: comm.getHeader(),
                     }).then(response => {
                         if(response.status==200)
                             this.posts = response.data.collection;
                     });
-        },
-        loadUsersConnection(){
-            axios({ method: "get",
-                url: comm.protocol + '://' + comm.server + '/api/connection/following/my-properties/' + this.profileId, 
-                headers: comm.getHeader(),
-                }).then(response => {
-                    if(response.status==200) {
-                        this.prepareFollowButtons(response.data);
-                        if (!response.data.approved) {
-                            this.connection = null;
-                        } else {
-                            this.connection = response.data;
-                        }
-                    }
-                });
         },
         prepareFollowButtons(responseData) {
             if (responseData == null) { //TODO: improve response
@@ -179,7 +185,7 @@ export default {
                 }).catch((error) => {
                     console.log(error);
                 });
-        }
+        },
     },
 }
 </script>

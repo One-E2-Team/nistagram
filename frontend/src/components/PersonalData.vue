@@ -67,11 +67,13 @@
 import axios from 'axios'
 import * as comm from '../configuration/communication.js'
 export default {
-name: "PersonalData",
+name: 'PersonalData',
 props: ['username'],
 data() {
   return {
-    profile: {},
+    profile: {
+      personalData: {}
+    },
     isMyProfile: true
 }},
 methods: {
@@ -93,7 +95,7 @@ methods: {
         });
       },
     verifyProfile(){
-      this.$router.push({name : "CreateVerificationRequest"});
+      this.$router.push({name : 'CreateVerificationRequest'});
     }
 },
 created(){

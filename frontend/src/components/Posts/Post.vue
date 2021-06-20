@@ -14,8 +14,8 @@
       </v-list-item-content>
     </v-list-item>
     <v-carousel :width="width" :height="height">        
-        <v-template v-for="item in post.medias" :key="item.filePath" name="temp">
             <v-carousel-item
+            v-for="item in post.medias" :key="item.filePath"
             reverse-transition="fade-transition"
             transition="fade-transition">
             <video autoplay loop :width="width" :height="height" :src=" protocol + '://' + server + '/static/data/' + item.filePath" v-if="item.filePath.includes('mp4')">
@@ -24,7 +24,6 @@
             <img :width="width" :height="height" :src=" protocol + '://' + server + '/static/data/' + item.filePath" v-if="!item.filePath.includes('mp4')">
 
             </v-carousel-item>
-        </v-template>
     </v-carousel>
 
     <v-card-text class="text--primary">
