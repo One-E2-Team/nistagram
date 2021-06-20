@@ -7,21 +7,16 @@ import (
 	"nistagram/connection/model"
 )
 
-func (repo *Repository) CreateOrUpdateMessageRelationship(id1, id2 uint, connected bool) (*model.MessageEdge, bool) {
+func (repo *Repository) CreateOrUpdateMessageRelationship(message model.MessageEdge) (*model.MessageEdge, bool) {
 	session := (*repo.DatabaseDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close()
-	message := model.MessageEdge{
-		PrimaryProfile:		id1,
-		SecondaryProfile:	id2,
-		Approved: 			connected,
-	}
 	resultingBlock, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
 		result, err := transaction.Run(
 			"MATCH (a:Profile), (b:Profile) \n" +
 				"WHERE a.profileID = $primary AND b.profileID = $secondary AND a.deleted = FALSE AND b.deleted = FALSE \n" +
 				"MERGE (a)-[e:MESSAGE]->(b) " +
-				"	ON CREATE SET e += { approved: $approved} \n" +
-				"	ON MATCH SET e += { approved: $approved} \n" +
+				"	ON CREATE SET e += { approved: $approved, notifyMessage: $notifyMessage } \n" +
+				"	ON MATCH SET e += { approved: $approved, notifyMessage: $notifyMessage } \n" +
 				"RETURN e",
 			message.ToMap())
 		var record *neo4j.Record
@@ -36,9 +31,10 @@ func (repo *Repository) CreateOrUpdateMessageRelationship(id1, id2 uint, connect
 		res := record.Values[0].(dbtype.Relationship).Props
 		fmt.Println(res)
 		var ret = model.MessageEdge{
-			PrimaryProfile:		id1,
-			SecondaryProfile:	id2,
+			PrimaryProfile:		message.PrimaryProfile,
+			SecondaryProfile:	message.SecondaryProfile,
 			Approved:			res["approved"].(bool),
+			NotifyMessage:		res["notifyMessage"].(bool),
 		}
 		return ret, err
 	})
@@ -78,6 +74,7 @@ func (repo *Repository) SelectMessage(id1, id2 uint) (*model.MessageEdge, bool) 
 			PrimaryProfile:		id1,
 			SecondaryProfile:	id2,
 			Approved: 			res["approved"].(bool),
+			NotifyMessage:		res["notifyMessage"].(bool),
 		}
 		return ret, err
 	})

@@ -702,39 +702,6 @@
       ]
     },
     {
-      "endpoint": "/api/connection/following/update",
-      "method": "PUT",
-      "output_encoding": "json",
-      "extra_config": {
-        "github.com/devopsfaith/krakend-httpsecure": {
-          "allowed_hosts": [
-            "localhost:81",
-            "localhost"
-          ],
-          "ssl_proxy_headers": {},
-          "ssl_redirect": true,
-          "ssl_certificate": "/certs/localhost.cert.pem",
-          "ssl_private_key": "/certs/localhost.key.pem"
-        }
-      },
-      "headers_to_pass": [
-        "Authorization"
-      ],
-      "backend": [
-        {
-          "url_pattern": "/connection/following/update",
-          "encoding": "json",
-          "sd": "static",
-          "method": "PUT",
-          "extra_config": {},
-          "host": [
-            "https://connection:8080"
-          ],
-          "disable_host_sanitize": false
-        }
-      ]
-    },
-    {
       "endpoint": "/api/connection/following/request",
       "method": "GET",
       "output_encoding": "json",
@@ -1593,6 +1560,91 @@
           "extra_config": {},
           "host": [
             "https://profile:8080"
+          ],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/connection/messaging/connect/{profileId}",
+      "method": "POST",
+      "output_encoding": "json",
+      "extra_config": {},
+      "headers_to_pass": [
+        "Authorization"
+      ],
+      "backend": [
+        {
+          "url_pattern": "/connection/messaging/connect/{profileId}",
+          "encoding": "json",
+          "sd": "static",
+          "method": "POST",
+          "extra_config": {},
+          "host": [
+            "https://connection:8080"
+          ],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/connection/messaging/request/{profileId}",
+      "method": "POST",
+      "output_encoding": "json",
+      "extra_config": {},
+      "headers_to_pass": [
+        "Authorization"
+      ],
+      "backend": [
+        {
+          "url_pattern": "/connection/messaging/request/{profileId}",
+          "encoding": "json",
+          "sd": "static",
+          "method": "POST",
+          "extra_config": {},
+          "host": [
+            "https://connection:8080"
+          ],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/connection/messaging/my-properties/{profileId}",
+      "method": "GET",
+      "output_encoding": "json",
+      "extra_config": {},
+      "headers_to_pass": [
+        "Authorization"
+      ],
+      "backend": [
+        {
+          "url_pattern": "/connection/messaging/my-properties/{profileId}",
+          "encoding": "json",
+          "sd": "static",
+          "method": "GET",
+          "extra_config": {},
+          "host": [
+            "https://connection:8080"
+          ],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/connection/notify/message/{profileId}",
+      "method": "PUT",
+      "output_encoding": "json",
+      "extra_config": {},
+      "backend": [
+        {
+          "url_pattern": "/connection/notify/message/{profileId}",
+          "encoding": "json",
+          "sd": "static",
+          "method": "PUT",
+          "extra_config": {},
+          "host": [
+            "https://connection:8080"
           ],
           "disable_host_sanitize": false
         }

@@ -96,12 +96,18 @@ func handleFunc(handler *handler.Handler) {
 		util.RBAC(handler.ToggleNotifyStoryProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT") //frontend func
 	router.HandleFunc("/connection/notify/comment/{profileId}",
 		util.RBAC(handler.ToggleNotifyCommentProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT") //frontend func
-	/*router.HandleFunc("/connection/notify/message/{profileId}",
-		util.RBAC(handler.ToggleNotifyMessageProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT")*/ //frontend func
 	router.HandleFunc("/connection/block/{profileId}",
 		util.RBAC(handler.IsBlocked, "READ_CONNECTION_STATUS", false)).Methods("GET") //frontend func
 	router.HandleFunc("/connection/unfollow/{profileId}",
 		util.RBAC(handler.UnfollowProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT") //frontend func
+	router.HandleFunc("/connection/messaging/connect/{profileId}",
+		util.RBAC(handler.MessageConnect, "EDIT_CONNECTION_STATUS", false)).Methods("POST") // frontend func
+	router.HandleFunc("/connection/messaging/request/{profileId}",
+		util.RBAC(handler.MessageRequest, "CREATE_CONNECTION", false)).Methods("POST") //frontend func
+	router.HandleFunc("/connection/messaging/my-properties/{profileId}",
+		util.RBAC(handler.GetMessageRelationship, "READ_CONNECTION_STATUS", false)).Methods("GET") // frontend func
+	router.HandleFunc("/connection/notify/message/{profileId}",
+		util.RBAC(handler.ToggleNotifyMessageProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT") //frontend func
 	fmt.Println("Starting server..")
 	host, port := util.GetConnectionHostAndPort()
 	var err error

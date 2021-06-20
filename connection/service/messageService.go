@@ -1,67 +1,78 @@
 package service
 
+import "nistagram/connection/model"
 
-/*
-func (service *Service) MessageConnect(followerId, profileId uint) (*model.Connection, bool) {
-	connection, ok := service.ConnectionRepository.SelectConnection(followerId, profileId, false)
-	conn2, ok2 := service.ConnectionRepository.SelectConnection(profileId, followerId, false)
-	if !connection.MessageRequest || (!ok || !ok2) {
+func (service *Service) MessageConnect(followerId, profileId uint) (*model.MessageEdge, bool) {
+	message1, ok1 := service.ConnectionRepository.SelectMessage(followerId, profileId)
+	if !ok1 || message1 == nil || !message1.Approved {
 		return nil, false
 	}
-	connection.MessageRequest = false
-	connection.MessageConnected = true
-	conn2.MessageRequest = false
-	conn2.MessageConnected = true
-	service.ConnectionRepository.UpdateConnection(connection)
-	resConnection, ok1 := service.ConnectionRepository.UpdateConnection(conn2)
-	if ok1 {
-		return resConnection, true
-	} else {
-		return conn2, false
+	message1.Approved = true
+	message2 := model.MessageEdge{
+		PrimaryProfile:   profileId,
+		SecondaryProfile: followerId,
+		Approved:         true,
+		NotifyMessage:    true,
 	}
+	messResp, ok2 := service.ConnectionRepository.CreateOrUpdateMessageRelationship(message2)
+	if !ok2 || messResp == nil {
+		return nil, false
+	}
+	message1, ok1 = service.ConnectionRepository.CreateOrUpdateMessageRelationship(*message1)
+	if !ok1 || message1 == nil {
+		return nil, false
+	}
+	return messResp, true
 }
 
-func (service *Service) MessageRequest(followerId, profileId uint) (*model.Connection, bool) {
+func (service *Service) MessageRequest(followerId, profileId uint) (*model.MessageEdge, bool) {
 	if service.IsInBlockingRelationship(followerId, profileId) {
 		return nil, false
 	}
-	connection := service.ConnectionRepository.SelectOrCreateConnection(followerId, profileId)
-	if connection.MessageConnected {
+	message, messOk := service.ConnectionRepository.SelectMessage(followerId, profileId)
+	if message != nil || messOk != false {
 		return nil, false
 	}
-	connection.MessageRequest = true
-	conn2 := service.ConnectionRepository.SelectOrCreateConnection(profileId, followerId)
-	if conn2.MessageConnected {
+	connection, connOk := service.ConnectionRepository.SelectConnection(followerId, profileId, false)
+	if connection != nil || connOk != false {
 		return nil, false
 	}
-	if !conn2.Approved {
-		conn2.MessageRequest = false
+	newMessage := model.MessageEdge{
+		PrimaryProfile:   followerId,
+		SecondaryProfile: profileId,
+		Approved:         false,
+		NotifyMessage:    true,
 	}
-	resConnection, ok := service.ConnectionRepository.UpdateConnection(connection)
-	service.ConnectionRepository.UpdateConnection(conn2)
+	resMessage, ok := service.ConnectionRepository.CreateOrUpdateMessageRelationship(newMessage)
 	if ok {
-		return resConnection, true
+		return resMessage, true
 	} else {
-		return connection, false
+		return nil, false
 	}
 }
-*/
 
-/*
-func (service *Service) ToggleNotifyMessage(followerId, profileId uint) (*model.Connection, bool) {
+func (service *Service) ToggleNotifyMessage(followerId, profileId uint) (*model.MessageEdge, bool) {
 	if service.IsInBlockingRelationship(followerId, profileId) {
 		return nil, false
 	}
-	connection, okSelect := service.ConnectionRepository.SelectConnection(followerId, profileId, false)
-	if okSelect && connection == nil {
-		return connection, false
+	message, messOk := service.ConnectionRepository.SelectMessage(followerId, profileId)
+	if message == nil || messOk == false {
+		return nil, false
 	}
-	connection.NotifyMessage = !connection.NotifyMessage
-	resConnection, ok := service.ConnectionRepository.UpdateConnection(connection)
+	message.NotifyMessage = !message.NotifyMessage
+	resMessage, ok := service.ConnectionRepository.CreateOrUpdateMessageRelationship(*message)
 	if ok {
-		return resConnection, true
+		return resMessage, true
 	} else {
-		return connection, false
+		return nil, false
 	}
 }
-*/
+
+func (service *Service) GetMessage(followerId, profileId uint) *model.MessageEdge {
+	message, ok := service.ConnectionRepository.SelectMessage(followerId, profileId)
+	if ok {
+		return message
+	} else {
+		return nil
+	}
+}
