@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"net/http"
+	"nistagram/connection/dto"
 	"nistagram/util"
 )
 
@@ -114,4 +115,21 @@ func (handler *Handler) MessageConnect(writer http.ResponseWriter, request *http
 	writer.WriteHeader(http.StatusOK)
 	writer.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(writer).Encode(*message)
+}
+
+
+func (handler *Handler) GetAllMessageRequests(writer http.ResponseWriter, request *http.Request) {
+	id := util.GetLoggedUserIDFromToken(request)
+	if id == 0 {
+		writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	var userDtos *[]dto.UserDTO = handler.ConnectionService.GetAllMessageRequests(id)
+	if userDtos == nil {
+		writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	writer.WriteHeader(http.StatusOK)
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(*userDtos)
 }
