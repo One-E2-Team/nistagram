@@ -110,6 +110,8 @@ func handleFunc(handler *handler.Handler) {
 		util.RBAC(handler.ToggleNotifyMessageProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT") //frontend func
 	router.HandleFunc("/connection/messaging/decline/{profileId}",
 		util.RBAC(handler.DeclineMessageRequest, "EDIT_CONNECTION_STATUS", false)).Methods("DELETE") //frontend func
+	router.HandleFunc("/connection/messaging/request",
+		util.RBAC(handler.GetAllMessageRequests, "READ_CONNECTION_REQUESTS", true)).Methods("GET") //frontend func
 	fmt.Println("Starting server..")
 	host, port := util.GetConnectionHostAndPort()
 	var err error
