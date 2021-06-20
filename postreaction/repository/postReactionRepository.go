@@ -99,12 +99,12 @@ func (repo *PostReactionRepository) GetReactionType(profileID uint, postID strin
 	return model.GetReactionTypeString(existingReaction.ReactionType)
 }
 
-func (repo *PostReactionRepository) GetAllReports() ([]model.Report,error) {
+func (repo *PostReactionRepository) GetAllReports() ([]model.Report, error) {
 	var reports []model.Report
 	reportsCollection := repo.getCollection(reportsCollectionName)
 	filter := bson.D{{"isdeleted", false}}
 	cursor, err := reportsCollection.Find(context.TODO(), filter)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	for cursor.Next(context.TODO()) {
@@ -118,12 +118,12 @@ func (repo *PostReactionRepository) GetAllReports() ([]model.Report,error) {
 	return reports, nil
 }
 
-func (repo *PostReactionRepository) GetReportsByPostId(postId string) ([]model.Report,error) {
+func (repo *PostReactionRepository) GetReportsByPostId(postId string) ([]model.Report, error) {
 	var reports []model.Report
 	reportsCollection := repo.getCollection(reportsCollectionName)
 	filter := bson.D{{"postid", postId}}
 	cursor, err := reportsCollection.Find(context.TODO(), filter)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	for cursor.Next(context.TODO()) {
@@ -147,11 +147,35 @@ func (repo *PostReactionRepository) DeleteReport(reportId primitive.ObjectID) er
 	}
 
 	_, err := reportsCollection.UpdateOne(context.TODO(), filter, update)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (repo *PostReactionRepository) GetAllReactions(postID string) ([]uint, []uint, error) {
+	reactionsCollection := repo.getCollection(reactionsCollectionName)
+	filter := bson.D{{postIDColumn, postID}}
+	reactionCursor, err := reactionsCollection.Find(emptyContext, filter)
+	if err != nil {
+		return nil, nil, err
+	}
+	likes := make([]uint, 0)
+	dislikes := make([]uint, 0)
+	for reactionCursor.Next(emptyContext) {
+		var result model.Reaction
+		err = reactionCursor.Decode(&result)
+		if err != nil {
+			return nil, nil, err
+		}
+		if result.ReactionType == model.LIKE {
+			likes = append(likes, result.ProfileID)
+		} else if result.ReactionType == model.DISLIKE {
+			dislikes = append(dislikes, result.ProfileID)
+		}
+	}
+	return likes, dislikes, nil
 }
 
 func (repo *PostReactionRepository) getCollection(name string) *mongo.Collection {
