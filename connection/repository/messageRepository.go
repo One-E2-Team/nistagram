@@ -105,3 +105,36 @@ func (repo *Repository) DeleteMessage(followerId, profileId uint) (*model.Messag
 	}
 	return message, true
 }
+
+func (repo *Repository) GetAllMessageRequests(id uint) *[]uint {
+	conn := model.MessageEdge{
+		PrimaryProfile:    0,
+		SecondaryProfile:  id,
+		Approved:          false,
+	}
+	session := (*repo.DatabaseDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	defer session.Close()
+	profileIDs, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
+		result, err := transaction.Run(
+			"MATCH (a:Profile)-[e:Message]->(b:Profile) \n"+
+				"WHERE b.profileID = $secondary AND e.approved = $approved AND a.deleted = FALSE AND b.deleted = FALSE \n"+
+				"RETURN a",
+			conn.ToMap())
+		var ret []uint = make([]uint, 0)
+		if err != nil {
+			fmt.Println(err.Error())
+			return ret, err
+		}
+
+		for result.Next() {
+			ret = append(ret, uint(result.Record().Values[0].(dbtype.Node).Props["profileID"].(float64)))
+		}
+
+		return ret, err
+	})
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	ret := profileIDs.([]uint)
+	return &ret
+}

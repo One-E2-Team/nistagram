@@ -42,12 +42,6 @@ func (handler *Handler) GetMessageRelationship(writer http.ResponseWriter, reque
 
 	message := handler.ConnectionService.GetMessage(followerId, profileId)
 
-	if message == nil {
-		writer.Write([]byte("{\"status\":\"error\"}"))
-		writer.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
 	writer.WriteHeader(http.StatusOK)
 	writer.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(writer).Encode(*message)
@@ -76,15 +70,38 @@ func (handler *Handler) MessageRequest(writer http.ResponseWriter, request *http
 	json.NewEncoder(writer).Encode(*message)
 }
 
-func (handler *Handler) MessageConnect(writer http.ResponseWriter, request *http.Request) {
-	followerId := util.GetLoggedUserIDFromToken(request)
-	if followerId == 0 {
+func (handler *Handler) DeclineMessageRequest(writer http.ResponseWriter, request *http.Request) {
+	profileId := util.GetLoggedUserIDFromToken(request)
+	if profileId == 0 {
 		writer.Write([]byte("{\"status\":\"error\"}"))
 		writer.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	vars := mux.Vars(request)
-	profileId := util.String2Uint(vars["profileId"])
+	followerId := util.String2Uint(vars["profileId"])
+
+	message, ok := handler.ConnectionService.DeclineMessageRequest(followerId, profileId)
+
+	if !ok || message == nil {
+		writer.Write([]byte("{\"status\":\"error\"}"))
+		writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	writer.WriteHeader(http.StatusOK)
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(*message)
+}
+
+func (handler *Handler) MessageConnect(writer http.ResponseWriter, request *http.Request) {
+	profileId := util.GetLoggedUserIDFromToken(request)
+	if profileId == 0 {
+		writer.Write([]byte("{\"status\":\"error\"}"))
+		writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	vars := mux.Vars(request)
+	followerId := util.String2Uint(vars["profileId"])
 
 	message, ok := handler.ConnectionService.MessageConnect(followerId, profileId)
 

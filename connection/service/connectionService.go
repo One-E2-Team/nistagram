@@ -61,11 +61,21 @@ func (service *Service) FollowRequest(followerId, profileId uint) (*model.Connec
 	}
 	if profile2.ProfileSettings.IsPrivate == false {
 		connection.Approved = true
-		service.ConnectionRepository.CreateOrUpdateMessageRelationship(profileId, followerId, true)
+		service.ConnectionRepository.CreateOrUpdateMessageRelationship(model.MessageEdge{
+			PrimaryProfile:   profileId,
+			SecondaryProfile: followerId,
+			Approved:         true,
+			NotifyMessage:    true,
+		})
 	} else {
 		connection.ConnectionRequest = true
 	}
-	service.ConnectionRepository.CreateOrUpdateMessageRelationship(followerId, profileId, true)
+	service.ConnectionRepository.CreateOrUpdateMessageRelationship(model.MessageEdge{
+		PrimaryProfile:   followerId,
+		SecondaryProfile: profileId,
+		Approved:         true,
+		NotifyMessage:    true,
+	})
 	resConnection, ok := service.ConnectionRepository.UpdateConnection(connection)
 	if ok {
 		return resConnection, true
@@ -89,7 +99,12 @@ func (service *Service) ApproveConnection(followerId, profileId uint) (*model.Co
 	}
 	connection.ConnectionRequest = false
 	connection.Approved = true
-	service.ConnectionRepository.CreateOrUpdateMessageRelationship(profileId, followerId, true)
+	service.ConnectionRepository.CreateOrUpdateMessageRelationship(model.MessageEdge{
+		PrimaryProfile:   profileId,
+		SecondaryProfile: followerId,
+		Approved:         true,
+		NotifyMessage:    true,
+	})
 	return service.ConnectionRepository.UpdateConnection(connection)
 }
 
