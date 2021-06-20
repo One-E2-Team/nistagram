@@ -4,30 +4,33 @@
             <v-col cols="12" sm="11">
                 <personal-data v-on:loaded-user='profileLoaded($event)' style="height:200px" v-bind:username="username"/>
                 <template v-if="isUserLoggedIn()">
-                    <v-btn v-if="!isMyProfile && followType==followTypeValues[1]" color="warning" elevation="8" @click="follow">
-                        Follow
-                    </v-btn>
-                    <v-btn v-if="!isMyProfile && followType!=followTypeValues[1]" color="normal" elevation="8" @click="unfollow">
-                        {{unfollowButtonText}}
-                    </v-btn>
-                    <follow-requests v-if="isMyProfile"/>
-                    <v-btn v-if="isMyProfile" color="normal" elevation="8" @click="redirectToCreatePost()">
-                    Create post
-                    </v-btn>
-                    <profile-options-drop-menu v-if="!isMyProfile" 
-                        v-bind:profileId="profileId" v-bind:conn="connection" v-bind:blocked="isBlocked" 
+                    <template v-if="!isBlocked">
+                        <v-btn v-if="!isMyProfile() && followTypeValue==followType.NOT_FOLLOW" color="warning" elevation="8" @click="follow">
+                            Follow
+                        </v-btn>
+                        <v-btn v-if="!isMyProfile() && followTypeValue!=followType.NOT_FOLLOW" color="normal" elevation="8" @click="unfollow">
+                            <p v-if="followTypeValue==followType.REQUEST_SENDED">Cancel follow request</p>
+                            <p v-else-if="followTypeValue==followType.FOLLOW">Unfollow</p>
+                        </v-btn>
+                        <follow-requests v-if="isMyProfile()"/>
+                        <v-btn v-if="isMyProfile()" color="normal" elevation="8" @click="redirectToCreatePost()">
+                        Create post
+                        </v-btn>
+                    </template>
+                    <profile-options-drop-menu v-if="!isMyProfile()" 
+                        v-bind:profileId="profile.ID" v-bind:conn="connection" v-bind:blocked="isBlocked" 
                         v-on:connectionChanged='connection=$event' v-on:blockChanged='isBlocked=$event' class="mx-2">
                             <v-icon>mdi-menu-down</v-icon>
                     </profile-options-drop-menu>
                 </template>
             </v-col>
         </v-row>
-        <v-row v-if="followType == followTypeValues[0] || !isPrivateProfile || isMyProfile">
+        <v-row v-if="followTypeValue == followType.FOLLOW || !isProfilePrivate || isMyProfile()">
             <v-col cols="12" sm="4" v-for="p in posts" :key="p._id">
                <post v-bind:usage="'Profile'" v-bind:post="p.post" v-bind:myReaction="p.reaction" />
             </v-col>
         </v-row>
-        <v-row v-else-if="followType != followTypeValues[0] && isPrivateProfile">
+        <v-row v-else-if="followTypeValue != followType.FOLLOW && isProfilePrivate">
             <v-col cols="12" sm="4">
                <h3 class="display-2 font-weight-bold mb-3"> This profile is private !</h3>
             </v-col>
@@ -52,23 +55,21 @@ export default {
     data() {
         return {
             profile: {},
-            profileId: 0,
+            isProfilePrivate: null,
             posts: [],
             server: comm.server,
             protocol: comm.protocol,
             showFollowOption: false,
-            //isFollowed: false,
-            followTypeValues: ['following', 'not_following', 'sent_request'],
-            followType: '',
-            isPrivateProfile: true,
-            unfollowButtonText: '',
+            followTypeValue: -1,
             isBlocked: false,
             connection: null,
+            followType : { FOLLOW : 0, NOT_FOLLOW : 1, REQUEST_SENDED : 2 }
         }
     },
     methods: {
         profileLoaded(loadedProfile){
             this.profile = loadedProfile
+            this.isProfilePrivate = loadedProfile.profileSettings.isPrivate
             
             if (this.isMyProfile()){
                 this.loadMyPosts();
@@ -94,8 +95,8 @@ export default {
                         } else {
                             this.connection = response.data;
                         }
-                        if (!this.profile.isPrivate || (this.connection != null && this.connection.approved)) //TODO: ucitaj postove ako se prate
-                            this.loadPostsFromUsername()            
+                        if (!this.isProfilePrivate || (this.connection != null && this.connection.approved))
+                            this.loadPostsFromUsername()
                     }
                 });
         },
@@ -105,7 +106,7 @@ export default {
         follow(){
             axios({
                 method: "post",
-                url: comm.protocol + '://' + comm.server + '/api/connection/following/request/' + this.profileId,
+                url: comm.protocol + '://' + comm.server + '/api/connection/following/request/' + this.profile.ID,
                 headers: comm.getHeader(),
             }).then(response => {
                 if (response.status==200) {
@@ -121,11 +122,11 @@ export default {
         unfollow(){
             axios({
                 method: "put",
-                url: comm.protocol + '://' + comm.server + '/api/connection/unfollow/' + this.profileId,
+                url: comm.protocol + '://' + comm.server + '/api/connection/unfollow/' + this.profile.ID,
                 headers: comm.getHeader(),
             }).then(response => {
               if (response.status==200 && response.data.status == 'ok'){
-                  this.followType = this.followTypeValues[1];
+                  this.followTypeValue = this.followType.NOT_FOLLOW;
                   this.connection = null;
                   this.posts = [];
               }
@@ -159,27 +160,24 @@ export default {
                     });
         },
         prepareFollowButtons(responseData) {
-            if (responseData == null) { //TODO: improve response
-                this.followType = this.followTypeValues[1];
-                return;
+            if (responseData == null) {
+                this.followTypeValue = this.followType.NOT_FOLLOW;
+                
             }
-            if (!responseData.approved && responseData.connectionRequest) {
-                this.unfollowButtonText = 'Cancel follow request';
-                this.followType = this.followTypeValues[2];
+            else if (!responseData.approved && responseData.connectionRequest) {
+                this.followTypeValue = this.followType.REQUEST_SENDED
             } else if (!responseData.approved) {
-                this.followType = this.followTypeValues[1];
+                this.followTypeValue = this.followType.NOT_FOLLOW;
             } else {
-                this.unfollowButtonText = 'Unfollow';
-                this.followType = this.followTypeValues[0];
+                this.followTypeValue = this.followType.FOLLOW;
             }
         },
         checkIsUserBlocked(){
             axios({
                     method: "get",
-                    url: comm.protocol + "://" + comm.server +"/api/connection/block/" + this.profileId,
+                    url: comm.protocol + "://" + comm.server +"/api/connection/block/" +this.profile.ID,
                     headers: comm.getHeader(),
                 }).then((response) => {
-                console.log(response.data);
                 if(response.status == 200)
                 this.isBlocked = response.data.blocked
                 }).catch((error) => {
