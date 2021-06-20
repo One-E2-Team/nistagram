@@ -129,6 +129,30 @@ func (repo *ProfileRepository) DeleteVerificationRequest(request *model.Verifica
 	return nil
 }
 
+func (repo *ProfileRepository) DeleteProfile(profileId uint) error {
+	profile, err := repo.GetProfileByID(profileId)
+	if err != nil {
+		return err
+	}
+	return repo.RelationalDatabase.Delete(profile).Error
+}
+
+func (repo *ProfileRepository) SendAgentRequest(request *model.AgentRequest) error {
+	if err := repo.RelationalDatabase.Create(request).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (repo *ProfileRepository) GetAgentRequests() ([]model.AgentRequest, error) {
+	var requests []model.AgentRequest
+	if err := repo.RelationalDatabase.Table("agent_requests").
+		Raw("select * from agent_requests").Scan(&requests).Error; err != nil {
+		return nil, err
+	}
+	return requests, nil
+}
+
 func (repo *ProfileRepository) InsertInRedis(key string, value string) error {
 	//model := model.Interest{
 	//	Model: gorm.Model{},
@@ -148,14 +172,6 @@ func (repo *ProfileRepository) InsertInRedis(key string, value string) error {
 	}
 	return fmt.Errorf("KEY: '" + key + "' EXISTS")
 
-}
-
-func (repo *ProfileRepository) DeleteProfile(profileId uint) error {
-	profile, err := repo.GetProfileByID(profileId)
-	if err != nil {
-		return err
-	}
-	return repo.RelationalDatabase.Delete(profile).Error
 }
 
 func (repo *ProfileRepository) GetFromRedis(key string) (string, error) {
