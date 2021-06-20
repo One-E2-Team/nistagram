@@ -15,7 +15,7 @@ func (repo *Repository) CreateOrUpdateProfile(profile model.ProfileVertex) *mode
 			//"CREATE (n:Profile) SET Profile.profileID = $profileID RETURN Profile",
 			"MERGE (n:Profile {profileID: $profileID}) \n" +
 				"	ON CREATE SET n += { deleted: $deleted} \n" +
-				"	ON MERGE SET n += { deleted: $deleted} \n" +
+				"	ON MATCH SET n += { deleted: $deleted} \n" +
 				"RETURN n", //kreira ako ne postoji
 			profile.ToMap())
 		if err != nil {
