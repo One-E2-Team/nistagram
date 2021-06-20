@@ -7,13 +7,16 @@ import (
 	"nistagram/connection/model"
 )
 
-func (repo *Repository) CreateProfile(profile model.ProfileVertex) *model.ProfileVertex {
+func (repo *Repository) CreateOrUpdateProfile(profile model.ProfileVertex) *model.ProfileVertex {
 	session := (*repo.DatabaseDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close()
 	profileID, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
 		result, err := transaction.Run(
 			//"CREATE (n:Profile) SET Profile.profileID = $profileID RETURN Profile",
-			"MERGE (n:Profile {profileID: $profileID}) RETURN n", //kreira ako ne postoji
+			"MERGE (n:Profile {profileID: $profileID}) \n" +
+				"	ON CREATE SET n += { deleted: $deleted} \n" +
+				"	ON MERGE SET n += { deleted: $deleted} \n" +
+				"RETURN n", //kreira ako ne postoji
 			profile.ToMap())
 		if err != nil {
 			fmt.Println(err.Error())

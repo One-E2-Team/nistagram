@@ -17,7 +17,7 @@ func (repo *Repository) CreateBlock(id1, id2 uint) (*model.BlockEdge, bool) {
 	resultingBlock, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
 			result, err := transaction.Run(
 				"MATCH (a:Profile), (b:Profile) \n" +
-					"WHERE a.profileID = $primary AND b.profileID = $secondary \n" +
+					"WHERE a.profileID = $primary AND b.profileID = $secondary AND a.deleted = FALSE AND b.deleted = FALSE \n" +
 					"MERGE (a)-[e:BLOCKED]->(b) \n" +
 					"RETURN e",
 				block.ToMap())
@@ -56,7 +56,7 @@ func (repo *Repository) SelectBlock(id1, id2 uint) (*model.BlockEdge, bool) {
 	resultingBlock, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
 		result, err := transaction.Run(
 			"MATCH (a:Profile)-[e:BLOCKED]->(b:Profile) \n"+
-				"WHERE a.profileID = $primary AND b.profileID = $secondary \n"+
+				"WHERE a.profileID = $primary AND b.profileID = $secondary AND a.deleted = FALSE AND b.deleted = FALSE \n"+
 				"RETURN e",
 			block.ToMap())
 		var record *neo4j.Record
@@ -94,7 +94,7 @@ func (repo *Repository) DeleteBlock(followerId, profileId uint) (*model.BlockEdg
 	_, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
 		return transaction.Run(
 			"MATCH (a:Profile)-[e:BLOCKED]->(b:Profile) \n"+
-				"WHERE a.profileID = $primary AND b.profileID = $secondary \n"+
+				"WHERE a.profileID = $primary AND b.profileID = $secondary AND a.deleted = FALSE AND b.deleted = FALSE \n"+
 				"DELETE e",
 			block.ToMap())
 	})
@@ -114,7 +114,7 @@ func (repo *Repository) GetBlockedProfiles(id uint, directed bool) *[]uint {
 	profileIDs, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
 		result, err := transaction.Run(
 			"MATCH (a:Profile)-[e:BLOCKED]->(b:Profile) \n" +
-				"WHERE a.profileID = $primary \n" +
+				"WHERE a.profileID = $primary AND a.deleted = FALSE AND b.deleted = FALSE \n" +
 				"RETURN b",
 			block.ToMap())
 		var ret []uint
@@ -138,7 +138,7 @@ func (repo *Repository) GetBlockedProfiles(id uint, directed bool) *[]uint {
 		profileIDsInv, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
 			result, err := transaction.Run(
 				"MATCH (a:Profile)-[e:BLOCKED]->(b:Profile) \n" +
-					"WHERE b.profileID = $primary \n" +
+					"WHERE b.profileID = $primary AND a.deleted = FALSE AND b.deleted = FALSE \n" +
 					"RETURN b",
 				block.ToMap())
 			var ret []uint

@@ -18,7 +18,7 @@ func (repo *Repository) CreateOrUpdateMessageRelationship(id1, id2 uint, connect
 	resultingBlock, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
 		result, err := transaction.Run(
 			"MATCH (a:Profile), (b:Profile) \n" +
-				"WHERE a.profileID = $primary AND b.profileID = $secondary \n" +
+				"WHERE a.profileID = $primary AND b.profileID = $secondary AND a.deleted = FALSE AND b.deleted = FALSE \n" +
 				"MERGE (a)-[e:MESSAGE]->(b) " +
 				"	ON CREATE SET e += { approved: $approved} \n" +
 				"	ON MATCH SET e += { approved: $approved} \n" +
@@ -60,7 +60,7 @@ func (repo *Repository) SelectMessage(id1, id2 uint) (*model.MessageEdge, bool) 
 	resultingBlock, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
 		result, err := transaction.Run(
 			"MATCH (a:Profile)-[e:MESSAGE]->(b:Profile) \n"+
-				"WHERE a.profileID = $primary AND b.profileID = $secondary \n"+
+				"WHERE a.profileID = $primary AND b.profileID = $secondary AND a.deleted = FALSE AND b.deleted = FALSE \n"+
 				"RETURN e",
 			block.ToMap())
 		var record *neo4j.Record
@@ -99,7 +99,7 @@ func (repo *Repository) DeleteMessage(followerId, profileId uint) (*model.Messag
 	_, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
 		return transaction.Run(
 			"MATCH (a:Profile)-[e:MESSAGE]->(b:Profile) \n"+
-				"WHERE a.profileID = $primary AND b.profileID = $secondary \n"+
+				"WHERE a.profileID = $primary AND b.profileID = $secondary AND a.deleted = FALSE AND b.deleted = FALSE \n"+
 				"DELETE e",
 			message.ToMap())
 	})

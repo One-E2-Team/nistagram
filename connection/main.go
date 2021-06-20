@@ -67,6 +67,8 @@ func initHandler(service *service.Service) *handler.Handler {
 func handleFunc(handler *handler.Handler) {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/profile/{id}", util.MSAuth(handler.AddProfile, []string{"profile"})).Methods("POST")
+	router.HandleFunc("/profile/{id}", util.MSAuth(handler.DeleteProfile, []string{"profile"})).Methods("DELETE")
+	router.HandleFunc("/profile/{id}", util.MSAuth(handler.ReActivateProfile, []string{"profile"})).Methods("PATCH")
 	router.HandleFunc("/connection/following/all/{id}", handler.GetFollowedProfiles).Methods("GET")
 	router.HandleFunc("/connection/following/show/{id}",
 		util.MSAuth(handler.GetFollowedProfilesNotMuted, []string{"post", "profile"})).Methods("GET")
