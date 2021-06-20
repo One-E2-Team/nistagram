@@ -45,7 +45,7 @@ func (handler *Handler) GetMessageRelationship(writer http.ResponseWriter, reque
 
 	writer.WriteHeader(http.StatusOK)
 	writer.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(writer).Encode(*message)
+	json.NewEncoder(writer).Encode(message)
 }
 
 func (handler *Handler) MessageRequest(writer http.ResponseWriter, request *http.Request) {
