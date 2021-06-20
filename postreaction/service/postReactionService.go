@@ -152,6 +152,10 @@ func (service *PostReactionService) DeletePostsReports(postId string) error {
 	return nil
 }
 
+func (service *PostReactionService) GetAllReactions(postID string) ([]uint, []uint, error) {
+	return service.PostReactionRepository.GetAllReactions(postID)
+}
+
 func getPostsByPostsIds(postsIds []string) ([]dto.PostDTO, error) {
 	var ret []dto.PostDTO
 	type data struct {

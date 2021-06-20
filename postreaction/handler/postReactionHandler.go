@@ -141,7 +141,7 @@ func (handler *PostReactionHandler) GetReactionTypes(w http.ResponseWriter, r *h
 	_, _ = w.Write(js)
 }
 
-func (handler *PostReactionHandler) GetAllReports(w http.ResponseWriter, r *http.Request) {
+func (handler *PostReactionHandler) GetAllReports(w http.ResponseWriter, _ *http.Request) {
 	reports, err := handler.PostReactionService.GetAllReports()
 	if err != nil {
 		fmt.Println(err)
@@ -176,3 +176,28 @@ func (handler *PostReactionHandler) DeletePostsReports(w http.ResponseWriter, r 
 	w.Header().Set("Content-Type", "application/json")
 }
 
+func (handler *PostReactionHandler) GetAllReactions(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	postID := vars["postID"]
+	likes, dislikes, err := handler.PostReactionService.GetAllReactions(postID)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	type ReturnDTO struct {
+		Likes    []uint `json:"likes"`
+		Dislikes []uint `json:"dislikes"`
+	}
+	ret := ReturnDTO{Likes: likes, Dislikes: dislikes}
+	js, err := json.Marshal(ret)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(js)
+	w.Header().Set("Content-Type", "application/json")
+}
