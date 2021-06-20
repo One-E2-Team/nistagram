@@ -14,12 +14,14 @@
                         </v-btn>
                         <follow-requests v-if="isMyProfile()"/>
                         <v-btn v-if="isMyProfile()" color="normal" elevation="8" @click="redirectToCreatePost()">
-                        Create post
+                            Create post
                         </v-btn>
                     </template>
                     <profile-options-drop-menu v-if="!isMyProfile()" 
-                        v-bind:profileId="profile.ID" v-bind:conn="connection" v-bind:blocked="isBlocked" 
-                        v-on:connectionChanged='connection=$event' v-on:blockChanged='isBlocked=$event' class="mx-2">
+                        :profileId="profile.ID" :conn="connection" :blocked="isBlocked" :msgConn="messageConnection"
+                        v-on:connectionChanged='connection=$event' v-on:blockChanged='isBlocked=$event' 
+                        v-on:messageRequestSended='messageConnection=$event'
+                        class="mx-2">
                             <v-icon>mdi-menu-down</v-icon>
                     </profile-options-drop-menu>
                 </template>
@@ -63,6 +65,7 @@ export default {
             followTypeValue: -1,
             isBlocked: false,
             connection: null,
+            messageConnection: null,
             followType : { FOLLOW : 0, NOT_FOLLOW : 1, REQUEST_SENDED : 2 }
         }
     },
@@ -80,6 +83,7 @@ export default {
             
             if (comm.isUserLogged()) {
                 this.checkIsUserBlocked();
+                this.checkMessageConnection();
             }
             
         },
@@ -184,6 +188,19 @@ export default {
                     console.log(error);
                 });
         },
+        checkMessageConnection(){
+             axios({
+                    method: "get",
+                    url: comm.protocol + "://" + comm.server +"/api/connection/messaging/my-properties/" + this.profile.ID,
+                    headers: comm.getHeader(),
+                }).then((response) => {
+                if(response.status == 200){
+                   this.messageConnection = response.data
+                }
+                }).catch((error) => {
+                    console.log(error);
+                });
+        }
     },
 }
 </script>

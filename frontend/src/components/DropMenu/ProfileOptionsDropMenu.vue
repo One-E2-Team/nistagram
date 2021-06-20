@@ -13,6 +13,17 @@
             <v-list-item v-else>
                 <v-list-item-title @click="toggleBlock()">Block</v-list-item-title>
             </v-list-item>
+            <template v-if="messageConnection != null">
+                <v-list-item v-if="messageConnection.notifyMessage">
+                    <v-list-item-title @click="toggle('notify/message')">Don't notify on message</v-list-item-title>
+                </v-list-item>
+                <v-list-item v-else>
+                    <v-list-item-title @click="toggle('notify/message')">Notify on message</v-list-item-title>
+                </v-list-item>
+            </template>
+            <v-list-item v-else>
+                    <v-list-item-title @click="sendMessageRequest()">Send message request</v-list-item-title>
+            </v-list-item>
             <template v-if="connection != null">
                 <v-list-item v-if="connection.muted">
                     <v-list-item-title @click="toggle('mute')">Unmute</v-list-item-title>
@@ -31,12 +42,6 @@
                 </v-list-item>
                 <v-list-item v-else>
                     <v-list-item-title @click="toggle('notify/story')">Notify on story</v-list-item-title>
-                </v-list-item>
-                <v-list-item v-if="connection.notifyMessage">
-                    <v-list-item-title @click="toggle('notify/message')">Don't notify on message</v-list-item-title>
-                </v-list-item>
-                <v-list-item v-else>
-                    <v-list-item-title @click="toggle('notify/message')">Notify on message</v-list-item-title>
                 </v-list-item>
                 <v-list-item v-if="connection.notifyComment">
                     <v-list-item-title @click="toggle('notify/comment')">Don't notify on comment</v-list-item-title>
@@ -60,12 +65,13 @@
 import axios from 'axios'
 import * as comm from '../../configuration/communication.js'
 export default {
-    props: ['profileId', 'conn','blocked'],
+    props: ['profileId', 'conn','blocked','msgConn'],
     name: 'ProfileOptions',
     data(){
         return{
             isBlocked: true,
             connection: null,
+            messageConnection: null,
         }
     },
     created(){
@@ -78,8 +84,12 @@ export default {
                 url: comm.protocol + "://" + comm.server +"/api/connection/"+ point + '/' + this.profileId,
                 headers: comm.getHeader(),
             }).then((response) => {
-                if(response.status == 200)
-                    this.$emit('connectionChanged', response.data)
+                if(response.status == 200){
+                    if (point == 'notify/message')
+                        this.$emit('messageRequestSended',response.data)
+                    else
+                        this.$emit('connectionChanged', response.data)
+                }
             })
             .catch((error) => {
                 console.log(error);
@@ -100,6 +110,20 @@ export default {
                 console.log(error);
             });
         },
+        sendMessageRequest(){
+             axios({
+                method: "post",
+                url: comm.protocol + "://" + comm.server +"/api/connection/messaging/request/" + this.profileId,
+                headers: comm.getHeader(),
+            }).then((response) => {
+                if(response.status == 200) {
+                    this.$emit('messageRequestSended',response.data)
+                }
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+        }
     },
     watch:{
         blocked: function() { 
@@ -107,6 +131,9 @@ export default {
         },
         conn: function() {
             this.connection = this.conn
+        },
+        msgConn: function(){
+            this.messageConnection = this.msgConn
         }
     }
 }
