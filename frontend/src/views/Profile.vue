@@ -12,7 +12,6 @@
                             <p v-if="followTypeValue==followType.REQUEST_SENDED">Cancel follow request</p>
                             <p v-else-if="followTypeValue==followType.FOLLOW">Unfollow</p>
                         </v-btn>
-                        <follow-requests v-if="isMyProfile()"/>
                         <v-btn v-if="isMyProfile()" color="normal" elevation="8" @click="redirectToCreatePost()">
                             Create post
                         </v-btn>
@@ -42,7 +41,6 @@
 
 <script>
 import PersonalData from '../components/PersonalData.vue'
-import FollowRequests from '../components/FollowRequests.vue'
 import Post from '../components/Posts/Post.vue'
 import axios from 'axios'
 import * as comm from '../configuration/communication.js'
@@ -50,7 +48,6 @@ import ProfileOptionsDropMenu from '../components/DropMenu/ProfileOptionsDropMen
 export default {
     components: {
         PersonalData,
-        FollowRequests,
         Post,
         ProfileOptionsDropMenu},
     props: ['username'],

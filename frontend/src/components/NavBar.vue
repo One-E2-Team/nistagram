@@ -11,9 +11,21 @@
                 <template v-if="isUserLogged"> | <router-link :to="{ name: 'Reactions'}" >Reactions</router-link> </template>
                 <template v-if="hasRole('ADMIN')"> | <router-link :to="{ name: 'VerificationRequests'}" >Verification Requests</router-link> </template>    
           </v-col>
-          <v-col cols="12" sm="4">
+          <v-col cols="12" sm="2" class="float-right">
               <v-spacer />
-              <settings v-if="isUserLogged"></settings>
+          </v-col>
+          <v-col cols="12" sm="1" class="float-right">
+            <v-row>
+              <v-col>
+                <message-requests-modal v-if="isUserLogged"/>
+              </v-col>
+              <v-col>
+                <follow-requests v-if="isUserLogged"/>
+              </v-col>
+            </v-row>
+          </v-col>
+          <v-col cols="12" sm="1" class="float-right">
+              <settings v-if="isUserLogged"/>
           </v-col>
         </v-row>
       </v-container>
@@ -23,9 +35,13 @@
 <script>
 import * as comm from '../configuration/communication.js'
 import Settings from '../components/Settings.vue'
+import FollowRequests from '../components/FollowRequests.vue'
+import MessageRequestsModal from '../modals/MessageRequestsModal.vue'
 export default {
     name: "NavBar",
     components: {
+      FollowRequests,
+      MessageRequestsModal,
       Settings
     },
     data(){

@@ -1,22 +1,16 @@
 <template>
   <v-row justify="space-around">
     <v-col cols="auto">
-      <v-dialog
-        transition="dialog-bottom-transition"
-        max-width="600"
-      >
+      <v-dialog transition="dialog-bottom-transition" max-width="600">
         <template v-slot:activator="{ on, attrs }">
           <v-icon v-bind="attrs"
             v-on="on"
             color="blue"
-            @click="getRequests()">mdi-account-multiple-plus</v-icon>
+            @click="getRequests()">mdi-message-plus </v-icon>
         </template>
         <template v-slot:default="dialog">
           <v-card>
-            <v-toolbar
-              color="primary"
-              dark
-            >All requests</v-toolbar>
+            <v-toolbar color="primary" dark>Message requests</v-toolbar>
             <v-card-text>
               <div v-for="req in requests" :key="req.profileID">
                 {{req.username}}
@@ -47,7 +41,7 @@
 import axios from 'axios'
 import * as comm from '../configuration/communication.js'
 export default {
-    name: "FollowRequests",
+    name: "MessageRequests",
     data() {return {
         requests: [],
     }},
@@ -57,7 +51,7 @@ export default {
         getRequests(){
             axios({
                 method: "get",
-                url: comm.protocol +'://' + comm.server + '/api/connection/following/request',
+                url: comm.protocol +'://' + comm.server + '/api/connection/messaging/request',
                 headers: comm.getHeader(),
             }).then(response => {
               if(response.status==200){
@@ -68,7 +62,7 @@ export default {
         approve(id){
           axios({
                 method: "post",
-                url: comm.protocol + '://' + comm.server + '/api/connection/following/approve/' + id,
+                url: comm.protocol + '://' + comm.server + '/api/connection/messaging/request/' + id,
                 headers: comm.getHeader(),
             }).then(response => {
               if(response.status==200){
@@ -79,7 +73,7 @@ export default {
         decline(id){
           axios({
                 method: "delete",
-                url: comm.protocol + '://' + comm.server + '/api/connection/following/request/' + id,
+                url: comm.protocol + '://' + comm.server + '/api/connection/messaging/decline/' + id,
                 headers: comm.getHeader(),
             }).then(response => {
               if(response.status==200){
