@@ -311,6 +311,19 @@ func (service *ProfileService) DeleteProfile(profileId uint) error {
 	return nil
 }
 
+func (service *ProfileService) GetProfileUsernamesByIDs(ids []string) ([]string, error){
+	ret := make([]string, 0)
+	for _, value := range ids {
+		profile, err := service.GetProfileByID(util.String2Uint(value))
+		if err != nil {
+			return nil, err
+		}
+		ret = append(ret, profile.Username)
+	}
+	return ret, nil
+
+}
+
 func (service *ProfileService) deleteProfileInAuth(profileId uint) error{
 	authHost, authPort := util.GetAuthHostAndPort()
 	_, err := util.CrossServiceRequest(http.MethodDelete,

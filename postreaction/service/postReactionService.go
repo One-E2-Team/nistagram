@@ -152,8 +152,59 @@ func (service *PostReactionService) DeletePostsReports(postId string) error {
 	return nil
 }
 
-func (service *PostReactionService) GetAllReactions(postID string) ([]uint, []uint, error) {
-	return service.PostReactionRepository.GetAllReactions(postID)
+func (service *PostReactionService) GetAllReactions(postID string) ([]string, []string, error) {
+	likes, dislikes, err := service.PostReactionRepository.GetAllReactions(postID)
+	if err != nil {
+		return nil, nil, err
+	}
+	likesUsernames, err := getProfileUsernamesByIDs(likes)
+	if err != nil {
+		return nil, nil, err
+	}
+	dislikesUsernames, err := getProfileUsernamesByIDs(dislikes)
+	if err != nil {
+		return nil, nil, err
+	}
+	return likesUsernames, dislikesUsernames, nil
+}
+
+func getProfileUsernamesByIDs(profileIDs []uint) ([]string, error){
+	type data struct {
+		Ids []string `json:"ids"`
+	}
+	req := make([]string, 0)
+	for _, value := range profileIDs{
+		req = append(req, util.Uint2String(value))
+	}
+	bodyData := data{Ids: req}
+	jsonBody, err := json.Marshal(bodyData)
+	if err != nil {
+		return nil, err
+	}
+	profileHost, profilePort := util.GetProfileHostAndPort()
+	resp, err := util.CrossServiceRequest(http.MethodPost,
+		util.CrossServiceProtocol+"://"+profileHost+":"+profilePort+"/get-by-ids",
+		jsonBody, map[string]string{"Content-Type": "application/json;"})
+	if err != nil {
+		return nil, err
+	}
+
+	var ret []string
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(resp.Body)
+
+	if err = json.Unmarshal(body, &ret); err != nil {
+		return nil, err
+	}
+
+	return ret, nil
 }
 
 func getPostsByPostsIds(postsIds []string) ([]dto.PostDTO, error) {
