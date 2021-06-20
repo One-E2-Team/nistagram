@@ -186,8 +186,8 @@ func (handler *PostReactionHandler) GetAllReactions(w http.ResponseWriter, r *ht
 		return
 	}
 	type ReturnDTO struct {
-		Likes    []uint `json:"likes"`
-		Dislikes []uint `json:"dislikes"`
+		Likes    []string `json:"likes"`
+		Dislikes []string `json:"dislikes"`
 	}
 	ret := ReturnDTO{Likes: likes, Dislikes: dislikes}
 	js, err := json.Marshal(ret)

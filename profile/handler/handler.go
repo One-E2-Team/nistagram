@@ -430,6 +430,34 @@ func (handler *Handler) DeleteProfile(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 }
 
+func (handler *Handler) GetProfileUsernamesByIDs(w http.ResponseWriter, r *http.Request) {
+	type data struct {
+		Ids []string `json:"ids"`
+	}
+	var input data
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	ret, err := handler.ProfileService.GetProfileUsernamesByIDs(input.Ids)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	js, err := json.Marshal(ret)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(js)
+	w.Header().Set("Content-Type", "application/json")
+}
+
 func safeRegistrationDto(dto dto.RegistrationDto) dto.RegistrationDto {
 	dto.Username = template.HTMLEscapeString(dto.Username)
 	dto.Name = template.HTMLEscapeString(dto.Name)

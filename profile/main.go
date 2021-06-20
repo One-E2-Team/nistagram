@@ -127,6 +127,8 @@ func handleFunc(handler *handler.Handler) {
 		util.RBAC(handler.GetVerificationRequests, "READ_VERIFICATION_REQUESTS", true)).Methods("GET") // frontend func
 	router.HandleFunc("/get-by-id/{id}",
 		util.MSAuth(handler.GetProfileByID, []string{"connection", "post"})).Methods("GET")
+	router.HandleFunc("/get-by-ids",
+		util.MSAuth(handler.GetProfileUsernamesByIDs, []string{"postreaction"})).Methods("POST")
 	router.HandleFunc("/{id}",
 		util.RBAC(handler.DeleteProfile, "DELETE_PROFILE", false)).Methods("DELETE")
 	router.HandleFunc("/test", handler.Test).Methods("GET")
