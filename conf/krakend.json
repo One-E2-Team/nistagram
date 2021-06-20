@@ -1630,25 +1630,6 @@
           "disable_host_sanitize": false
         }
       ]
-    },
-    {
-      "endpoint": "/api/connection/notify/message/{profileId}",
-      "method": "PUT",
-      "output_encoding": "json",
-      "extra_config": {},
-      "backend": [
-        {
-          "url_pattern": "/connection/notify/message/{profileId}",
-          "encoding": "json",
-          "sd": "static",
-          "method": "PUT",
-          "extra_config": {},
-          "host": [
-            "https://connection:8080"
-          ],
-          "disable_host_sanitize": false
-        }
-      ]
     }
   ],
   "read_timeout": "0s",
