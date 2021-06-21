@@ -165,8 +165,9 @@ func (service *ProfileService) ChangeProfileSettings(dto dto.ProfileSettingsDTO,
 	}
 
 	if privacyChanged{
+		profile.ProfileSettings = profileSettings
 		m := saga.Message{NextService: saga.PostService, SenderService: saga.ProfileService,
-			Action: saga.ActionStart, Functionality: saga.ChangeProfilesPrivacy, Profile: *profile}
+			Action: saga.ActionStart, Functionality: saga.ChangeProfilesPrivacy, Profile: profile}
 		service.Orchestrator.Next(saga.PostChannel, saga.PostService, m)
 	}
 
@@ -487,8 +488,8 @@ func (service *ProfileService) ConnectToRedis(){
 					switch m.Functionality{
 					case saga.ChangeProfilesPrivacy:
 						profile := m.Profile
-						togglePrivacy(&profile)
-						err = service.ProfileRepository.UpdateProfile(&profile)
+						togglePrivacy(profile)
+						err = service.ProfileRepository.UpdateProfileSettings(profile.ProfileSettings)
 						if err != nil{
 							fmt.Println(err)
 						}

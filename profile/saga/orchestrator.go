@@ -66,7 +66,8 @@ func NewOrchestrator() *Orchestrator{
 
 	orch := &Orchestrator{
 		Client: client,
-		PubSub: client.Subscribe(context.TODO(), ProfileChannel, AuthChannel, ConnectionChannel, PostChannel),
+		PubSub: client.Subscribe(context.TODO(), ProfileChannel, AuthChannel,
+			ConnectionChannel, PostChannel, ReplyChannel),
 	}
 
 	return orch
@@ -95,10 +96,11 @@ func (o Orchestrator) Start(){
 
 			switch msg.Channel {
 			case ReplyChannel:
-				if m.Action != ActionDone{
+				if m.Action == ActionError{
 					o.Rollback(m)
 					continue
-				}else{
+				}
+				if m.Action == ActionDone{
 					fmt.Println("Functionality done.")
 				}
 			}
@@ -117,15 +119,15 @@ func (o Orchestrator) Next(channel, nextService string, message Message) {
 	fmt.Printf("Start message published to channel :%s", channel)
 }
 
-func (o Orchestrator) Rollback(m Message) {
+func (o Orchestrator) Rollback(message Message) {
 	var err error
 	var channel string
-	switch m.NextService {
+	switch message.NextService {
 	case ProfileService:
 		channel = ProfileChannel
 	}
-	m.Action = ActionRollback
-	if err = o.Client.Publish(context.TODO(),channel, m).Err(); err != nil {
+	message.Action = ActionRollback
+	if err = o.Client.Publish(context.TODO(),channel, message).Err(); err != nil {
 		fmt.Printf("Error publishing rollback message to %s channel", ProfileChannel)
 	}
 }
