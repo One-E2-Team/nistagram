@@ -11,14 +11,26 @@ import (
 
 const ExpiresIn = 86400
 
-var TokenSecret = os.Getenv("PUBLIC_JWT_TOKEN_SECRET")
+var TokenSecret = ""
 
 type TokenClaims struct {
 	LoggedUserId uint `json:"loggedUserId"`
 	jwt.StandardClaims
 }
 
+func initPublicToken() {
+	env := os.Getenv("PUBLIC_JWT_TOKEN_SECRET")
+	if env == "" {
+		TokenSecret = "token_secret"
+	} else {
+		TokenSecret = env
+	}
+}
+
 func CreateToken(userId uint, issuer string) (string, error) {
+	if TokenSecret == "" {
+		initPublicToken()
+	}
 	claims := TokenClaims{LoggedUserId: userId, StandardClaims: jwt.StandardClaims{
 		ExpiresAt: time.Now().Unix() + ExpiresIn,
 		IssuedAt:  time.Now().Unix(),
@@ -38,6 +50,9 @@ func getToken(header http.Header) (string, error) {
 }
 
 func GetLoggedUserIDFromToken(r *http.Request) uint {
+	if TokenSecret == "" {
+		initPublicToken()
+	}
 	tokenString, err := getToken(r.Header)
 	if err != nil {
 		fmt.Println(err)

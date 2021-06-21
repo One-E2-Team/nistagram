@@ -67,49 +67,74 @@ func initHandler(service *service.Service) *handler.Handler {
 func handleFunc(handler *handler.Handler) {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/profile/{id}", util.MSAuth(handler.AddProfile, []string{"profile"})).Methods("POST")
+
 	router.HandleFunc("/profile/{id}", util.MSAuth(handler.DeleteProfile, []string{"profile"})).Methods("DELETE")
+
 	router.HandleFunc("/profile/{id}", util.MSAuth(handler.ReActivateProfile, []string{"profile"})).Methods("PATCH")
+
 	router.HandleFunc("/connection/following/all/{id}", handler.GetFollowedProfiles).Methods("GET")
+
 	router.HandleFunc("/connection/following/show/{id}",
 		util.MSAuth(handler.GetFollowedProfilesNotMuted, []string{"post", "profile"})).Methods("GET")
+
 	router.HandleFunc("/connection/following/properties/{followerId}/{profileId}", handler.GetConnection).Methods("GET")
+
 	router.HandleFunc("/connection/following/update", handler.UpdateConnection).Methods("PUT") //frontend func
+
 	router.HandleFunc("/connection/following/my-properties/{profileId}",
 		util.RBAC(handler.GetConnectionPublic, "READ_CONNECTION_STATUS", false)).Methods("GET") // frontend func
+
 	router.HandleFunc("/connection/following/approve/{profileId}",
 		util.RBAC(handler.FollowApprove, "EDIT_CONNECTION_STATUS", false)).Methods("POST") // frontend func
+
 	router.HandleFunc("/connection/following/request/{profileId}",
 		util.RBAC(handler.FollowRequest, "CREATE_CONNECTION", false)).Methods("POST") //frontend func
+
 	router.HandleFunc("/connection/following/request",
 		util.RBAC(handler.GetAllFollowRequests, "READ_CONNECTION_REQUESTS", true)).Methods("GET") //frontend func
+
 	router.HandleFunc("/connection/following/request/{profileId}",
 		util.RBAC(handler.DeclineFollowRequest, "EDIT_CONNECTION_STATUS", false)).Methods("DELETE") //frontend func
+
 	router.HandleFunc("/connection/block/{profileId}",
 		util.RBAC(handler.ToggleBlockProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT") //frontend func
+
 	router.HandleFunc("/connection/closeFriend/{profileId}",
 		util.RBAC(handler.ToggleCloseFriendProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT") //frontend func
+
 	router.HandleFunc("/connection/mute/{profileId}",
 		util.RBAC(handler.ToggleMuteProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT") //frontend func
+
 	router.HandleFunc("/connection/notify/post/{profileId}",
 		util.RBAC(handler.ToggleNotifyPostProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT") //frontend func
+
 	router.HandleFunc("/connection/notify/story/{profileId}",
 		util.RBAC(handler.ToggleNotifyStoryProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT") //frontend func
+
 	router.HandleFunc("/connection/notify/comment/{profileId}",
 		util.RBAC(handler.ToggleNotifyCommentProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT") //frontend func
+
 	router.HandleFunc("/connection/block/{profileId}",
 		util.RBAC(handler.IsBlocked, "READ_CONNECTION_STATUS", false)).Methods("GET") //frontend func
+
 	router.HandleFunc("/connection/unfollow/{profileId}",
 		util.RBAC(handler.UnfollowProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT") //frontend func
+
 	router.HandleFunc("/connection/messaging/connect/{profileId}",
 		util.RBAC(handler.MessageConnect, "EDIT_CONNECTION_STATUS", false)).Methods("POST") // frontend func
+
 	router.HandleFunc("/connection/messaging/request/{profileId}",
 		util.RBAC(handler.MessageRequest, "CREATE_CONNECTION", false)).Methods("POST") //frontend func
+
 	router.HandleFunc("/connection/messaging/my-properties/{profileId}",
 		util.RBAC(handler.GetMessageRelationship, "READ_CONNECTION_STATUS", false)).Methods("GET") // frontend func
+
 	router.HandleFunc("/connection/notify/message/{profileId}",
 		util.RBAC(handler.ToggleNotifyMessageProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT") //frontend func
+
 	router.HandleFunc("/connection/messaging/decline/{profileId}",
 		util.RBAC(handler.DeclineMessageRequest, "EDIT_CONNECTION_STATUS", false)).Methods("DELETE") //frontend func
+
 	router.HandleFunc("/connection/messaging/request",
 		util.RBAC(handler.GetAllMessageRequests, "READ_CONNECTION_REQUESTS", true)).Methods("GET") //frontend func
 	fmt.Println("Starting server..")

@@ -13,7 +13,7 @@ import (
 
 func (service *Service) MessageConnect(followerId, profileId uint) (*model.MessageEdge, bool) {
 	message1, ok1 := service.ConnectionRepository.SelectMessage(followerId, profileId)
-	if !ok1 || message1 == nil || !message1.Approved {
+	if !ok1 || message1 == nil || message1.Approved {
 		return nil, false
 	}
 	message1.Approved = true
@@ -23,10 +23,14 @@ func (service *Service) MessageConnect(followerId, profileId uint) (*model.Messa
 		Approved:         true,
 		NotifyMessage:    true,
 	}
+	fmt.Println("new sanity")
+	fmt.Println(message2)
 	messResp, ok2 := service.ConnectionRepository.CreateOrUpdateMessageRelationship(message2)
 	if !ok2 || messResp == nil {
 		return nil, false
 	}
+	fmt.Println("old sanity")
+	fmt.Println(message1)
 	message1, ok1 = service.ConnectionRepository.CreateOrUpdateMessageRelationship(*message1)
 	if !ok1 || message1 == nil {
 		return nil, false

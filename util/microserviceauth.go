@@ -13,14 +13,26 @@ var msJwt string
 
 const MSExpiresIn = 86400000
 
-var MSTokenSecret = os.Getenv("MICROSERVICE_JWT_TOKEN_SECRET")
+var MSTokenSecret = ""
 
 type MSTokenClaims struct {
 	Microservice string `json:"microservice"`
 	jwt.StandardClaims
 }
 
+func initMSToken() {
+	env := os.Getenv("MICROSERVICE_JWT_TOKEN_SECRET")
+	if env == "" {
+		TokenSecret = "token_secret"
+	} else {
+		TokenSecret = env
+	}
+}
+
 func SetupMSAuth(ms string) error {
+	if MSTokenSecret == "" {
+		initMSToken()
+	}
 	claims := MSTokenClaims{Microservice: ms, StandardClaims: jwt.StandardClaims{
 		ExpiresAt: time.Now().Unix() + MSExpiresIn,
 		IssuedAt:  time.Now().Unix(),
@@ -32,6 +44,9 @@ func SetupMSAuth(ms string) error {
 }
 
 func ValidateMSToken(r *http.Request, ms []string) bool {
+	if MSTokenSecret == "" {
+		initMSToken()
+	}
 	tokenString, err := getToken(r.Header)
 	if err != nil {
 		fmt.Println(err)

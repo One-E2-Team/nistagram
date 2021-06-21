@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
 	"nistagram/connection/dto"
@@ -103,7 +104,7 @@ func (handler *Handler) MessageConnect(writer http.ResponseWriter, request *http
 	}
 	vars := mux.Vars(request)
 	followerId := util.String2Uint(vars["profileId"])
-
+	fmt.Println("mess conn")
 	message, ok := handler.ConnectionService.MessageConnect(followerId, profileId)
 
 	if !ok || message == nil {
