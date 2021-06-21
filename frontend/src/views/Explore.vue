@@ -10,7 +10,7 @@
     <v-slide-group v-if="searchType == 'posts'" class="pa-4" >
       <v-slide-item v-for="s in stories" :key="s._id" >
         <div class="mx-3">
-          <show-post-full-screen-modal :visible="showPostFullScreenModal" @close="showPostFullScreenModal=false" v-bind:post="s.post"/>
+          <show-post-full-screen-modal  :post="s.post"/>
           <h3>{{s.post.publisherUsername}}</h3>
         </div>
       </v-slide-item>
@@ -108,10 +108,6 @@ import ShowPostFullScreenModal from '../modals/showStoryModal.vue'
       redirect(username){
         this.$router.push({name: 'Profile', params: {username: username}})
       },
-      openStory(story){
-        console.log(story)
-        this.storiesForUsername
-      },
       setPostAndStories(posts){
             for (let p of posts){
                 if(p.post.postType == 1){
@@ -121,8 +117,6 @@ import ShowPostFullScreenModal from '../modals/showStoryModal.vue'
                     this.posts.push(p)
                 }
             }
-            console.log(this.posts)
-            console.log(this.stories)
         }
     },
   }

@@ -19,29 +19,8 @@
             <v-card-text>
                 <v-container>
                     <v-row justify="center">
-                        <v-col cols="12" sm="6">
-                            <v-carousel v-if="post.medias.length>1">        
-                                <v-carousel-item
-                                    v-for="item in post.medias" :key="item.filePath"
-                                    reverse-transition="fade-transition"
-                                    transition="fade-transition">
-                                    <video autoplay loop :width="width" :height="height" :src=" protocol + '://' + server + '/static/data/' + item.filePath" v-if="item.filePath.includes('mp4')">
-                                        Your browser does not support the video tag.
-                                    </video>
-                                    
-                                    <img :width="width" :height="height"  :src=" protocol + '://' + server + '/static/data/' + item.filePath" v-if="!item.filePath.includes('mp4')">
-
-                                </v-carousel-item>
-                            </v-carousel>
-                            <div v-else>
-                                <video autoplay loop :width="width" :height="height" :src=" protocol + '://' + server + '/static/data/' + post.medias[0].filePath" v-if="post.medias[0].filePath.includes('mp4')">
-                                        Your browser does not support the video tag.
-                                </video>
-                                <img :width="width" :height="height"  :src=" protocol + '://' + server + '/static/data/' + post.medias[0].filePath" v-if="!post.medias[0].filePath.includes('mp4')">
-                            </div>
-                    </v-col>
-                    <v-col cols="12" sm="6" v-if="post.postType==2">
-                       Siso
+                        <v-col cols="12" sm="8">
+                             <post-media :width="width" :height="height" :post="post"/>
                     </v-col>
                 </v-row>
             </v-container>
@@ -61,7 +40,9 @@
 
 <script>
 import * as comm from '../configuration/communication.js'
+import PostMedia from '../components/Posts/PostMedia.vue'
 export default {
+  components:{PostMedia},
   props: ['visible', 'post'],
   name: 'ShowPostFullScreenModal',
   data(){
