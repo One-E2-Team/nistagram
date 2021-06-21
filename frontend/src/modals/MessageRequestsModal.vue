@@ -62,7 +62,7 @@ export default {
         approve(id){
           axios({
                 method: "post",
-                url: comm.protocol + '://' + comm.server + '/api/connection/messaging/request/' + id,
+                url: comm.protocol + '://' + comm.server + '/api/connection/messaging/connect/' + id,
                 headers: comm.getHeader(),
             }).then(response => {
               if(response.status==200){

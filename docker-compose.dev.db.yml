@@ -7,9 +7,8 @@ services:
         restart: always
         environment: 
             MYSQL_ROOT_PASSWORD: root
-            MYSQL_DATABASE: profile
         networks: 
-            - net_profile
+            - net_db_relational
         ports:
             - 3306:3306 #dev
         volumes: 
@@ -18,17 +17,17 @@ services:
               target: /var/lib/mysql
             - "./conf/dev/mysql:/docker-entrypoint-initdb.d"
 
-    cache_rbac_:
-        container_name: cache_redis1
-        image: redis
-        restart: always
-        networks: 
-            - net_
-        ports: 
-            - 6379:6379
-        volumes: 
-            - ./conf/redis.conf:/usr/local/etc/redis/redis.conf
-        command: redis-server /usr/local/etc/redis/redis.conf
+#    cache_rbac_:
+#        container_name: cache_redis1
+#        image: redis
+#        restart: always
+#        networks: 
+#            - net_
+#        ports: 
+#            - 6379:6379
+#        volumes: 
+#            - ./conf/redis.conf:/usr/local/etc/redis/redis.conf
+#        command: redis-server /usr/local/etc/redis/redis.conf
 
     graphdb_connection:
         container_name: graphdb_neo4j
@@ -37,10 +36,9 @@ services:
         environment: 
             - NEO4J_dbms_connector_bolt_advertised__address=0.0.0.0:7687
             - NEO4J_dbms_connector_bolt_listen__address=0.0.0.0:7687
-            - NEO4J_dbms_logs_query_enabled=INFO
-            - NEO4J_AUTH=none
+            - NEO4J_AUTH=neo4j/root
         networks: 
-            - net_connection
+            - net_db_graph
         ports: 
             - 7474:7474
             - 7687:7687 # mora jer je neki mozak pravio da se komunikacija sa bazom radi kompletno iz fronta web aplikacije
@@ -56,10 +54,8 @@ services:
         environment:
             MONGO_INITDB_ROOT_USERNAME: root
             MONGO_INITDB_ROOT_PASSWORD: root
-        ports:
-            - 8084:27017
         networks: 
-            - net4
+            - net_mongo
         volumes: 
             - type: volume
               source: data3
@@ -75,40 +71,38 @@ services:
             ME_CONFIG_MONGODB_ADMINUSERNAME: root
             ME_CONFIG_MONGODB_ADMINPASSWORD: root
         networks: 
-            - net4
+            - net_mongo
 
     adminer:
         image: adminer
         restart: always
         networks: 
-            - net_profile
-            - net_auth
+            - net_db_relational
         ports:
-            - 8090:8080
+            - 8080:8080
 
-    redis-commander:
-        container_name: redis-commander
-        image: rediscommander/redis-commander
-        restart: always
-        environment:
-            - REDIS_HOST=cache_rbac_
-            - REDIS_PORT=6379
-            - REDIS_PASSWORD=helloworld
-        ports:
-            - 8081:8081
-        networks: 
-            - net_
-        depends_on: 
-            - cache_rbac_
+
+
+    #    redis-commander:
+    #        container_name: redis-commander
+    #        image: rediscommander/redis-commander
+    #        restart: always
+    #        environment:
+    #            - REDIS_HOST=cache_rbac_
+    #            - REDIS_PORT=6379
+    #            - REDIS_PASSWORD=helloworld
+    #        ports:
+    #            - 8081:8081
+    #        networks: 
+    #            - net_
+    #        depends_on: 
+    #            - cache_rbac_
 
 
 networks: 
-    net_apigateway:
-    net_profile:
-    net_auth:
-    net_connection:
-    net_:
-    net4:
+    net_db_relational:
+    net_db_graph:
+    net_mongo:
 
 volumes: 
     data_profile:
