@@ -115,20 +115,20 @@ func (service *PostReactionService) GetAllReports() ([]dto.ShowReportDTO, error)
 
 	var repIds []string
 
-	for i := 0; i < len(reports); i++{
+	for i := 0; i < len(reports); i++ {
 		repIds = append(repIds, reports[i].PostID)
 	}
 
 	posts, err := getPostsByPostsIds(repIds)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 
-	for i := 0; i < len(posts); i++{
+	for i := 0; i < len(posts); i++ {
 		retDto := dto.ShowReportDTO{ReportID: util.GetStringIDFromMongoID(reports[i].ID),
 			PostID: util.GetStringIDFromMongoID(posts[i].ID), Reason: reports[i].Reason,
-		PublisherId: posts[i].PublisherId, PublisherUsername: posts[i].PublisherUsername,
-		Medias: posts[i].Medias, Description: posts[i].Description}
+			PublisherId: posts[i].PublisherId, PublisherUsername: posts[i].PublisherUsername,
+			Medias: posts[i].Medias, Description: posts[i].Description}
 		ret = append(ret, retDto)
 	}
 
@@ -142,7 +142,7 @@ func (service *PostReactionService) DeletePostsReports(postId string) error {
 		return err
 	}
 
-	for i := 0; i < len(reports); i++{
+	for i := 0; i < len(reports); i++ {
 		err = service.PostReactionRepository.DeleteReport(reports[i].ID)
 		if err != nil {
 			return err
@@ -168,12 +168,35 @@ func (service *PostReactionService) GetAllReactions(postID string) ([]string, []
 	return likesUsernames, dislikesUsernames, nil
 }
 
-func getProfileUsernamesByIDs(profileIDs []uint) ([]string, error){
+func (service *PostReactionService) GetAllComments(postID string) ([]dto.ResponseCommentDTO, error) {
+	comments, err := service.PostReactionRepository.GetAllComments(postID)
+	if err != nil {
+		return nil, err
+	}
+	profileIDs := make([]uint, 0)
+	for _, value := range comments {
+		profileIDs = append(profileIDs, value.ProfileID)
+	}
+	commentUsernames, err := getProfileUsernamesByIDs(profileIDs)
+	if err != nil {
+		return nil, err
+	}
+	ret := make([]dto.ResponseCommentDTO, 0)
+	if len(commentUsernames) != len(comments) {
+		return nil, fmt.Errorf("BAD_SLICE_SIZES")
+	}
+	for i, value := range comments {
+		ret = append(ret, dto.ResponseCommentDTO{Content: value.Content, Username: commentUsernames[i]})
+	}
+	return ret, nil
+}
+
+func getProfileUsernamesByIDs(profileIDs []uint) ([]string, error) {
 	type data struct {
 		Ids []string `json:"ids"`
 	}
 	req := make([]string, 0)
-	for _, value := range profileIDs{
+	for _, value := range profileIDs {
 		req = append(req, util.Uint2String(value))
 	}
 	bodyData := data{Ids: req}
@@ -214,7 +237,7 @@ func getPostsByPostsIds(postsIds []string) ([]dto.PostDTO, error) {
 	}
 	bodyData := data{Ids: postsIds}
 	jsonBody, err := json.Marshal(bodyData)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	postHost, postPort := util.GetPostHostAndPort()
