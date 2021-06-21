@@ -184,6 +184,16 @@ services:
               target: /var/lib/mysql
             - "./conf/dev/mysql:/docker-entrypoint-initdb.d"
 
+    message_broker:
+        container_name: redis
+        image: redis
+        restart: always
+        networks:
+            - net_apigateway
+        volumes:
+            - ./conf/redis.conf:/usr/local/etc/redis/redis.conf
+        command:  redis-server /usr/local/etc/redis/redis.conf
+
 #    cache_rbac_:
 #        container_name: cache_redis1
 #        image: redis
