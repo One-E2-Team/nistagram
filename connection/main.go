@@ -72,6 +72,8 @@ func handleFunc(handler *handler.Handler) {
 
 	router.HandleFunc("/profile/{id}", util.MSAuth(handler.ReActivateProfile, []string{"profile"})).Methods("PATCH")
 
+	router.HandleFunc("/connection/block/relationships/{id}", util.MSAuth(handler.GetBlockingRelationships, []string{"xxx"})).Methods("GET")
+
 	router.HandleFunc("/connection/following/all/{id}", handler.GetFollowedProfiles).Methods("GET")
 
 	router.HandleFunc("/connection/following/show/{id}",
@@ -116,6 +118,9 @@ func handleFunc(handler *handler.Handler) {
 
 	router.HandleFunc("/connection/block/{profileId}",
 		util.RBAC(handler.IsBlocked, "READ_CONNECTION_STATUS", false)).Methods("GET") //frontend func
+
+	router.HandleFunc("/connection/block/am/{profileId}",
+		util.RBAC(handler.AmBlocked, "READ_CONNECTION_STATUS", false)).Methods("GET") //frontend func
 
 	router.HandleFunc("/connection/unfollow/{profileId}",
 		util.RBAC(handler.UnfollowProfile, "EDIT_CONNECTION_STATUS", false)).Methods("PUT") //frontend func

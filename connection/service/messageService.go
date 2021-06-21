@@ -23,14 +23,10 @@ func (service *Service) MessageConnect(followerId, profileId uint) (*model.Messa
 		Approved:         true,
 		NotifyMessage:    true,
 	}
-	fmt.Println("new sanity")
-	fmt.Println(message2)
 	messResp, ok2 := service.ConnectionRepository.CreateOrUpdateMessageRelationship(message2)
 	if !ok2 || messResp == nil {
 		return nil, false
 	}
-	fmt.Println("old sanity")
-	fmt.Println(message1)
 	message1, ok1 = service.ConnectionRepository.CreateOrUpdateMessageRelationship(*message1)
 	if !ok1 || message1 == nil {
 		return nil, false
@@ -42,7 +38,14 @@ func (service *Service) MessageRequest(followerId, profileId uint) (*model.Messa
 	if service.IsInBlockingRelationship(followerId, profileId) {
 		return nil, false
 	}
-	message, messOk := service.ConnectionRepository.SelectMessage(followerId, profileId)
+	message, messOk := service.ConnectionRepository.SelectMessage(profileId, followerId)
+	if messOk != false {
+		return nil, false
+	}
+	if message != nil {
+		return service.MessageConnect(profileId, followerId)
+	}
+	message, messOk = service.ConnectionRepository.SelectMessage(followerId, profileId)
 	if message != nil || messOk != false {
 		return nil, false
 	}
@@ -69,7 +72,7 @@ func (service *Service) DeclineMessageRequest(followerId, profileId uint) (*mode
 		return nil, false
 	}
 	message, messOk := service.ConnectionRepository.SelectMessage(followerId, profileId)
-	if message != nil || messOk != false {
+	if message == nil || messOk == false {
 		return nil, false
 	}
 	connection, connOk := service.ConnectionRepository.SelectConnection(followerId, profileId, false)
