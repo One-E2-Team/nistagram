@@ -91,6 +91,8 @@ func handlerFunc(handler *handler.AuthHandler) {
 		util.MSAuth(handler.GetPrivileges, []string{"auth", "connection", "post", "profile", "postreaction"})).Methods("GET")
 	router.HandleFunc("/ban/{profileID}",
 		util.MSAuth(handler.BanUser, []string{"profile"})).Methods("DELETE")
+	router.HandleFunc("/make-agent/{profileID}",
+		util.MSAuth(handler.MakeAgent, []string{"profile"})).Methods("PUT")
 	host, port := util.GetAuthHostAndPort()
 	var err error
 	if util.DockerChecker() {

@@ -184,6 +184,19 @@ func (service *AuthService) BanUser(profileID uint) error {
 	return nil
 }
 
+func (service *AuthService) MakeAgent(profileID uint) error {
+	user, err := service.AuthRepository.GetUserByProfileID(profileID)
+	if err != nil {
+		return err
+	}
+	role, err := service.AuthRepository.GetRoleByName("AGENT")
+	if err != nil {
+		return err
+	}
+	user.Roles = append(user.Roles, *role)
+	return service.AuthRepository.UpdateUser(*user)
+}
+
 func hashAndSalt(pass string) string {
 	bytePass := []byte(pass)
 	hash, err := bcrypt.GenerateFromPassword(bytePass, bcrypt.DefaultCost)

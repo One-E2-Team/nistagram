@@ -153,6 +153,21 @@ func (repo *ProfileRepository) GetAgentRequests() ([]model.AgentRequest, error) 
 	return requests, nil
 }
 
+func (repo *ProfileRepository) GetAgentRequestByProfileID(id uint) (*model.AgentRequest, error) {
+	request := &model.AgentRequest{}
+	if err := repo.RelationalDatabase.Table("agent_requests").First(&request, "profile_id = ?", id).Error; err != nil {
+		return nil, err
+	}
+	return request, nil
+}
+
+func (repo *ProfileRepository) DeleteAgentRequest(request *model.AgentRequest) error {
+	if err := repo.RelationalDatabase.Unscoped().Delete(request).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
 func (repo *ProfileRepository) GetByInterests(interests []string) ([]model.Profile, error) {
 	var profiles []model.Profile
 	if err := repo.RelationalDatabase.Raw("select * from profiles p where p.id in " +
