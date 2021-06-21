@@ -72,7 +72,7 @@ func handleFunc(handler *handler.Handler) {
 
 	router.HandleFunc("/profile/{id}", util.MSAuth(handler.ReActivateProfile, []string{"profile"})).Methods("PATCH")
 
-	router.HandleFunc("/connection/block/relationships/{id}", util.MSAuth(handler.GetBlockingRelationships, []string{"xxx"})).Methods("GET")
+	router.HandleFunc("/connection/block/relationships/{id}", util.MSAuth(handler.GetBlockingRelationships, []string{"post"})).Methods("GET")
 
 	router.HandleFunc("/connection/following/all/{id}", handler.GetFollowedProfiles).Methods("GET")
 

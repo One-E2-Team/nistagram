@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"io"
@@ -11,6 +12,7 @@ import (
 	"nistagram/postreaction/model"
 	"nistagram/postreaction/repository"
 	"nistagram/util"
+	"strings"
 	"time"
 )
 
@@ -41,6 +43,12 @@ func (service *PostReactionService) CommentPost(commentDTO dto.CommentDTO, logge
 	}
 	if post.PostType == postModel.GetPostType("story") {
 		return fmt.Errorf("Cannot comment on story!")
+	}
+	if strings.Contains(commentDTO.Content, "@") {
+		err = canUsersBeTagged(post.Description, loggedUserID)
+		if err != nil {
+			return err
+		}
 	}
 	comment := model.Comment{PostID: commentDTO.PostID, ProfileID: loggedUserID,
 		Content: commentDTO.Content, Time: time.Now()}
@@ -291,4 +299,68 @@ func getPost(postID string) (*postModel.Post, error) {
 		return nil, err
 	}
 	return &post, nil
+}
+
+func canUsersBeTagged(description string, publisherId uint) error {
+	var followingProfiles []uint
+
+	resp, err := getUserFollowers(publisherId)
+	if err != nil {
+		return err
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(resp.Body)
+
+	if err = json.Unmarshal(body, &followingProfiles); err != nil {
+		return err
+	}
+
+	descriptionParts := strings.Split(description, " ")
+	for i := 0; i < len(descriptionParts); i++ {
+		if strings.Contains(descriptionParts[i], "@") {
+			taggedUsername := descriptionParts[i][1 : len(descriptionParts[i])-1]
+			var taggedProfile dto.ProfileDto
+			if resp, err = getProfileByUsername(taggedUsername); err != nil {
+				return err
+			} else {
+				body, _ = io.ReadAll(resp.Body)
+				defer func(Body io.ReadCloser) {
+					_ = Body.Close()
+				}(resp.Body)
+				if err := json.Unmarshal(body, &taggedProfile); err != nil {
+					return err
+				}
+			}
+			if !taggedProfile.ProfileSettings.CanBeTagged {
+				return errors.New(taggedProfile.Username + " can't be tagged!")
+			}
+
+			if !util.Contains(followingProfiles, taggedProfile.ProfileId) {
+				return errors.New(taggedProfile.Username + " is not followed by this profile!")
+			}
+		}
+	}
+	return nil
+}
+
+func getUserFollowers(loggedUserId uint) (*http.Response, error) {
+	connHost, connPort := util.GetConnectionHostAndPort()
+	resp, err := util.CrossServiceRequest(http.MethodGet,
+		util.CrossServiceProtocol+"://"+connHost+":"+connPort+"/connection/following/show/"+util.Uint2String(loggedUserId),
+		nil, map[string]string{})
+	return resp, err
+}
+
+func getProfileByUsername(username string) (*http.Response, error) {
+	profileHost, profilePort := util.GetProfileHostAndPort()
+	resp, err := util.CrossServiceRequest(http.MethodGet,
+		util.CrossServiceProtocol+"://"+profileHost+":"+profilePort+"/get/"+username,
+		nil, map[string]string{})
+	return resp, err
 }

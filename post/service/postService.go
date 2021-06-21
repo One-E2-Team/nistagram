@@ -20,7 +20,11 @@ type PostService struct {
 }
 
 func (service *PostService) GetPublic(loggedUserID uint) ([]dto.ResponsePostDTO, error) {
-	posts, err := service.PostRepository.GetPublic()
+	blockedRelationships, err := getProfilesBlockedRelationships(loggedUserID)
+	if err != nil{
+		return nil, err
+	}
+	posts, err := service.PostRepository.GetPublic(blockedRelationships)
 	if err != nil{
 		return nil, err
 	}
@@ -38,7 +42,11 @@ func (service *PostService) GetProfilesPosts(followingProfiles []uint, targetUse
 }
 
 func (service *PostService) GetPublicPostByLocation(location string, loggedUserID uint) ([]dto.ResponsePostDTO, error) {
-	posts, err := service.PostRepository.GetPublicPostByLocation(location)
+	blockedRelationships, err := getProfilesBlockedRelationships(loggedUserID)
+	if err != nil{
+		return nil, err
+	}
+	posts, err := service.PostRepository.GetPublicPostByLocation(location, blockedRelationships)
 	if err != nil{
 		return nil, err
 	}
@@ -47,7 +55,11 @@ func (service *PostService) GetPublicPostByLocation(location string, loggedUserI
 }
 
 func (service *PostService) GetPublicPostByHashTag(hashTag string, loggedUserID uint) ([]dto.ResponsePostDTO, error) {
-	posts, err := service.PostRepository.GetPublicPostByHashTag(hashTag)
+	blockedRelationships, err := getProfilesBlockedRelationships(loggedUserID)
+	if err != nil{
+		return nil, err
+	}
+	posts, err := service.PostRepository.GetPublicPostByHashTag(hashTag, blockedRelationships)
 	if err != nil{
 		return nil, err
 	}
@@ -264,4 +276,30 @@ func getReactionsForPosts(posts []model.Post, profileID uint) ([]dto.ResponsePos
 		})
 	}
 	return ret, nil
+}
+
+func getProfilesBlockedRelationships(loggedProfileId uint) ([]uint, error) {
+	connectionHost, connectionPort := util.GetConnectionHostAndPort()
+	resp, err := util.CrossServiceRequest(http.MethodGet,
+		util.CrossServiceProtocol+"://"+connectionHost+":"+connectionPort+"/connection/block/relationships/"+util.Uint2String(loggedProfileId),
+		nil, map[string]string{})
+
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(resp.Body)
+
+	var blockedRelationships []uint
+	if err = json.Unmarshal(body, &blockedRelationships); err != nil {
+		return nil, err
+	}
+
+	return blockedRelationships, err
 }

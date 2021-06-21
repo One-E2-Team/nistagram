@@ -52,7 +52,7 @@ func (repo *PostRepository) GetProfilesPosts(followingProfiles []uint, targetUse
 	return posts, nil
 }
 
-func (repo *PostRepository) GetPublic() ([]model.Post, error) {
+func (repo *PostRepository) GetPublic(blockedRelationships []uint) ([]model.Post, error) {
 	collection := repo.getCollection()
 
 	filter := bson.D{{"isdeleted", false}, {"isprivate", false}}
@@ -67,38 +67,7 @@ func (repo *PostRepository) GetPublic() ([]model.Post, error) {
 	for cursor.Next(context.TODO()) {
 		var result model.Post
 		err = cursor.Decode(&result)
-		if result.PostType == model.GetPostType("story") {
-			duration, err := time.ParseDuration("24h")
-			if err != nil {
-				return nil, err
-			}
-			if time.Now().Before(result.PublishDate.Add(duration)) {
-				posts = append(posts, result)
-			}
-		} else {
-			posts = append(posts, result)
-		}
-	}
-
-	return posts, nil
-}
-
-func (repo *PostRepository) GetPublicPostByLocation(location string) ([]model.Post, error) {
-	collection := repo.getCollection()
-
-	filter := bson.D{{"isdeleted", false}, {"isprivate", false}}
-
-	cursor, err := collection.Find(context.TODO(), filter)
-	if err != nil {
-		return nil, err
-	}
-
-	var posts []model.Post
-
-	for cursor.Next(context.TODO()) {
-		var result model.Post
-		err = cursor.Decode(&result)
-		if strings.Contains(result.Location, location) {
+		if !util.Contains(blockedRelationships, result.PublisherId) {
 			if result.PostType == model.GetPostType("story") {
 				duration, err := time.ParseDuration("24h")
 				if err != nil {
@@ -116,7 +85,7 @@ func (repo *PostRepository) GetPublicPostByLocation(location string) ([]model.Po
 	return posts, nil
 }
 
-func (repo *PostRepository) GetPublicPostByHashTag(hashTag string) ([]model.Post, error) {
+func (repo *PostRepository) GetPublicPostByLocation(location string, blockedRelationships []uint) ([]model.Post, error) {
 	collection := repo.getCollection()
 
 	filter := bson.D{{"isdeleted", false}, {"isprivate", false}}
@@ -131,17 +100,54 @@ func (repo *PostRepository) GetPublicPostByHashTag(hashTag string) ([]model.Post
 	for cursor.Next(context.TODO()) {
 		var result model.Post
 		err = cursor.Decode(&result)
-		if strings.Contains(result.HashTags, hashTag) {
-			if result.PostType == model.GetPostType("story") {
-				duration, err := time.ParseDuration("24h")
-				if err != nil {
-					return nil, err
-				}
-				if time.Now().Before(result.PublishDate.Add(duration)) {
+		if !util.Contains(blockedRelationships, result.PublisherId) {
+			if strings.Contains(result.Location, location) {
+				if result.PostType == model.GetPostType("story") {
+					duration, err := time.ParseDuration("24h")
+					if err != nil {
+						return nil, err
+					}
+					if time.Now().Before(result.PublishDate.Add(duration)) {
+						posts = append(posts, result)
+					}
+				} else {
 					posts = append(posts, result)
 				}
-			} else {
-				posts = append(posts, result)
+			}
+		}
+	}
+
+	return posts, nil
+}
+
+func (repo *PostRepository) GetPublicPostByHashTag(hashTag string, blockedRelationships []uint) ([]model.Post, error) {
+	collection := repo.getCollection()
+
+	filter := bson.D{{"isdeleted", false}, {"isprivate", false}}
+
+	cursor, err := collection.Find(context.TODO(), filter)
+	if err != nil {
+		return nil, err
+	}
+
+	var posts []model.Post
+
+	for cursor.Next(context.TODO()) {
+		var result model.Post
+		err = cursor.Decode(&result)
+		if !util.Contains(blockedRelationships, result.PublisherId) {
+			if strings.Contains(result.HashTags, hashTag) {
+				if result.PostType == model.GetPostType("story") {
+					duration, err := time.ParseDuration("24h")
+					if err != nil {
+						return nil, err
+					}
+					if time.Now().Before(result.PublishDate.Add(duration)) {
+						posts = append(posts, result)
+					}
+				} else {
+					posts = append(posts, result)
+				}
 			}
 		}
 	}
