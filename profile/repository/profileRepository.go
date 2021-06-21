@@ -170,9 +170,9 @@ func (repo *ProfileRepository) DeleteAgentRequest(request *model.AgentRequest) e
 
 func (repo *ProfileRepository) GetByInterests(interests []string) ([]model.Profile, error) {
 	var profiles []model.Profile
-	if err := repo.RelationalDatabase.Raw("select * from profiles p where p.id in " +
-		"(select pd.profile_id from personal_data pd where pd.id in " +
-		"(select pi.personal_data_id from person_interests pi where pi.interest_id in" +
+	if err := repo.RelationalDatabase.Raw("select * from profiles p where p.id in "+
+		"(select pd.profile_id from personal_data pd where pd.id in "+
+		"(select pi.personal_data_id from person_interests pi where pi.interest_id in"+
 		"(select i.id from interests i where i.name in (?))))", interests).Scan(&profiles).Error; err != nil {
 		return nil, err
 	}

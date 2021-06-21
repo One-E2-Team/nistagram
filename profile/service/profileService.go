@@ -24,8 +24,7 @@ func (service *ProfileService) Register(dto dto.RegistrationDto) error {
 		personalData.AddItem(interest)
 	}
 	profile := model.Profile{Username: dto.Username, Email: dto.Email, ProfileSettings: profileSettings,
-		PersonalData: personalData, Biography: dto.Biography, Website: dto.WebSite, Type: model.REGULAR,
-		IsVerified: false}
+		PersonalData: personalData, Biography: dto.Biography, Website: dto.WebSite, IsVerified: false}
 	err := service.ProfileRepository.CreateProfile(&profile)
 	if err != nil {
 		return err
