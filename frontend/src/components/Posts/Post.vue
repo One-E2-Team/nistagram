@@ -1,7 +1,5 @@
 <template>
-  <v-card
-    class="mx-auto" :width="width"
-  >
+  <v-card class="mx-auto" :width="width+50" >
     <post-modal v-if="showTitle" :visible="showDialog" @close="showDialog=false" v-bind:post="post"/>
     <v-list-item v-if="showTitle">
       <v-list-item-content >
@@ -13,26 +11,17 @@
         </v-list-item-title>
       </v-list-item-content>
     </v-list-item>
-    <v-carousel :width="width" :height="height">        
-            <v-carousel-item
-            v-for="item in post.medias" :key="item.filePath"
-            reverse-transition="fade-transition"
-            transition="fade-transition">
-            <video autoplay loop :width="width" :height="height" :src=" protocol + '://' + server + '/static/data/' + item.filePath" v-if="item.filePath.includes('mp4')">
-            Your browser does not support the video tag.
-            </video>
-            <img :width="width" :height="height" :src=" protocol + '://' + server + '/static/data/' + item.filePath" v-if="!item.filePath.includes('mp4')">
 
-            </v-carousel-item>
-    </v-carousel>
-
+    
+      <post-media v-if="!showMoreDetailsOnClick"  :width="width" :height="height" :post="post"/>
+      <show-post-modal v-else  :width="width" :height="height" :post="post" :reaction="reaction" v-on:reactionChanged="react($event)"/>
     <v-card-text class="text--primary">
        <v-container>
          <v-row>
           <v-col>Location: {{post.location}} </v-col>
          </v-row>
          <v-row>
-          <v-col> {{post.description}} </v-col>
+          <v-col>{{post.hashTags}} </v-col>
          </v-row>
          <v-row>
           <v-col class="d-flex justify-space-around ">
@@ -54,19 +43,6 @@
             </v-item-group>
           </v-col>
          </v-row>
-         <v-row>
-            <v-col>
-              <post-reactions-modal v-bind:postID="post.id"/>
-            </v-col>
-         </v-row>
-         <v-row cols="12" md="6">
-            <v-col>
-              <v-textarea solo placeholder="Enter comment..." rows="4" v-model="comment"></v-textarea>
-              <v-btn color="normal" elevation="2" @click="commentPost()">
-                Comment
-              </v-btn>
-            </v-col>
-          </v-row>
        </v-container>
     </v-card-text>
   </v-card>
@@ -74,11 +50,12 @@
 
 <script>
 import PostModal from '../../modals/PostModal.vue'
-import PostReactionsModal from '../../modals/PostReactionsModal.vue'
 import * as comm from '../../configuration/communication.js'
+import PostMedia from './PostMedia.vue'
+import ShowPostModal from '../../modals/showPostModal.vue'
 import axios from 'axios'
 export default {
-  components: { PostModal, PostReactionsModal },
+  components: { PostModal, PostMedia, ShowPostModal },
   name: 'Post',
   props: ['post','usage', 'myReaction'],
   data() {
@@ -92,6 +69,7 @@ export default {
       reaction: null,
       isUserLogged: comm.isUserLogged(),
       comment: '',
+      showMoreDetailsOnClick: false,
     }
   },
   mounted() {
@@ -104,6 +82,7 @@ export default {
   },
   methods: {
     designView() {
+      this.showMoreDetailsOnClick = true;
       if (this.usage == 'Profile') {
         this.width = 300;
         this.height = 400;
@@ -116,6 +95,7 @@ export default {
         this.width = 600;
         this.height = 700;
         this.showTitle = true;
+        this.showMoreDetailsOnClick = false;
       } else if(this.usage == 'MyReactions'){
         this.width = 300;
         this.height = 400;
