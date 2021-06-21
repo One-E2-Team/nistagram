@@ -1,18 +1,24 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/go-redis/redis/v8"
 	"io"
 	"net/http"
 	"nistagram/profile/dto"
 	"nistagram/profile/model"
 	"nistagram/profile/repository"
+	"nistagram/profile/saga"
 	"nistagram/util"
+	"os"
+	"time"
 )
 
 type ProfileService struct {
 	ProfileRepository *repository.ProfileRepository
+	Orchestrator *saga.Orchestrator
 }
 
 func (service *ProfileService) Register(dto dto.RegistrationDto) error {
@@ -141,16 +147,29 @@ func (service *ProfileService) ChangeProfileSettings(dto dto.ProfileSettingsDTO,
 		return err
 	}
 	profileSettings := profile.ProfileSettings
+	var privacyChanged = false
 	if profileSettings.IsPrivate != dto.IsPrivate {
-		err = service.changePrivacyInPostService(dto.IsPrivate, loggedUserId)
+		privacyChanged = true
+		/*err = service.changePrivacyInPostService(dto.IsPrivate, loggedUserId)
 		if err != nil {
 			return err
-		}
+		}*/
 	}
 	profileSettings.IsPrivate = dto.IsPrivate
 	profileSettings.CanBeTagged = dto.CanBeTagged
 	profileSettings.CanReceiveMessageFromUnknown = dto.CanReceiveMessageFromUnknown
 	err = service.ProfileRepository.UpdateProfileSettings(profileSettings)
+
+	if err != nil{
+		return err
+	}
+
+	if privacyChanged{
+		m := saga.Message{NextService: saga.PostService, SenderService: saga.ProfileService,
+			Action: saga.ActionStart, Functionality: saga.ChangeProfilesPrivacy, Profile: *profile}
+		service.Orchestrator.Next(saga.PostChannel, saga.PostService, m)
+	}
+
 	return err
 }
 
@@ -406,4 +425,98 @@ func (service *ProfileService) changeUsernameInPostService(loggedUserId uint, us
 		fmt.Println(err)
 	}
 	return err
+}
+
+func (service *ProfileService) ConnectToRedis(){
+	var (
+		client *redis.Client
+		err error
+	)
+	time.Sleep(5 * time.Second)
+	var redisHost, redisPort = "localhost", "6379"          // dev.db environment
+	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD")        // production environment
+	if ok {
+		redisHost = "message_broker"
+		redisPort = "6379"
+	} else {
+		_, ok := os.LookupEnv("DOCKER_ENV_SET_DEV") // dev front environment
+		if ok {
+			redisHost = "message_broker"
+			redisPort = "6379"
+		}
+	}
+	for {
+		client = redis.NewClient(&redis.Options{
+			Addr:     redisHost + ":" + redisPort,
+			Password: "",
+			DB:       0,
+		})
+
+		if err := client.Ping(context.TODO()).Err(); err != nil {
+			fmt.Println("Cannot connect to redis! Sleeping 10s and then retrying....")
+			time.Sleep(10 * time.Second)
+		} else {
+			fmt.Println("Profile connected to redis.")
+			break
+		}
+	}
+
+	pubsub := client.Subscribe(context.TODO(),saga.ProfileChannel, saga.ReplyChannel)
+
+	if _, err = pubsub.Receive(context.TODO()); err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer func() { _ = pubsub.Close() }()
+	ch := pubsub.Channel()
+
+	fmt.Println("Starting profile saga in go routine..")
+
+	for{
+		select{
+		case msg := <-ch:
+			m := saga.Message{}
+			if err = json.Unmarshal([]byte(msg.Payload), &m); err != nil {
+				fmt.Println(err)
+				continue
+			}
+
+			switch msg.Channel {
+			case saga.ProfileChannel:
+				if m.Action == saga.ActionRollback {
+					switch m.Functionality{
+					case saga.ChangeProfilesPrivacy:
+						profile := m.Profile
+						togglePrivacy(&profile)
+						err = service.ProfileRepository.UpdateProfile(&profile)
+						if err != nil{
+							fmt.Println(err)
+						}
+						sendToReplyChannel(client, &m, saga.ActionError, saga.ProfileChannel, saga.ProfileChannel)
+					}
+				}
+			}
+		}
+
+	}
+}
+
+func sendToReplyChannel(client *redis.Client, m *saga.Message, action string, nextService string, senderService string){
+	var err error
+	m.Action = action
+	m.NextService = nextService
+	m.SenderService = senderService
+	if err = client.Publish(context.TODO(),saga.ReplyChannel, m).Err(); err != nil {
+		fmt.Printf("Error publishing done-message to %s channel", saga.ReplyChannel)
+	}
+	fmt.Printf("Done message published to channel :%s", saga.ReplyChannel)
+}
+
+func togglePrivacy(profile *model.Profile) {
+	isPrivate := profile.ProfileSettings.IsPrivate
+	if isPrivate{
+		profile.ProfileSettings.IsPrivate = false
+	}else{
+		profile.ProfileSettings.IsPrivate = true
+	}
 }

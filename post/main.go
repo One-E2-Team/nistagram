@@ -114,5 +114,8 @@ func main() {
 	postService := initService(postRepo)
 	postHandler := initHandler(postService)
 	_ = util.SetupMSAuth("post")
+
+	go postService.ConnectToRedis()
+
 	handleFunc(postHandler)
 }

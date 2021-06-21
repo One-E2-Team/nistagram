@@ -7,6 +7,7 @@ import (
 	"nistagram/profile/handler"
 	"nistagram/profile/model"
 	"nistagram/profile/repository"
+	"nistagram/profile/saga"
 	"nistagram/profile/service"
 	"nistagram/util"
 	"os"
@@ -100,7 +101,7 @@ func initProfileRepo(database *gorm.DB, client *redis.Client) *repository.Profil
 }
 
 func initService(profileRepo *repository.ProfileRepository) *service.ProfileService {
-	return &service.ProfileService{ProfileRepository: profileRepo}
+	return &service.ProfileService{ProfileRepository: profileRepo, Orchestrator: saga.NewOrchestrator()}
 }
 
 func initHandler(service *service.ProfileService) *handler.Handler {
@@ -161,5 +162,9 @@ func main() {
 	profileService := initService(profileRepo)
 	profileHandler := initHandler(profileService)
 	_ = util.SetupMSAuth("profile")
+
+	go profileService.Orchestrator.Start()
+	go profileService.ConnectToRedis()
+
 	handleFunc(profileHandler)
 }

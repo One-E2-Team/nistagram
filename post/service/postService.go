@@ -1,16 +1,20 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/go-redis/redis/v8"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"io"
 	"net/http"
 	"nistagram/post/dto"
 	"nistagram/post/model"
 	"nistagram/post/repository"
+	"nistagram/profile/saga"
 	"nistagram/util"
+	"os"
 	"strings"
 	"time"
 )
@@ -264,4 +268,88 @@ func getReactionsForPosts(posts []model.Post, profileID uint) ([]dto.ResponsePos
 		})
 	}
 	return ret, nil
+}
+
+func (service *PostService) ConnectToRedis(){
+	var (
+		client *redis.Client
+		err error
+	)
+	time.Sleep(5 * time.Second)
+	var redisHost, redisPort = "localhost", "6379"          // dev.db environment
+	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD")        // production environment
+	if ok {
+		redisHost = "message_broker"
+		redisPort = "6379"
+	} else {
+		_, ok := os.LookupEnv("DOCKER_ENV_SET_DEV") // dev front environment
+		if ok {
+			redisHost = "message_broker"
+			redisPort = "6379"
+		}
+	}
+	for {
+		client = redis.NewClient(&redis.Options{
+			Addr:     redisHost + ":" + redisPort,
+			Password: "",
+			DB:       0,
+		})
+
+		if err := client.Ping(context.TODO()).Err(); err != nil {
+			fmt.Println("Cannot connect to redis! Sleeping 10s and then retrying....")
+			time.Sleep(10 * time.Second)
+		} else {
+			fmt.Println("Post connected to redis.")
+			break
+		}
+	}
+
+	pubsub := client.Subscribe(context.TODO(),saga.PostChannel, saga.ReplyChannel)
+
+	if _, err = pubsub.Receive(context.TODO()); err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer func() { _ = pubsub.Close() }()
+	ch := pubsub.Channel()
+
+	fmt.Println("Starting post saga in go routine..")
+
+	for{
+		select{
+		case msg := <-ch:
+			m := saga.Message{}
+			if err = json.Unmarshal([]byte(msg.Payload), &m); err != nil {
+				fmt.Println(err)
+				continue
+			}
+
+			switch msg.Channel {
+			case saga.PostChannel:
+				if m.Action == saga.ActionStart {
+					switch m.Functionality{
+					case saga.ChangeProfilesPrivacy:
+						err = service.ChangePrivacy(m.Profile.ID, m.Profile.ProfileSettings.IsPrivate)
+						if err != nil{
+							sendToReplyChannel(client, &m, saga.ActionError, saga.ProfileService, saga.PostService)
+						}else{
+							sendToReplyChannel(client, &m, saga.ActionDone, saga.ProfileService, saga.PostService)
+						}
+					}
+				}
+			}
+		}
+
+	}
+}
+
+func sendToReplyChannel(client *redis.Client, m *saga.Message, action string, nextService string, senderService string){
+	var err error
+	m.Action = action
+	m.NextService = nextService
+	m.SenderService = senderService
+	if err = client.Publish(context.TODO(),saga.ReplyChannel, m).Err(); err != nil {
+		fmt.Printf("Error publishing done-message to %s channel", saga.ReplyChannel)
+	}
+	fmt.Printf("Done message published to channel :%s", saga.ReplyChannel)
 }

@@ -2,6 +2,7 @@ package saga
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/go-redis/redis/v8"
 	"os"
@@ -18,6 +19,13 @@ const (
 	ActionRollback  string = "RollbackMsg"
 	ActionDone      string = "DoneMsg"
 	ActionError     string = "ErrorMsg"
+	ChangeProfilesPrivacy string = "ChangeProfilesPrivacy"
+	RegisterProfile string = "RegisterProfile"
+	DeleteProfile string = "DeleteProfile"
+	ProfileService string = "ProfileService"
+	AuthService string = "AuthService"
+	ConnectionService string = "ConnectionService"
+	PostService string = "PostService"
 )
 
 type Orchestrator struct{
@@ -25,7 +33,7 @@ type Orchestrator struct{
 	PubSub *redis.PubSub
 }
 
-func NewOrchestrator() (*Orchestrator, error){
+func NewOrchestrator() *Orchestrator{
 	var client *redis.Client
 	time.Sleep(5 * time.Second)
 	var redisHost, redisPort = "localhost", "6379"          // dev.db environment
@@ -51,7 +59,7 @@ func NewOrchestrator() (*Orchestrator, error){
 			fmt.Println("Cannot connect to redis! Sleeping 10s and then retrying....")
 			time.Sleep(10 * time.Second)
 		} else {
-			fmt.Println("Connected to redis.")
+			fmt.Println("Orchestrator connected to redis.")
 			break
 		}
 	}
@@ -61,5 +69,63 @@ func NewOrchestrator() (*Orchestrator, error){
 		PubSub: client.Subscribe(context.TODO(), ProfileChannel, AuthChannel, ConnectionChannel, PostChannel),
 	}
 
-	return orch, nil
+	return orch
+}
+
+func (o Orchestrator) Start(){
+	var err error
+	if _, err = o.PubSub.Receive(context.TODO()); err != nil{
+		fmt.Println(err)
+		return
+	}
+
+	ch := o.PubSub.Channel()
+	defer o.PubSub.Close()
+
+	fmt.Println("Starting orchestrator..")
+
+	for{
+		select{
+		case msg := <-ch:
+			m := Message{}
+			if err = json.Unmarshal([]byte(msg.Payload), &m); err != nil {
+				fmt.Println(err)
+				continue
+			}
+
+			switch msg.Channel {
+			case ReplyChannel:
+				if m.Action != ActionDone{
+					o.Rollback(m)
+					continue
+				}else{
+					fmt.Println("Functionality done.")
+				}
+			}
+		}
+
+	}
+}
+
+func (o Orchestrator) Next(channel, nextService string, message Message) {
+	var err error
+	message.Action = ActionStart
+	message.NextService = nextService
+	if err = o.Client.Publish(context.TODO(),channel, message).Err(); err != nil {
+		fmt.Printf("Error publishing start-message to %s channel", channel)
+	}
+	fmt.Printf("Start message published to channel :%s", channel)
+}
+
+func (o Orchestrator) Rollback(m Message) {
+	var err error
+	var channel string
+	switch m.NextService {
+	case ProfileService:
+		channel = ProfileChannel
+	}
+	m.Action = ActionRollback
+	if err = o.Client.Publish(context.TODO(),channel, m).Err(); err != nil {
+		fmt.Printf("Error publishing rollback message to %s channel", ProfileChannel)
+	}
 }
