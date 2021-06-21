@@ -16,7 +16,7 @@ func (repo *Repository) CreateOrUpdateMessageRelationship(message model.MessageE
 				"WHERE a.profileID = $primary AND b.profileID = $secondary AND a.deleted = FALSE AND b.deleted = FALSE \n" +
 				"MERGE (a)-[e:MESSAGE]->(b) " +
 				"	ON CREATE SET e += { approved: $approved, notifyMessage: $notifyMessage } \n" +
-				"	ON MATCH SET e += { approved: $approved, notifyMessage: $notifyMessage } \n" +
+				"	ON MATCH SET e.approved = $approved , e.notifyMessage = $notifyMessage  \n" +
 				"RETURN e",
 			message.ToMap())
 		var record *neo4j.Record
@@ -116,7 +116,7 @@ func (repo *Repository) GetAllMessageRequests(id uint) *[]uint {
 	defer session.Close()
 	profileIDs, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
 		result, err := transaction.Run(
-			"MATCH (a:Profile)-[e:Message]->(b:Profile) \n"+
+			"MATCH (a:Profile)-[e:MESSAGE]->(b:Profile) \n"+
 				"WHERE b.profileID = $secondary AND e.approved = $approved AND a.deleted = FALSE AND b.deleted = FALSE \n"+
 				"RETURN a",
 			conn.ToMap())
