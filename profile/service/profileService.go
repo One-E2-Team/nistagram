@@ -346,6 +346,10 @@ func (service *ProfileService) GetProfileUsernamesByIDs(ids []string) ([]string,
 
 }
 
+func (service *ProfileService) GetByInterests(interests []string) ([]model.Profile, error) {
+	return service.ProfileRepository.GetByInterests(interests)
+}
+
 func (service *ProfileService) deleteProfileInAuth(profileId uint) error {
 	authHost, authPort := util.GetAuthHostAndPort()
 	_, err := util.CrossServiceRequest(http.MethodDelete,

@@ -488,6 +488,34 @@ func (handler *Handler) GetProfileUsernamesByIDs(w http.ResponseWriter, r *http.
 	w.Header().Set("Content-Type", "application/json")
 }
 
+func (handler *Handler) GetByInterests(w http.ResponseWriter, r *http.Request) {
+	type data struct {
+		Interests []string `json:"interests"`
+	}
+	var input data
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	profiles, err := handler.ProfileService.GetByInterests(input.Interests)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	js, err := json.Marshal(profiles)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(js)
+	w.Header().Set("Content-Type", "application/json")
+}
+
 func safeRegistrationDto(dto dto.RegistrationDto) dto.RegistrationDto {
 	dto.Username = template.HTMLEscapeString(dto.Username)
 	dto.Name = template.HTMLEscapeString(dto.Name)
