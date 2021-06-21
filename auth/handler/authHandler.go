@@ -197,6 +197,19 @@ func (handler *AuthHandler) BanUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 }
 
+func (handler *AuthHandler) MakeAgent(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	err := handler.AuthService.MakeAgent(util.String2Uint(vars["profileID"]))
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte("{\"success\":\"ok\"}"))
+	w.Header().Set("Content-Type", "application/json")
+}
+
 func safeRegisterDTO(dto dto.RegisterDTO) dto.RegisterDTO {
 	dto.Username = sanitize(dto.Username)
 	dto.Email = sanitize(dto.Email)

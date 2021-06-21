@@ -140,6 +140,8 @@ func handleFunc(handler *handler.Handler) {
 	router.HandleFunc("/agent-requests",
 		util.RBAC(handler.GetAgentRequests, "READ_AGENT_REQUEST", true)).Methods("GET") //frontend func
 	router.HandleFunc("/get-by-interests", handler.GetByInterests).Methods("POST")
+	router.HandleFunc("/agent-request",
+		util.RBAC(handler.ProcessAgentRequest, "EDIT_AGENT_REQUEST", false)).Methods("PUT") //frontend func
 	router.HandleFunc("/test", handler.Test).Methods("GET")
 	fmt.Println("Starting server..")
 	host, port := util.GetProfileHostAndPort()

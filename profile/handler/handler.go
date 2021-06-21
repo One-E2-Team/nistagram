@@ -516,6 +516,24 @@ func (handler *Handler) GetByInterests(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 }
 
+func (handler *Handler) ProcessAgentRequest(w http.ResponseWriter, r *http.Request) {
+	var input dto.ProcessAgentRequest
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	err := handler.ProfileService.ProcessAgentRequest(input)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte("{\"success\":\"ok\"}"))
+	w.Header().Set("Content-Type", "application/json")
+}
+
 func safeRegistrationDto(dto dto.RegistrationDto) dto.RegistrationDto {
 	dto.Username = template.HTMLEscapeString(dto.Username)
 	dto.Name = template.HTMLEscapeString(dto.Name)

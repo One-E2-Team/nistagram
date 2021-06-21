@@ -24,8 +24,7 @@ func (service *ProfileService) Register(dto dto.RegistrationDto) error {
 		personalData.AddItem(interest)
 	}
 	profile := model.Profile{Username: dto.Username, Email: dto.Email, ProfileSettings: profileSettings,
-		PersonalData: personalData, Biography: dto.Biography, Website: dto.WebSite, Type: model.REGULAR,
-		IsVerified: false}
+		PersonalData: personalData, Biography: dto.Biography, Website: dto.WebSite, IsVerified: false}
 	err := service.ProfileRepository.CreateProfile(&profile)
 	if err != nil {
 		return err
@@ -316,18 +315,18 @@ func (service *ProfileService) SendAgentRequest(loggedUserID uint) error {
 	return service.ProfileRepository.SendAgentRequest(&request)
 }
 
-func (service *ProfileService) GetAgentRequests() ([]dto.AgentRequestDTO, error) {
+func (service *ProfileService) GetAgentRequests() ([]dto.ResponseAgentRequestDTO, error) {
 	requests, err := service.ProfileRepository.GetAgentRequests()
 	if err != nil {
 		return nil, err
 	}
-	ret := make([]dto.AgentRequestDTO, 0)
+	ret := make([]dto.ResponseAgentRequestDTO, 0)
 	for _, value := range requests {
 		profile, err := service.ProfileRepository.GetProfileByID(value.ProfileId)
 		if err != nil {
 			return nil, err
 		}
-		ret = append(ret, dto.AgentRequestDTO{Username: profile.Username, ProfileID: profile.ID,
+		ret = append(ret, dto.ResponseAgentRequestDTO{Username: profile.Username, ProfileID: profile.ID,
 			Email: profile.Email, Website: profile.Website})
 	}
 	return ret, nil
@@ -348,6 +347,20 @@ func (service *ProfileService) GetProfileUsernamesByIDs(ids []string) ([]string,
 
 func (service *ProfileService) GetByInterests(interests []string) ([]model.Profile, error) {
 	return service.ProfileRepository.GetByInterests(interests)
+}
+
+func (service *ProfileService) ProcessAgentRequest(requestDTO dto.ProcessAgentRequest) error {
+	request, err := service.ProfileRepository.GetAgentRequestByProfileID(util.String2Uint(requestDTO.ProfileID))
+	if err != nil {
+		return err
+	}
+	if requestDTO.Accept {
+		err = makeAgent(request.ProfileId)
+		if err != nil {
+			return err
+		}
+	}
+	return service.ProfileRepository.DeleteAgentRequest(request)
 }
 
 func (service *ProfileService) deleteProfileInAuth(profileId uint) error {
@@ -406,4 +419,18 @@ func (service *ProfileService) changeUsernameInPostService(loggedUserId uint, us
 		fmt.Println(err)
 	}
 	return err
+}
+
+func makeAgent(profileID uint) error {
+	authHost, authPort := util.GetAuthHostAndPort()
+	resp, err := util.CrossServiceRequest(http.MethodPut,
+		util.CrossServiceProtocol+"://"+authHost+":"+authPort+"/make-agent/"+util.Uint2String(profileID),
+		nil, map[string]string{})
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("BAD_PROFILE_ID")
+	}
+	return nil
 }

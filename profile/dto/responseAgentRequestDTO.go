@@ -1,6 +1,6 @@
 package dto
 
-type AgentRequestDTO struct {
+type ResponseAgentRequestDTO struct {
 	Username  string `json:"username"`
 	ProfileID uint   `json:"profileId"`
 	Email     string `json:"email"`
