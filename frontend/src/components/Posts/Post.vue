@@ -150,6 +150,8 @@ export default {
         headers: comm.getHeader(),
       }).then(response => {
         console.log(response.data);
+        alert('Successfully added comment!');
+        this.comment = '';
       });
     },
     preventActionIfUnauthorized() {

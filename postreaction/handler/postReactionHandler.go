@@ -178,8 +178,7 @@ func (handler *PostReactionHandler) DeletePostsReports(w http.ResponseWriter, r 
 
 func (handler *PostReactionHandler) GetAllReactions(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	postID := vars["postID"]
-	likes, dislikes, err := handler.PostReactionService.GetAllReactions(postID)
+	likes, dislikes, err := handler.PostReactionService.GetAllReactions(vars["postID"])
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -195,6 +194,25 @@ func (handler *PostReactionHandler) GetAllReactions(w http.ResponseWriter, r *ht
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(js)
+	w.Header().Set("Content-Type", "application/json")
+}
+
+func (handler *PostReactionHandler) GetAllComments(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	comments, err := handler.PostReactionService.GetAllComments(vars["postID"])
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	js, err := json.Marshal(comments)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusOK)

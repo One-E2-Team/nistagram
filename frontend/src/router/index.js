@@ -101,7 +101,13 @@ const routes = [{
     name: 'Reports',
     component: () =>
       import ('./../components/Reports.vue')
-  }
+  },
+  {
+    path: '/agent-requests',
+    name: 'AgentRequests',
+    component: () =>
+      import ('./../components/AgentRequests.vue')
+  },
 ]
 const router = new VueRouter({
   routes

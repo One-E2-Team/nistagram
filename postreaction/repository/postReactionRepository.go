@@ -146,7 +146,7 @@ func (repo *PostReactionRepository) DeleteReport(reportId primitive.ObjectID) er
 		}},
 	}
 
-	_, err := reportsCollection.UpdateOne(context.TODO(), filter, update)
+	_, err := reportsCollection.UpdateOne(emptyContext, filter, update)
 	if err != nil {
 		return err
 	}
@@ -176,6 +176,25 @@ func (repo *PostReactionRepository) GetAllReactions(postID string) ([]uint, []ui
 		}
 	}
 	return likes, dislikes, nil
+}
+
+func (repo *PostReactionRepository) GetAllComments(postID string) ([]model.Comment, error) {
+	commentsCollection := repo.getCollection(commentsCollectionName)
+	filter := bson.D{{postIDColumn, postID}}
+	commentsCursor, err := commentsCollection.Find(emptyContext, filter)
+	if err != nil {
+		return nil, err
+	}
+	comments := make([]model.Comment, 0)
+	for commentsCursor.Next(emptyContext) {
+		var result model.Comment
+		err = commentsCursor.Decode(&result)
+		if err != nil {
+			return nil, err
+		}
+		comments = append(comments, result)
+	}
+	return comments, nil
 }
 
 func (repo *PostReactionRepository) getCollection(name string) *mongo.Collection {

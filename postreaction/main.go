@@ -70,6 +70,7 @@ func handleFunc(handler *handler.PostReactionHandler) {
 	router.HandleFunc("/my-reactions/{type}",
 		util.RBAC(handler.GetMyReactions, "READ_REACTIONS", true)).Methods("GET") //frontend func
 	router.HandleFunc("/all-reactions/{postID}", handler.GetAllReactions).Methods("GET") //frontend func
+	router.HandleFunc("/all-comments/{postID}", handler.GetAllComments).Methods("GET") //frontend func
 	router.HandleFunc("/get-reaction-types/{profileID}",
 		util.MSAuth(handler.GetReactionTypes, []string{"post"})).Methods("POST")
 	router.HandleFunc("/report",
