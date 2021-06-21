@@ -1722,6 +1722,25 @@
           "disable_host_sanitize": false
         }
       ]
+    },
+    {
+      "endpoint": "/api/postreaction/all-reactions/{postID}",
+      "method": "GET",
+      "output_encoding": "json",
+      "extra_config": {},
+      "backend": [
+        {
+          "url_pattern": "/all-reactions/{postID}",
+          "encoding": "json",
+          "sd": "static",
+          "method": "GET",
+          "extra_config": {},
+          "host": [
+            "https://postreaction:8080"
+          ],
+          "disable_host_sanitize": false
+        }
+      ]
     }
   ],
   "read_timeout": "0s",

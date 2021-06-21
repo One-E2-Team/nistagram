@@ -54,6 +54,11 @@
             </v-item-group>
           </v-col>
          </v-row>
+         <v-row>
+            <v-col>
+              <post-reactions-modal v-bind:postID="post.id"/>
+            </v-col>
+         </v-row>
          <v-row cols="12" md="6">
             <v-col>
               <v-textarea solo placeholder="Enter comment..." rows="4" v-model="comment"></v-textarea>
@@ -69,10 +74,11 @@
 
 <script>
 import PostModal from '../../modals/PostModal.vue'
+import PostReactionsModal from '../../modals/PostReactionsModal.vue'
 import * as comm from '../../configuration/communication.js'
 import axios from 'axios'
 export default {
-  components: { PostModal },
+  components: { PostModal, PostReactionsModal },
   name: 'Post',
   props: ['post','usage', 'myReaction'],
   data() {
