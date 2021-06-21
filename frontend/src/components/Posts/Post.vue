@@ -13,7 +13,7 @@
         </v-list-item-title>
       </v-list-item-content>
     </v-list-item>
-    <v-carousel :width="width" :height="height">        
+    <v-carousel :width="width" :height="height" v-if="post.medias.length>1">        
             <v-carousel-item
             v-for="item in post.medias" :key="item.filePath"
             reverse-transition="fade-transition"
@@ -25,6 +25,12 @@
 
             </v-carousel-item>
     </v-carousel>
+    <span v-else>
+        <video autoplay loop :width="width" :height="height" :src=" protocol + '://' + server + '/static/data/' + post.medias[0].filePath" v-if="post.medias[0].filePath.includes('mp4')">
+                Your browser does not support the video tag.
+        </video>
+        <img :width="width" :height="height"  :src=" protocol + '://' + server + '/static/data/' + post.medias[0].filePath" v-if="!post.medias[0].filePath.includes('mp4')">
+    </span>
 
     <v-card-text class="text--primary">
        <v-container>
@@ -32,7 +38,7 @@
           <v-col>Location: {{post.location}} </v-col>
          </v-row>
          <v-row>
-          <v-col> {{post.description}} </v-col>
+          <v-col>{{post.hashTags}} </v-col>
          </v-row>
          <v-row>
           <v-col class="d-flex justify-space-around ">
@@ -54,19 +60,6 @@
             </v-item-group>
           </v-col>
          </v-row>
-         <v-row>
-            <v-col>
-              <post-reactions-modal v-bind:postID="post.id"/>
-            </v-col>
-         </v-row>
-         <v-row cols="12" md="6">
-            <v-col>
-              <v-textarea solo placeholder="Enter comment..." rows="4" v-model="comment"></v-textarea>
-              <v-btn color="normal" elevation="2" @click="commentPost()">
-                Comment
-              </v-btn>
-            </v-col>
-          </v-row>
        </v-container>
     </v-card-text>
   </v-card>
@@ -74,11 +67,10 @@
 
 <script>
 import PostModal from '../../modals/PostModal.vue'
-import PostReactionsModal from '../../modals/PostReactionsModal.vue'
 import * as comm from '../../configuration/communication.js'
 import axios from 'axios'
 export default {
-  components: { PostModal, PostReactionsModal },
+  components: { PostModal },
   name: 'Post',
   props: ['post','usage', 'myReaction'],
   data() {

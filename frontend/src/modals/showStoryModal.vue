@@ -2,7 +2,7 @@
   <v-row justify="space-around">
     <v-col cols="auto">
       <v-dialog transition="dialog-bottom-transition" width="900">
-        <template v-slot:activator="{ on, attrs }">
+        <template v-slot:activator="{ on, attrs }" v-if="post.postType==1">
             <v-avatar size="48" v-bind="attrs"  v-on="on" color="blue">
               <img src="../assets/profilepicture.jpg" />
             </v-avatar> 

@@ -61,7 +61,7 @@ import axios from 'axios'
 import * as comm from '../configuration/communication.js'
 import Search from '../components/Search.vue'
 import Post from '../components/Posts/Post.vue'
-import ShowPostFullScreenModal from '../modals/ShowPostFullScreenModal.vue'
+import ShowPostFullScreenModal from '../modals/showStoryModal.vue'
   export default {
     name: 'Explore',
     components:{
