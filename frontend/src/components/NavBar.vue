@@ -9,7 +9,26 @@
                 <router-link v-else :to="{ name: 'Home'}">Home</router-link> |
                 <router-link :to="{ name: 'Explore'}">Explore </router-link>
                 <template v-if="isUserLogged"> | <router-link :to="{ name: 'Reactions'}" >Reactions</router-link> </template>
-                <template v-if="hasRole('ADMIN')"> | <router-link :to="{ name: 'VerificationRequests'}" >Verification Requests</router-link> </template>    
+                <template v-if="hasRole('ADMIN')">
+                  <v-menu offset-y>
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-btn icon v-bind="attrs" v-on="on">
+                        <v-icon>mdi-dots-vertical</v-icon>
+                      </v-btn>
+                    </template>
+                    <v-list>
+                      <v-list-item>
+                        <v-list-item-title><router-link :to="{ name: 'VerificationRequests'}">Verification Requests</router-link></v-list-item-title>
+                      </v-list-item>
+                      <v-list-item>
+                        <v-list-item-title><router-link :to="{ name: 'Reports'}">Reports</router-link></v-list-item-title>
+                      </v-list-item>
+                      <v-list-item>
+                        <v-list-item-title><router-link :to="{ name: 'AgentRequests'}">Agent Requests</router-link></v-list-item-title>
+                      </v-list-item>
+                    </v-list>
+                </v-menu>
+                </template>   
           </v-col>
           <v-col cols="12" sm="2" class="float-right">
               <v-spacer />
