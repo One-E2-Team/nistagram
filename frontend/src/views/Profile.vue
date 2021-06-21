@@ -26,6 +26,11 @@
                 </template>
             </v-col>
         </v-row>
+        <v-row>
+            <v-col cols="12" sm="4" v-for="p in stories" :key="p._id">
+               <post v-bind:usage="'Profile'" v-bind:post="p.post" v-bind:myReaction="p.reaction" />
+            </v-col>
+        </v-row>
         <v-row v-if="followTypeValue == followType.FOLLOW || !isProfilePrivate || isMyProfile()">
             <v-col cols="12" sm="4" v-for="p in posts" :key="p._id">
                <post v-bind:usage="'Profile'" v-bind:post="p.post" v-bind:myReaction="p.reaction" />
@@ -56,6 +61,7 @@ export default {
             profile: {},
             isProfilePrivate: null,
             posts: [],
+            stories: [],
             server: comm.server,
             protocol: comm.protocol,
             showFollowOption: false,
@@ -130,6 +136,7 @@ export default {
                   this.followTypeValue = this.followType.NOT_FOLLOW;
                   this.connection = null;
                   this.posts = [];
+                  this.stories = [];
               }
             })
         },
@@ -145,7 +152,7 @@ export default {
                 headers: comm.getHeader(),
             }).then(response => {
                 if (response.status==200)
-                    this.posts = response.data.collection;  
+                    this.setPostAndStories(response.data.collection)
             });
         },
         isUserLoggedIn(){
@@ -156,8 +163,9 @@ export default {
                     url: comm.protocol + '://' + comm.server + '/api/post/profile/' + this.profile.username, 
                     headers: comm.getHeader(),
                     }).then(response => {
-                        if(response.status==200)
-                            this.posts = response.data.collection;
+                        if(response.status==200){   
+                            this.setPostAndStories(response.data.collection)
+                        }
                     });
         },
         prepareFollowButtons(responseData) {
@@ -197,6 +205,21 @@ export default {
                 }).catch((error) => {
                     console.log(error);
                 });
+        },
+
+        setPostAndStories(posts){
+            console.log(posts)
+            for (let p of posts){
+                console.log(p)
+                if(p.post.postType == 1){
+                    this.stories.push(p)
+                }
+                else if(p.post.postType == 2){ 
+                    this.posts.push(p)
+                }
+            }
+            console.log(this.stories)
+            console.log(this.posts)
         }
     },
 }
