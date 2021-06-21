@@ -139,7 +139,7 @@ func (repo *Repository) GetBlockedProfiles(id uint, directed bool) *[]uint {
 			result, err := transaction.Run(
 				"MATCH (a:Profile)-[e:BLOCKED]->(b:Profile) \n" +
 					"WHERE b.profileID = $primary AND a.deleted = FALSE AND b.deleted = FALSE \n" +
-					"RETURN b",
+					"RETURN a",
 				block.ToMap())
 			var ret []uint
 			if err != nil {
@@ -159,3 +159,5 @@ func (repo *Repository) GetBlockedProfiles(id uint, directed bool) *[]uint {
 	}
 	return &ret
 }
+
+

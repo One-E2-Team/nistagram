@@ -85,8 +85,8 @@ func (handler *Handler) DeclineMessageRequest(writer http.ResponseWriter, reques
 	message, ok := handler.ConnectionService.DeclineMessageRequest(followerId, profileId)
 
 	if !ok || message == nil {
-		writer.Write([]byte("{\"status\":\"error\"}"))
 		writer.WriteHeader(http.StatusInternalServerError)
+		writer.Write([]byte("{\"status\":\"error\"}"))
 		return
 	}
 

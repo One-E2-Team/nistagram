@@ -41,3 +41,8 @@ func (service *Service) ToggleBlock(followerId, profileId uint) (*model.BlockEdg
 	}
 	return block, ok
 }
+
+
+func (service *Service) GetBlockingRelationships(u uint) *[]uint {
+	return service.ConnectionRepository.GetBlockedProfiles(u, false)
+}

@@ -53,3 +53,33 @@ func (handler *Handler) ToggleBlockProfile(writer http.ResponseWriter, request *
 	writer.Write([]byte("{\"status\":\"ok\"}"))
 	writer.Header().Set("Content-Type", "application/json")
 }
+
+func (handler *Handler) GetBlockingRelationships(writer http.ResponseWriter, request *http.Request) {
+	vars := mux.Vars(request)
+	id, _ := strconv.ParseUint(vars["id"], 10, 32)
+	profiles := handler.ConnectionService.GetBlockingRelationships(uint(id))
+	writer.WriteHeader(http.StatusOK)
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(*profiles)
+}
+
+func (handler *Handler) AmBlocked(writer http.ResponseWriter, request *http.Request) {
+	vars := mux.Vars(request)
+	id1, e1 := strconv.ParseUint(vars["profileId"], 10, 32)
+	if e1 != nil {
+		writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	id := util.GetLoggedUserIDFromToken(request)
+	if id == 0 {
+		writer.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	ok := handler.ConnectionService.IsBlocked(uint(id1), id)
+	writer.WriteHeader(http.StatusOK)
+	writer.Header().Set("Content-Type", "application/json")
+	type resp struct {
+		Blocked bool `json:"blocked"`
+	}
+	json.NewEncoder(writer).Encode(resp{Blocked: ok})
+}

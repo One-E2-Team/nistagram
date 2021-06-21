@@ -10,9 +10,6 @@ import (
 func (repo *Repository) CreateOrUpdateMessageRelationship(message model.MessageEdge) (*model.MessageEdge, bool) {
 	session := (*repo.DatabaseDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close()
-	fmt.Println("sanity check")
-	fmt.Println(message)
-	fmt.Println(message.ToMap())
 	resultingBlock, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
 		result, err := transaction.Run(
 			"MATCH (a:Profile), (b:Profile) \n" +
