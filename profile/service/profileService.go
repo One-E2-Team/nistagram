@@ -302,6 +302,11 @@ func (service *ProfileService) DeleteProfile(profileId uint) error {
 		return err
 	}
 
+	err = service.deleteProfileInConnection(profileId)
+	if err != nil {
+		return err
+	}
+
 	err = service.deleteProfilesPosts(profileId)
 	if err != nil {
 		return err
@@ -367,6 +372,17 @@ func (service *ProfileService) deleteProfileInAuth(profileId uint) error {
 	authHost, authPort := util.GetAuthHostAndPort()
 	_, err := util.CrossServiceRequest(http.MethodDelete,
 		util.CrossServiceProtocol+"://"+authHost+":"+authPort+"/ban/"+util.Uint2String(profileId), nil,
+		map[string]string{})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (service *ProfileService) deleteProfileInConnection(profileId uint) error {
+	connHost, connPort := util.GetConnectionHostAndPort()
+	_, err := util.CrossServiceRequest(http.MethodDelete,
+		util.CrossServiceProtocol+"://"+connHost+":"+connPort+"/profile/"+util.Uint2String(profileId), nil,
 		map[string]string{})
 	if err != nil {
 		return err
