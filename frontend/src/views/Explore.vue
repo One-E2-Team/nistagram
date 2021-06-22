@@ -10,7 +10,7 @@
     <v-slide-group v-if="searchType == 'posts'" class="pa-4" >
       <v-slide-item v-for="s in stories" :key="s._id" >
         <div class="mx-3">
-          <show-post-full-screen-modal  :post="s.post"/>
+          <show-story-modal  :post="s.post"/>
           <h3>{{s.post.publisherUsername}}</h3>
         </div>
       </v-slide-item>
@@ -61,13 +61,13 @@ import axios from 'axios'
 import * as comm from '../configuration/communication.js'
 import Search from '../components/Search.vue'
 import Post from '../components/Posts/Post.vue'
-import ShowPostFullScreenModal from '../modals/showStoryModal.vue'
+import ShowStoryModal from '../modals/showStoryModal.vue'
   export default {
     name: 'Explore',
     components:{
       Search,
       Post,
-      ShowPostFullScreenModal
+      ShowStoryModal
     },
      created(){
       axios({

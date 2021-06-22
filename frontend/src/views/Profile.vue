@@ -27,8 +27,15 @@
             </v-col>
         </v-row>
         <v-row>
-            <v-col cols="12" sm="4" v-for="p in stories" :key="p._id">
-               <post v-bind:usage="'Profile'" v-bind:post="p.post" v-bind:myReaction="p.reaction" />
+            <v-col cols="12" sm="4">
+                <v-slide-group class="pa-4" >
+                    <v-slide-item v-for="s in stories" :key="s._id" >
+                        <div class="mx-3">
+                            <show-story-modal  :post="s.post"/>
+                            <h3>{{s.post.publisherUsername}}</h3>
+                        </div>
+                    </v-slide-item>
+                </v-slide-group>
             </v-col>
         </v-row>
         <v-row v-if="followTypeValue == followType.FOLLOW || !isProfilePrivate || isMyProfile()">
@@ -50,11 +57,13 @@ import Post from '../components/Posts/Post.vue'
 import axios from 'axios'
 import * as comm from '../configuration/communication.js'
 import ProfileOptionsDropMenu from '../components/DropMenu/ProfileOptionsDropMenu.vue'
+import ShowStoryModal from '../modals/showStoryModal.vue'
 export default {
     components: {
         PersonalData,
         Post,
-        ProfileOptionsDropMenu},
+        ProfileOptionsDropMenu,
+        ShowStoryModal},
     props: ['username'],
     data() {
         return {
