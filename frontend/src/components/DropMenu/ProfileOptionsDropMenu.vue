@@ -102,13 +102,13 @@ export default {
                 headers: comm.getHeader(),
             }).then((response) => {
                 if(response.status == 200) {
-                    this.isBlocked = !this.isBlocked
+                    this.isBlocked = !this.isBlocked;
                     this.$emit('blockChanged', this.isBlocked);
                     if(!this.isBlocked){
-                        this.connection = null
-                        this.$emit('connectionChanged', this.connection)
-                        this.messageConnection = null,
-                        this.$emit('messageRequestSended',this.messageConnection)
+                        this.connection = null;
+                        this.$emit('connectionChanged', this.connection);
+                        this.messageConnection = null;
+                        this.$emit('messageRequestSended',this.messageConnection);
                     }
                 }
             })

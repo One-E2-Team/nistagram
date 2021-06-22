@@ -9,8 +9,8 @@
                             Follow
                         </v-btn>
                         <v-btn v-if="!isMyProfile() && followTypeValue!=followType.NOT_FOLLOW" color="normal" elevation="8" @click="unfollow">
-                            <p v-if="followTypeValue==followType.REQUEST_SENDED">Cancel follow request</p>
-                            <p v-else-if="followTypeValue==followType.FOLLOW">Unfollow</p>
+                            <p v-if="followTypeValue==followType.REQUEST_SENDED" class="my-3">Cancel follow request</p>
+                            <p v-else-if="followTypeValue==followType.FOLLOW" class="my-3">Unfollow</p>
                         </v-btn>
                         <v-btn v-if="isMyProfile()" color="normal" elevation="8" @click="redirectToCreatePost()">
                             Create post
@@ -18,7 +18,7 @@
                     </template>
                     <profile-options-drop-menu v-if="!isMyProfile()" 
                         :profileId="profile.ID" :conn="connection" :blocked="isBlocked" :msgConn="messageConnection"
-                        v-on:connectionChanged='connection=$event' v-on:blockChanged='isBlocked=$event' 
+                        v-on:connectionChanged='connectionChanged($event)' v-on:blockChanged='isBlocked=$event' 
                         v-on:messageRequestSended='messageConnection=$event'
                         class="mx-2">
                             <v-icon>mdi-menu-down</v-icon>
@@ -133,6 +133,8 @@ export default {
                         this.connection = null;
                     } else {
                         this.connection = response.data;
+                        this.messageConnection = {};
+                        this.messageConnection.notifyMessage = true;
                     }
                 }
             })
@@ -146,8 +148,10 @@ export default {
               if (response.status==200 && response.data.status == 'ok'){
                   this.followTypeValue = this.followType.NOT_FOLLOW;
                   this.connection = null;
-                  this.posts = [];
-                  this.stories = [];
+                  if (this.isProfilePrivate) {
+                    this.posts = [];
+                    this.stories = [];
+                  }
               }
             })
         },
@@ -219,18 +223,20 @@ export default {
         },
 
         setPostAndStories(posts){
-            console.log(posts)
             for (let p of posts){
-                console.log(p)
                 if(p.post.postType == 1){
-                    this.stories.push(p)
+                    this.stories.push(p);
                 }
                 else if(p.post.postType == 2){ 
-                    this.posts.push(p)
+                    this.posts.push(p);
                 }
             }
-            console.log(this.stories)
-            console.log(this.posts)
+        },
+        connectionChanged(newConnection) {
+            if (newConnection == null) {
+                this.followTypeValue = this.followType.NOT_FOLLOW;
+            }
+            this.connection = newConnection;
         }
     },
 }
