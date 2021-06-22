@@ -57,8 +57,10 @@ export default {
                 data : JSON.stringify(data),
                 headers: comm.getHeader(),
               }).then((response) => {
-              console.log(response.data);
-              this.loading = false;
+                alert('Success');
+                console.log(response.data);
+                this.reason = '';
+                this.loading = false;
               })
               .catch((error) => {
                 console.log(error);
