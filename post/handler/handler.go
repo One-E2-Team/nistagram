@@ -230,6 +230,8 @@ func (handler *Handler) Create(w http.ResponseWriter, r *http.Request) {
 
 	mediaNames := generateMediaNames(files)
 
+	fmt.Println(postDto)
+
 	switch err := handler.createPost(profileId, postDto, mediaNames); err {
 	case nil:
 		w.WriteHeader(http.StatusCreated)
@@ -239,6 +241,7 @@ func (handler *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	default:
+		fmt.Println(err)
 		util.Logging(util.ERROR, methodPath, util.GetIPAddress(r), "Wrong post type", "post")
 		w.WriteHeader(http.StatusInternalServerError)
 		return

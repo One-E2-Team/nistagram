@@ -2,7 +2,7 @@ package dto
 
 type ProfileDto struct {
 	Username        string          `json:"username"`
-	ProfileId       uint            `json:"profileId"`
+	ProfileId       uint            `json:"id"`
 	ProfileSettings ProfileSettings `json:"profileSettings"`
 }
 

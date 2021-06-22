@@ -52,7 +52,24 @@
                          </v-row>
                         <v-row cols="12" md="6">
                             <v-col>
-                                <v-textarea solo placeholder="Enter comment..." rows="4" v-model="comment"></v-textarea>
+                                <v-textarea solo placeholder="Enter comment..." rows="4" v-model="comment" @keyup="e => findTag(e)"></v-textarea>
+                                <v-list rounded>
+                                  <v-list-item-group
+                                    color="primary"
+                                  >
+                                    <v-list-item @click="setTag(item)"
+                                      v-for="(item, i) in searchedTaggedUsers"
+                                      :key="i"
+                                    >
+                                      <v-list-item-icon>
+                                        <v-icon>mdi-account</v-icon>
+                                      </v-list-item-icon>
+                                      <v-list-item-content>
+                                        <v-list-item-title v-text="item"></v-list-item-title>
+                                      </v-list-item-content>
+                                    </v-list-item>
+                                  </v-list-item-group>
+                                </v-list>
                                 <v-btn color="normal" elevation="2" @click="commentPost()">
                                         Comment
                                 </v-btn>
@@ -88,7 +105,10 @@ export default {
       return{
           isUserLogged: comm.isUserLogged(),
           comment: '',
-          newReaction: this.reaction
+          newReaction: this.reaction,
+          searchedTaggedUsers : [],
+          cursorStart: -1,
+          cursorEnd: -1,
       }
   },
   methods:{
@@ -96,6 +116,17 @@ export default {
           this.$emit('reactionChanged',newReaction)
           this.newReaction = newReaction
       },
+      preventActionIfUnauthorized() {
+      if(!comm.isUserLogged()){
+        alert('You must be logged to react on post');
+        this.comment = '';
+        if (this.isUserLogged) {
+          this.$router.go();
+        }
+        return true;
+      }
+      return false;
+    },
       commentPost() {
       if (this.preventActionIfUnauthorized()) {
         return;
@@ -112,6 +143,38 @@ export default {
         this.comment = '';
       });
     },
+    findTag(e){
+        let end = e.target.selectionStart -1;
+        if (this.comment[end] == '@')
+          return;
+        for(let i = end; i >= 0; i--){
+          if(this.comment[i] == ' ')
+            break;
+          if(this.comment[i] == '@'){
+              this.cursorStart = i + 1;
+              this.cursorEnd = end;
+              this.searchUsername(this.comment.slice(i+1, end + 1));
+              return;
+          }
+        }
+        this.searchedTaggedUsers = [];
+      },
+      searchUsername(username){
+        axios({
+          method: "get",
+          url: comm.protocol + '://' + comm.server + '/api/profile/search-for-tag/' + username,
+          headers: comm.getHeader()
+        }).then(response => {
+          if(response.status==200){
+            this.searchedTaggedUsers = response.data.collection;
+          }
+        })
+      },
+      setTag(item){
+        this.comment = this.comment.slice(0, this.cursorStart) +
+                           item + this.comment.slice(this.cursorEnd + 1, this.comment.length);
+        this.searchedTaggedUsers = [];
+      }
   },
 }
 </script>

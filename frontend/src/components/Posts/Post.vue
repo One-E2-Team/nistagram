@@ -113,6 +113,7 @@ export default {
           headers: comm.getHeader(),
         }).then(response => {
           console.log(response.data);
+          this.reaction = reactionType;
         });
       } else {
         let dto = {'postId' : this.post.id, 'reactionType' : reactionType}
@@ -123,6 +124,7 @@ export default {
           headers: comm.getHeader(),
         }).then(response => {
           console.log(response.data);
+          this.reaction = reactionType;
         });
       }
     },

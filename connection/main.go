@@ -77,7 +77,7 @@ func handleFunc(handler *handler.Handler) {
 	router.HandleFunc("/connection/following/all/{id}", handler.GetFollowedProfiles).Methods("GET")
 
 	router.HandleFunc("/connection/following/show/{id}",
-		util.MSAuth(handler.GetFollowedProfilesNotMuted, []string{"post", "profile"})).Methods("GET")
+		util.MSAuth(handler.GetFollowedProfilesNotMuted, []string{"post", "profile", "postreaction"})).Methods("GET")
 
 	router.HandleFunc("/connection/following/properties/{followerId}/{profileId}", handler.GetConnection).Methods("GET")
 

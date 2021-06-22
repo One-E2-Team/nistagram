@@ -324,12 +324,12 @@ func canUsersBeTagged(description string, publisherId uint) error {
 	descriptionParts := strings.Split(description, " ")
 	for i := 0; i < len(descriptionParts); i++ {
 		if strings.Contains(descriptionParts[i], "@") {
-			taggedUsername := descriptionParts[i][1 : len(descriptionParts[i])-1]
+			taggedUsername := descriptionParts[i][1 : len(descriptionParts[i])]
 			var taggedProfile dto.ProfileDto
-			if resp, err = getProfileByUsername(taggedUsername); err != nil {
+			if resp, err := getProfileByUsername(taggedUsername); err != nil {
 				return err
 			} else {
-				body, _ = io.ReadAll(resp.Body)
+				body, _ := io.ReadAll(resp.Body)
 				defer func(Body io.ReadCloser) {
 					_ = Body.Close()
 				}(resp.Body)
@@ -337,6 +337,7 @@ func canUsersBeTagged(description string, publisherId uint) error {
 					return err
 				}
 			}
+
 			if !taggedProfile.ProfileSettings.CanBeTagged {
 				return errors.New(taggedProfile.Username + " can't be tagged!")
 			}

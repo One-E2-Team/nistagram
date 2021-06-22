@@ -60,7 +60,12 @@ func (handler *Handler) GetBlockingRelationships(writer http.ResponseWriter, req
 	profiles := handler.ConnectionService.GetBlockingRelationships(uint(id))
 	writer.WriteHeader(http.StatusOK)
 	writer.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(writer).Encode(*profiles)
+	if js, err := json.Marshal(*profiles); err != nil {
+		writer.WriteHeader(http.StatusInternalServerError)
+	} else {
+		writer.WriteHeader(http.StatusOK)
+		_, _ = writer.Write(js)
+	}
 }
 
 func (handler *Handler) AmBlocked(writer http.ResponseWriter, request *http.Request) {
