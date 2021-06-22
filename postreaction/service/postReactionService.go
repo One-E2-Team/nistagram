@@ -26,7 +26,10 @@ func (service *PostReactionService) ReactOnPost(postID string, loggedUserID uint
 		return err
 	}
 	if post.PostType == postModel.GetPostType("story") {
-		return fmt.Errorf("Cannot react on story!")
+		return fmt.Errorf("CANNOT REACT ON STORY")
+	}
+	if post.IsDeleted {
+		return fmt.Errorf("CANNOT REACT ON DELETED POST")
 	}
 	reaction := model.Reaction{ReactionType: reactionType, PostID: postID, ProfileID: loggedUserID}
 	return service.PostReactionRepository.ReactOnPost(&reaction)
@@ -42,7 +45,10 @@ func (service *PostReactionService) CommentPost(commentDTO dto.CommentDTO, logge
 		return err
 	}
 	if post.PostType == postModel.GetPostType("story") {
-		return fmt.Errorf("Cannot comment on story!")
+		return fmt.Errorf("CANNOT COMMENT ON STORY")
+	}
+	if post.IsDeleted {
+		return fmt.Errorf("CANNOT COMMENT ON DELETED POST")
 	}
 	if strings.Contains(commentDTO.Content, "@") {
 		err = canUsersBeTagged(post.Description, loggedUserID)
@@ -56,9 +62,12 @@ func (service *PostReactionService) CommentPost(commentDTO dto.CommentDTO, logge
 }
 
 func (service *PostReactionService) ReportPost(postID string, reason string) error {
-	_, err := getPost(postID)
+	post, err := getPost(postID)
 	if err != nil {
 		return err
+	}
+	if post.IsDeleted {
+		return fmt.Errorf("CANNOT REPORT DELETED POST")
 	}
 	report := model.Report{ID: primitive.NewObjectID(), PostID: postID, Time: time.Now(), Reason: reason,
 		IsDeleted: false}
