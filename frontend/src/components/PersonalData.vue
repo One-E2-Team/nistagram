@@ -35,9 +35,9 @@
             <v-list-item-content>
               <v-list-item-title class="text-h6 text-left">
                 {{profile.username}} 
-                <v-tooltip right>
+                <v-tooltip right v-if="profile.isVerified">
                   <template v-slot:activator="{ on, attrs }">
-                    <v-icon  v-bind="attrs" v-on="on" v-if="profile.isVerified">
+                    <v-icon  v-bind="attrs" v-on="on" >
                       mdi-check-decagram 
                     </v-icon>
                    </template>
