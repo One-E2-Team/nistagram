@@ -3,7 +3,7 @@
     <post-modal v-if="showTitle" :visible="showDialog" @close="showDialog=false" v-bind:post="post"/>
     <v-list-item v-if="showTitle">
       <v-list-item-content >
-        <v-list-item-title  class="text-h6 d-flex justify-space-between ">
+        <v-list-item-title  class="text-h6 d-flex justify-space-between">
           <router-link :to="{ name: 'Profile', params: { username: post.publisherUsername }}">{{post.publisherUsername}}</router-link>
           <v-btn dark icon @click="showDialog = true" v-if="isUserLogged && !isMyPost()">
             <v-icon color="blue">mdi-dots-horizontal</v-icon>
@@ -113,7 +113,7 @@ export default {
           headers: comm.getHeader(),
         }).then(response => {
           console.log(response.data);
-          this.reaction = reactionType;
+          this.reaction = null;
         });
       } else {
         let dto = {'postId' : this.post.id, 'reactionType' : reactionType}
