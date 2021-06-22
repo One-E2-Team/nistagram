@@ -74,6 +74,8 @@ export default {
     },
     methods: {
         profileLoaded(loadedProfile){
+            this.posts = [];
+            this.stories = [];
             this.profile = loadedProfile
             this.isProfilePrivate = loadedProfile.profileSettings.isPrivate
             

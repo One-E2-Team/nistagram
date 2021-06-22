@@ -13,7 +13,7 @@
             <v-list-item v-else>
                 <v-list-item-title @click="toggleBlock()">Block</v-list-item-title>
             </v-list-item>
-            <template v-if="messageConnection != null">
+            <template v-if="messageConnection != null && !isBlocked">
                 <v-list-item v-if="messageConnection.notifyMessage">
                     <v-list-item-title @click="toggle('notify/message')">Don't notify on message</v-list-item-title>
                 </v-list-item>
@@ -21,10 +21,10 @@
                     <v-list-item-title @click="toggle('notify/message')">Notify on message</v-list-item-title>
                 </v-list-item>
             </template>
-            <v-list-item v-else>
+            <v-list-item v-else-if="!isBlocked">
                     <v-list-item-title @click="sendMessageRequest()">Send message request</v-list-item-title>
             </v-list-item>
-            <template v-if="connection != null">
+            <template v-if="connection != null && !isBlocked">
                 <v-list-item v-if="connection.muted">
                     <v-list-item-title @click="toggle('mute')">Unmute</v-list-item-title>
                 </v-list-item>
