@@ -152,7 +152,7 @@ func (handler *AuthHandler) ValidateUser(w http.ResponseWriter, r *http.Request)
 	frontHost, frontPort := util.GetFrontHostAndPort()
 	//_, err = fmt.Fprintf(w, "<html><head><script>window.location.href = \""+util.FrontProtocol+"://"+
 	//	frontHost+":"+frontPort+"/web#/2fa-totp/"+vars["qruuid"]+"\";</script></head><body></body></html>")
-	_, err = fmt.Fprintf(w, "<html><head><script>window.location.href = \""+util.FrontProtocol+"://"+
+	_, err = fmt.Fprintf(w, "<html><head><script>window.location.href = \""+util.GetFrontProtocol()+"://"+
 		frontHost+":"+frontPort+"/web#/log-in\";</script></head><body></body></html>")
 	if err != nil {
 		fmt.Println(err)

@@ -72,7 +72,7 @@ func (service *AuthService) Register(dto dto.RegisterDTO) error {
 	}
 	//TODO: change host, port and html page
 	gatewayHost, gatewayPort := util.GetGatewayHostAndPort()
-	message := "Visit this link in the next 60 minutes to validate your account: " + util.MicroservicesProtocol +
+	message := "Visit this link in the next 60 minutes to validate your account: " + util.GetMicroservicesProtocol() +
 		"://" + gatewayHost + ":" + gatewayPort + "/api/auth/validate/" + util.Uint2String(user.ProfileId) + "/" + user.ValidationUid //+ "/" + uid
 	go util.SendMail(dto.Email, "Account Validation", message)
 	return nil
@@ -102,7 +102,7 @@ func (service *AuthService) RequestPassRecovery(email string) error {
 		return err
 	}
 	frontHost, frontPort := util.GetFrontHostAndPort()
-	var message = "Visit this link in the next 20 minutes to change your password: " + util.FrontProtocol + "://" + frontHost + ":" + frontPort + "/web#/reset-password?id=" +
+	var message = "Visit this link in the next 20 minutes to change your password: " + util.GetFrontProtocol() + "://" + frontHost + ":" + frontPort + "/web#/reset-password?id=" +
 		util.Uint2String(user.ProfileId) + "&str=" + user.ValidationUid
 	go util.SendMail(user.Email, "Recovery password", message)
 	return nil

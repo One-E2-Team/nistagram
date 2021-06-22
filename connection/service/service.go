@@ -28,7 +28,7 @@ func getProfile(id uint) *model2.Profile {
 	var p model2.Profile
 	profileHost, profilePort := util.GetProfileHostAndPort()
 	resp, err := util.CrossServiceRequest(http.MethodGet,
-		util.CrossServiceProtocol+"://"+profileHost+":"+profilePort+"/get-by-id/"+util.Uint2String(id),
+		util.GetCrossServiceProtocol()+"://"+profileHost+":"+profilePort+"/get-by-id/"+util.Uint2String(id),
 		nil, map[string]string{})
 	if err != nil {
 		fmt.Println(err)

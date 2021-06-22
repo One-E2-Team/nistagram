@@ -115,7 +115,7 @@ func (service *Service) GetAllMessageRequests(id uint) *[]dto.UserDTO {
 		var p model2.Profile
 		profileHost, profilePort := util.GetProfileHostAndPort()
 		resp, err := util.CrossServiceRequest(http.MethodGet,
-			util.CrossServiceProtocol+"://"+profileHost+":"+profilePort+"/get-by-id/"+util.Uint2String(profileId),
+			util.GetCrossServiceProtocol()+"://"+profileHost+":"+profilePort+"/get-by-id/"+util.Uint2String(profileId),
 			nil, map[string]string{})
 		if err != nil {
 			fmt.Println(err)

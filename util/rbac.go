@@ -40,7 +40,7 @@ func RBAC(handler func(http.ResponseWriter, *http.Request), privilege string, re
 		} else {
 			authHost, authPort := GetAuthHostAndPort()
 			resp, err := CrossServiceRequest(http.MethodGet,
-				CrossServiceProtocol+"://"+authHost+":"+authPort+"/privileges/"+Uint2String(id),
+				GetCrossServiceProtocol()+"://"+authHost+":"+authPort+"/privileges/"+Uint2String(id),
 				nil, map[string]string{})
 			if err != nil {
 				fmt.Println(err)

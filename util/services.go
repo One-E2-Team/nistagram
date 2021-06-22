@@ -2,14 +2,33 @@ package util
 
 import "os"
 
-const MicroservicesProtocol = "https"
-const CrossServiceProtocol = "https"
 const FrontProtocol = "https"
 
 func DockerChecker() bool {
 	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD") // dev production environment
 	_, ok1 := os.LookupEnv("DOCKER_ENV_SET_DEV") // dev front environment
 	return ok || ok1
+}
+
+func GetCrossServiceProtocol() string {
+	if DockerChecker(){
+		return "https"
+	}
+	return "http"
+}
+
+func GetMicroservicesProtocol() string {
+	if DockerChecker(){
+		return "https"
+	}
+	return "http"
+}
+
+func GetFrontProtocol() string {
+	if DockerChecker(){
+		return "https"
+	}
+	return "http"
 }
 
 func GetAuthHostAndPort() (string, string) {
@@ -58,7 +77,10 @@ func GetPostReactionHostAndPort() (string, string) {
 }
 
 func GetFrontHostAndPort() (string, string) {
-	var frontHost, frontPort = "localhost", "81"
+	var frontHost, frontPort = "localhost", "3000"
+	if DockerChecker() {
+		frontPort = "81"
+	}
 	return frontHost, frontPort
 }
 

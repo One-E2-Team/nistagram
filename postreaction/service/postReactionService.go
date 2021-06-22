@@ -88,7 +88,7 @@ func (service *PostReactionService) GetMyReactions(reactionType model.ReactionTy
 		"ids": ret,
 	})
 	resp, err := util.CrossServiceRequest(http.MethodPost,
-		util.CrossServiceProtocol+"://"+postHost+":"+postPort+"/posts",
+		util.GetCrossServiceProtocol()+"://"+postHost+":"+postPort+"/posts",
 		postBody, map[string]string{"Content-Type": "application/json;"})
 
 	if err != nil {
@@ -223,7 +223,7 @@ func getProfileUsernamesByIDs(profileIDs []uint) ([]string, error) {
 	}
 	profileHost, profilePort := util.GetProfileHostAndPort()
 	resp, err := util.CrossServiceRequest(http.MethodPost,
-		util.CrossServiceProtocol+"://"+profileHost+":"+profilePort+"/get-by-ids",
+		util.GetCrossServiceProtocol()+"://"+profileHost+":"+profilePort+"/get-by-ids",
 		jsonBody, map[string]string{"Content-Type": "application/json;"})
 	if err != nil {
 		return nil, err
@@ -259,7 +259,7 @@ func getPostsByPostsIds(postsIds []string) ([]dto.PostDTO, error) {
 	}
 	postHost, postPort := util.GetPostHostAndPort()
 	resp, err := util.CrossServiceRequest(http.MethodPost,
-		util.CrossServiceProtocol+"://"+postHost+":"+postPort+"/posts",
+		util.GetCrossServiceProtocol()+"://"+postHost+":"+postPort+"/posts",
 		jsonBody, map[string]string{})
 
 	if err != nil {
@@ -284,7 +284,7 @@ func getPostsByPostsIds(postsIds []string) ([]dto.PostDTO, error) {
 func getPost(postID string) (*postModel.Post, error) {
 	postHost, postPort := util.GetPostHostAndPort()
 	resp, err := util.CrossServiceRequest(http.MethodGet,
-		util.CrossServiceProtocol+"://"+postHost+":"+postPort+"/post/"+postID,
+		util.GetCrossServiceProtocol()+"://"+postHost+":"+postPort+"/post/"+postID,
 		nil, map[string]string{})
 	if err != nil {
 		return nil, err
@@ -362,7 +362,7 @@ func canUsersBeTagged(description string, publisherId uint) error {
 func getUserFollowers(loggedUserId uint) (*http.Response, error) {
 	connHost, connPort := util.GetConnectionHostAndPort()
 	resp, err := util.CrossServiceRequest(http.MethodGet,
-		util.CrossServiceProtocol+"://"+connHost+":"+connPort+"/connection/following/show/"+util.Uint2String(loggedUserId),
+		util.GetCrossServiceProtocol()+"://"+connHost+":"+connPort+"/connection/following/show/"+util.Uint2String(loggedUserId),
 		nil, map[string]string{})
 	return resp, err
 }
@@ -370,7 +370,7 @@ func getUserFollowers(loggedUserId uint) (*http.Response, error) {
 func getProfileByUsername(username string) (*http.Response, error) {
 	profileHost, profilePort := util.GetProfileHostAndPort()
 	resp, err := util.CrossServiceRequest(http.MethodGet,
-		util.CrossServiceProtocol+"://"+profileHost+":"+profilePort+"/get/"+username,
+		util.GetCrossServiceProtocol()+"://"+profileHost+":"+profilePort+"/get/"+username,
 		nil, map[string]string{})
 	return resp, err
 }

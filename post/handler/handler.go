@@ -433,7 +433,7 @@ func safePostDto(postDto dto.PostDto) dto.PostDto {
 func getUserFollowers(loggedUserId uint) (*http.Response, error) {
 	connHost, connPort := util.GetConnectionHostAndPort()
 	resp, err := util.CrossServiceRequest(http.MethodGet,
-		util.CrossServiceProtocol+"://"+connHost+":"+connPort+"/connection/following/show/"+util.Uint2String(loggedUserId),
+		util.GetCrossServiceProtocol()+"://"+connHost+":"+connPort+"/connection/following/show/"+util.Uint2String(loggedUserId),
 		nil, map[string]string{})
 	return resp, err
 }
@@ -441,7 +441,7 @@ func getUserFollowers(loggedUserId uint) (*http.Response, error) {
 func getProfileByProfileId(profileId uint) (*http.Response, error) {
 	profileHost, profilePort := util.GetProfileHostAndPort()
 	resp, err := util.CrossServiceRequest(http.MethodGet,
-		util.CrossServiceProtocol+"://"+profileHost+":"+profilePort+"/get-by-id/"+util.Uint2String(profileId),
+		util.GetCrossServiceProtocol()+"://"+profileHost+":"+profilePort+"/get-by-id/"+util.Uint2String(profileId),
 		nil, map[string]string{})
 	return resp, err
 }

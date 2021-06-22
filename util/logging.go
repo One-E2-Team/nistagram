@@ -64,6 +64,9 @@ func encodeInputString(input string) string {
 }
 
 func Logging(logType LogType, resourceMethod string, resourceIP string, content string, service string) {
+	if !DockerChecker(){
+		return //no logging in dev.db
+	}
 	logFileService := "../../logs/" + service + "/"
 	logFile := logFileService
 	logFile += getLogFileString(logType)

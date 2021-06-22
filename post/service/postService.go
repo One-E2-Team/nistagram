@@ -151,7 +151,7 @@ func (service *PostService) ChangePrivacy(profileId uint, isPrivate bool) error 
 func deletePostsReports(postId primitive.ObjectID) error {
 	postReactionHost, postReactionPort := util.GetPostReactionHostAndPort()
 	_, err := util.CrossServiceRequest(http.MethodDelete,
-		util.CrossServiceProtocol+"://"+postReactionHost+":"+postReactionPort+"/report/"+ util.GetStringIDFromMongoID(postId),
+		util.GetCrossServiceProtocol()+"://"+postReactionHost+":"+postReactionPort+"/report/"+ util.GetStringIDFromMongoID(postId),
 		nil, map[string]string{})
 	return err
 }
@@ -208,7 +208,7 @@ func canUsersBeTagged(description string, publisherId uint) error {
 func getUserFollowers(loggedUserId uint) (*http.Response, error) {
 	connHost, connPort := util.GetConnectionHostAndPort()
 	resp, err := util.CrossServiceRequest(http.MethodGet,
-		util.CrossServiceProtocol+"://"+connHost+":"+connPort+"/connection/following/show/"+util.Uint2String(loggedUserId),
+		util.GetCrossServiceProtocol()+"://"+connHost+":"+connPort+"/connection/following/show/"+util.Uint2String(loggedUserId),
 		nil, map[string]string{})
 	return resp, err
 }
@@ -216,7 +216,7 @@ func getUserFollowers(loggedUserId uint) (*http.Response, error) {
 func getProfileByUsername(username string) (*http.Response, error) {
 	profileHost, profilePort := util.GetProfileHostAndPort()
 	resp, err := util.CrossServiceRequest(http.MethodGet,
-		util.CrossServiceProtocol+"://"+profileHost+":"+profilePort+"/get/"+username,
+		util.GetCrossServiceProtocol()+"://"+profileHost+":"+profilePort+"/get/"+username,
 		nil, map[string]string{})
 	return resp, err
 }
@@ -242,7 +242,7 @@ func getReactionsForPosts(posts []model.Post, profileID uint) ([]dto.ResponsePos
 		"ids": postIDs,
 	})
 	resp, err := util.CrossServiceRequest(http.MethodPost,
-		util.CrossServiceProtocol+"://"+postReactionHost+":"+postReactionPort+"/get-reaction-types/"+util.Uint2String(profileID),
+		util.GetCrossServiceProtocol()+"://"+postReactionHost+":"+postReactionPort+"/get-reaction-types/"+util.Uint2String(profileID),
 		postBody, map[string]string{"Content-Type": "application/json;"})
 
 	if err != nil {
@@ -282,7 +282,7 @@ func getReactionsForPosts(posts []model.Post, profileID uint) ([]dto.ResponsePos
 func getProfilesBlockedRelationships(loggedProfileId uint) ([]uint, error) {
 	connectionHost, connectionPort := util.GetConnectionHostAndPort()
 	resp, err := util.CrossServiceRequest(http.MethodGet,
-		util.CrossServiceProtocol+"://"+connectionHost+":"+connectionPort+"/connection/block/relationships/"+util.Uint2String(loggedProfileId),
+		util.GetCrossServiceProtocol()+"://"+connectionHost+":"+connectionPort+"/connection/block/relationships/"+util.Uint2String(loggedProfileId),
 		nil, map[string]string{})
 
 	if err != nil {
