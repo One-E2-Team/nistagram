@@ -407,8 +407,7 @@ func (handler *Handler) GetPosts(w http.ResponseWriter, r *http.Request) {
 
 		switch result, err := handler.PostService.ReadPost(postID); err {
 		case mongo.ErrNoDocuments:
-			w.WriteHeader(http.StatusNotFound)
-			return
+			continue //escaping deleted posts
 		case nil:
 			posts = append(posts, result)
 		default:
