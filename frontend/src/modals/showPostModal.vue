@@ -172,9 +172,15 @@ export default {
       },
       setTag(item){
         this.comment = this.comment.slice(0, this.cursorStart) +
-                           item + this.comment.slice(this.cursorEnd + 1, this.comment.length);
+              item + this.comment.slice(this.cursorEnd + 1, this.comment.length);
         this.searchedTaggedUsers = [];
       }
   },
+
+  watch:{
+    reaction: function(){
+      this.newReaction = this.reaction
+    }
+  }
 }
 </script>
