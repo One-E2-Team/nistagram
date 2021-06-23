@@ -11,7 +11,7 @@ type Order struct {
 	FullPrice    float32       `json:"fullPrice" gorm:"not null"`
 	UserId       uint          `json:"userId" gorm:"not null"`
 	AgentId      uint          `json:"agentId" gorm:"not null"`
-	Items        []Item        `json:"roles"`
+	Items        []Item        `json:"items"`
 }
 
 type Item struct {

@@ -1,6 +1,8 @@
 package model
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+)
 
 type Statistics struct {
 	gorm.Model
@@ -8,5 +10,4 @@ type Statistics struct {
 	NumOfDislikes     		 uint        `json:"numOfDislikes"`
 	NumOfVisits       		 uint        `json:"numOfVisits"`
 	NumOfComments     		 uint        `json:"numOfComments"`
-	ReactionCountPerHour     []uint      `json:"reactionCountPerHour" gorm:"type:integer[]"`
 }
