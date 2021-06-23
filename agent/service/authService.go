@@ -35,6 +35,21 @@ func (service *AuthService) Register(dto dto.RegisterDTO) error {
 	return nil
 }
 
+func (service *AuthService) LogIn(dto dto.LogInDTO) (*model.User, error) {
+	user, err := service.AuthRepository.GetUserByEmail(dto.Email)
+	if err != nil {
+		return nil, fmt.Errorf("'" + dto.Email + "' " + err.Error())
+	}
+	if !user.IsValidated {
+		return nil, fmt.Errorf(util.GetLoggingStringFromID(user.ID) + " NOT VALIDATED")
+	}
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(dto.Password))
+	if err != nil {
+		return nil, fmt.Errorf(util.GetLoggingStringFromID(user.ID) + " " + err.Error())
+	}
+	return user, nil
+}
+
 func hashAndSalt(pass string) string {
 	bytePass := []byte(pass)
 	hash, err := bcrypt.GenerateFromPassword(bytePass, bcrypt.DefaultCost)

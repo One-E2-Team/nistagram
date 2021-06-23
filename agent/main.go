@@ -110,6 +110,7 @@ func handlerFunc(handler *handler.AuthHandler) {
 	fmt.Println("Agent application started...")
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/register", handler.Register).Methods("POST")
+	router.HandleFunc("/login", handler.LogIn).Methods("POST")
 	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD")
 	_, ok1 := os.LookupEnv("DOCKER_ENV_SET_DEV")
 	var agentHost, agentPort = "localhost", "9000" // dev_db

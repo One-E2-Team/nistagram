@@ -26,3 +26,11 @@ func (repo *AuthRepository) GetRoleByName(name string) (*model.Role, error) {
 	}
 	return role, nil
 }
+
+func (repo *AuthRepository) GetUserByEmail(email string) (*model.User, error) {
+	user := &model.User{}
+	if err := repo.Database.Preload("Roles").Table("users").First(&user, "email = ?", email).Error; err != nil {
+		return nil, err
+	}
+	return user, nil
+}
