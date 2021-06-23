@@ -106,11 +106,24 @@ func initAuthHandler(service *service.AuthService) *handler.AuthHandler {
 	return &handler.AuthHandler{AuthService: service}
 }
 
-func handlerFunc(handler *handler.AuthHandler) {
+func initProductRepo(db *gorm.DB) *repository.ProductRepository {
+	return &repository.ProductRepository{Database: db}
+}
+
+func initProductService(repo *repository.ProductRepository) *service.ProductService {
+	return &service.ProductService{ProductRepository: repo}
+}
+
+func initProductHandler(service *service.ProductService) *handler.ProductHandler {
+	return &handler.ProductHandler{ProductService: service}
+}
+
+func handlerFunc(authHandler *handler.AuthHandler, productHandler *handler.ProductHandler) {
 	fmt.Println("Agent application started...")
 	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/register", handler.Register).Methods("POST")
-	router.HandleFunc("/login", handler.LogIn).Methods("POST")
+	router.HandleFunc("/register", authHandler.Register).Methods("POST")
+	router.HandleFunc("/login", authHandler.LogIn).Methods("POST")
+	router.HandleFunc("/product", productHandler.CreateProduct).Methods("POST")
 	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD")
 	_, ok1 := os.LookupEnv("DOCKER_ENV_SET_DEV")
 	var agentHost, agentPort = "localhost", "9000" // dev_db
@@ -133,5 +146,8 @@ func main() {
 	authRepo := initAuthRepo(db)
 	authService := initAuthService(authRepo)
 	authHandler := initAuthHandler(authService)
-	handlerFunc(authHandler)
+	productRepo := initProductRepo(db)
+	productService := initProductService(productRepo)
+	productHandler := initProductHandler(productService)
+	handlerFunc(authHandler, productHandler)
 }
