@@ -40,6 +40,12 @@ func (repo *ProductRepository) GetProductsValidPrice(productId uint) float32{
 	return result.PricePerItem
 }
 
+func (repo *ProductRepository) GetValidAgentProductByProductId(productId uint) (*model.AgentProduct, error){
+	var result model.AgentProduct
+	err := repo.Database.Table("agent_products").Find(&result, "is_valid = 1 and product_id = ?", productId).Error
+	return &result, err
+}
+
 func (repo *ProductRepository) GetProductById(productId uint) (*model.Product, error){
 	product := &model.Product{}
 	if err := repo.Database.First(&product, "ID = ?", productId).Error; err != nil{
@@ -49,9 +55,26 @@ func (repo *ProductRepository) GetProductById(productId uint) (*model.Product, e
 }
 
 func (repo *ProductRepository) DeleteProduct(productId uint) error{
-	profile, err := repo.GetProductById(productId)
+	product, err := repo.GetProductById(productId)
 	if err != nil{
 		return err
 	}
-	return repo.Database.Delete(profile).Error
+	return repo.Database.Delete(product).Error
+}
+
+func (repo *ProductRepository) InvalidateAgentProduct(productId uint) error{
+	agentProduct, err := repo.GetValidAgentProductByProductId(productId)
+	if err != nil {
+		return err
+	}
+	agentProduct.IsValid = false
+	return repo.Database.Save(agentProduct).Error
+}
+
+func (repo *ProductRepository) UpdateProduct(product *model.Product) error{
+	return repo.Database.Save(product).Error
+}
+
+func (repo *ProductRepository) UpdateAgentProduct(agentProduct *model.AgentProduct) error{
+	return repo.Database.Save(agentProduct).Error
 }

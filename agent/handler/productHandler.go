@@ -64,3 +64,22 @@ func (handler *ProductHandler) DeleteProduct(w http.ResponseWriter, r *http.Requ
 	_, _ = w.Write([]byte("{\"message\":\"ok\"}"))
 	w.Header().Set("Content-Type", "application/json")
 }
+
+func (handler *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request){
+	var updateProductDto dto.UpdateProductDTO
+	err := json.NewDecoder(r.Body).Decode(&updateProductDto)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	err = handler.ProductService.UpdateProduct(updateProductDto)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte("{\"message\":\"ok\"}"))
+	w.Header().Set("Content-Type", "application/json")
+}
