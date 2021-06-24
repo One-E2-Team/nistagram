@@ -195,6 +195,35 @@ services:
             - net_db_relational
         depends_on:
             - db_relational
+
+    campaign:
+        container_name: campaign_ms
+        restart: always
+        environment: 
+            DB_USERNAME: ${DB_CAMPAIGN_USERNAME}
+            DB_PASSWORD: ${DB_CAMPAIGN_PASSWORD}
+            DOCKER_ENV_SET_DEV: ""
+            MAIL_USERNAME: ${MAIL_USERNAME}
+            MAIL_PASSWORD: ${MAIL_PASSWORD}
+            DB_SEC_ENC: ${DB_SEC_ENC}
+            MICROSERVICE_JWT_TOKEN_SECRET: ${MICROSERVICE_JWT_TOKEN_SECRET}
+            PUBLIC_JWT_TOKEN_SECRET: ${PUBLIC_JWT_TOKEN_SECRET}
+        build:
+            context: .
+            args:
+                ARG_TARGET_MS_GO: campaign
+            dockerfile: Build.dockerfile
+        volumes:
+            - ./conf/certs/key/campaign.key.pem:/nistagram/key.pem
+            - ./conf/certs/pem/campaign.cert.pem:/nistagram/cert.pem
+            - ../logs/campaign:/logs/campaign
+        ports:
+            - 7006:8080
+        networks: 
+            - net_apigateway
+            - net_db_relational
+        depends_on: 
+            - db_relational
             
     db_relational:
         container_name: db_mysql

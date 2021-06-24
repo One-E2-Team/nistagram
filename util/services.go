@@ -76,6 +76,15 @@ func GetPostReactionHostAndPort() (string, string) {
 	return postReactionHost, postReactionPort
 }
 
+func GetCampaignHostAndPort() (string, string) {
+	var campaignHost, campaignPort = "localhost", "8088" // dev.db environment
+	if DockerChecker() {
+		campaignHost = "campaign"
+		campaignPort = "8080"
+	}
+	return campaignHost, campaignPort
+}
+
 func GetFrontHostAndPort() (string, string) {
 	var frontHost, frontPort = "localhost", "3000"
 	if DockerChecker() {
