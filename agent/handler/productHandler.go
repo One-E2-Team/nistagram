@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/mux"
 	"net/http"
 	"nistagram/agent/dto"
 	"nistagram/agent/service"
@@ -29,7 +30,7 @@ func (handler *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
-	_, _ = w.Write([]byte("{\"success\":\"ok\"}"))
+	_, _ = w.Write([]byte("{\"message\":\"ok\"}"))
 	w.Header().Set("Content-Type", "application/json")
 }
 
@@ -38,10 +39,28 @@ func (handler *ProductHandler) GetAllProducts(w http.ResponseWriter, r *http.Req
 	js, err := json.Marshal(products)
 	if err != nil {
 		fmt.Println(err)
+		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(js)
+	w.Header().Set("Content-Type", "application/json")
+}
+
+func (handler *ProductHandler) DeleteProduct(w http.ResponseWriter, r *http.Request){
+	vars := mux.Vars(r)
+	productId := util.String2Uint(vars["id"])
+
+	err := handler.ProductService.DeleteProduct(productId)
+	if err != nil{
+		fmt.Println(err)
+		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte("{\"message\":\"ok\"}"))
 	w.Header().Set("Content-Type", "application/json")
 }

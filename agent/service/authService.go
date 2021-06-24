@@ -50,6 +50,14 @@ func (service *AuthService) LogIn(dto dto.LogInDTO) (*model.User, error) {
 	return user, nil
 }
 
+func (service *AuthService) GetPrivileges(id uint) *[]string {
+	privileges, err := service.AuthRepository.GetPrivilegesByUserID(id)
+	if err != nil {
+		return nil
+	}
+	return privileges
+}
+
 func hashAndSalt(pass string) string {
 	bytePass := []byte(pass)
 	hash, err := bcrypt.GenerateFromPassword(bytePass, bcrypt.DefaultCost)

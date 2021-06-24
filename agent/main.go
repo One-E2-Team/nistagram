@@ -10,6 +10,7 @@ import (
 	"nistagram/agent/model"
 	"nistagram/agent/repository"
 	"nistagram/agent/service"
+	"nistagram/agent/util"
 	"os"
 	"time"
 )
@@ -123,8 +124,12 @@ func handlerFunc(authHandler *handler.AuthHandler, productHandler *handler.Produ
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/register", authHandler.Register).Methods("POST")
 	router.HandleFunc("/login", authHandler.LogIn).Methods("POST")
-	router.HandleFunc("/product", productHandler.CreateProduct).Methods("POST")
-	router.HandleFunc("/product", productHandler.GetAllProducts).Methods("GET")
+	router.HandleFunc("/product",
+		util.RBAC(productHandler.CreateProduct, authHandler.AuthService, "CREATE_PRODUCT", false)).Methods("POST")
+	router.HandleFunc("/product",
+		util.RBAC(productHandler.GetAllProducts, authHandler.AuthService, "READ_PRODUCT", true)).Methods("GET")
+	router.HandleFunc("/product/{id}",
+		util.RBAC(productHandler.CreateProduct, authHandler.AuthService, "DELETE_PRODUCT", false)).Methods("DELETE")
 	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD")
 	_, ok1 := os.LookupEnv("DOCKER_ENV_SET_DEV")
 	var agentHost, agentPort = "localhost", "9000" // dev_db

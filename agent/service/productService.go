@@ -43,3 +43,7 @@ func (service *ProductService) GetAllProducts() []dto.ShowProductDTO{
 
 	return ret
 }
+
+func (service *ProductService) DeleteProduct(productId uint) error{
+	return service.DeleteProduct(productId)
+}

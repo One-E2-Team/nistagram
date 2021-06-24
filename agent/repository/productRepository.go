@@ -39,3 +39,19 @@ func (repo *ProductRepository) GetProductsValidPrice(productId uint) float32{
 	repo.Database.Table("agent_products").Find(&result, "is_valid = 1 and product_id = ?", productId)
 	return result.PricePerItem
 }
+
+func (repo *ProductRepository) GetProductById(productId uint) (*model.Product, error){
+	product := &model.Product{}
+	if err := repo.Database.First(&product, "ID = ?", productId).Error; err != nil{
+		return nil, err
+	}
+	return product, nil
+}
+
+func (repo *ProductRepository) DeleteProduct(productId uint) error{
+	profile, err := repo.GetProductById(productId)
+	if err != nil{
+		return err
+	}
+	return repo.Database.Delete(profile).Error
+}
