@@ -27,3 +27,15 @@ func (repo *ProductRepository) CreateAgentProduct(agentProduct *model.AgentProdu
 	fmt.Println("Agent product created")
 	return nil
 }
+
+func (repo *ProductRepository) GetAllProducts() []model.Product{
+	var result []model.Product
+	repo.Database.Find(&result)
+	return result
+}
+
+func (repo *ProductRepository) GetProductsValidPrice(productId uint) float32{
+	var result model.AgentProduct
+	repo.Database.Table("agent_products").Find(&result, "is_valid = 1 and product_id = ?", productId)
+	return result.PricePerItem
+}

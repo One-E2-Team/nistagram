@@ -30,3 +30,16 @@ func (service *ProductService) CreateProduct(dto dto.ProductDTO, loggedUserId ui
 
 	return nil
 }
+
+func (service *ProductService) GetAllProducts() []dto.ShowProductDTO{
+	var ret []dto.ShowProductDTO
+	products := service.ProductRepository.GetAllProducts()
+
+	for _, p := range products{
+		retItem := dto.ShowProductDTO{Name: p.Name, PicturePath: p.PicturePath,
+			PricePerItem: service.ProductRepository.GetProductsValidPrice(p.ID)}
+		ret = append(ret, retItem)
+	}
+
+	return ret
+}

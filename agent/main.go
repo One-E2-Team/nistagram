@@ -124,6 +124,7 @@ func handlerFunc(authHandler *handler.AuthHandler, productHandler *handler.Produ
 	router.HandleFunc("/register", authHandler.Register).Methods("POST")
 	router.HandleFunc("/login", authHandler.LogIn).Methods("POST")
 	router.HandleFunc("/product", productHandler.CreateProduct).Methods("POST")
+	router.HandleFunc("/product", productHandler.GetAllProducts).Methods("GET")
 	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD")
 	_, ok1 := os.LookupEnv("DOCKER_ENV_SET_DEV")
 	var agentHost, agentPort = "localhost", "9000" // dev_db
