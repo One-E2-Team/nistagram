@@ -1,13 +1,14 @@
 package service
 
-import(
+import (
 	"fmt"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
+	"net/http"
 	"nistagram/agent/dto"
 	"nistagram/agent/model"
 	"nistagram/agent/repository"
-	"nistagram/util"
+	"nistagram/agent/util"
 	"time"
 )
 
@@ -28,9 +29,9 @@ func (service *AuthService) Register(dto dto.RegisterDTO) error {
 	if err != nil {
 		return err
 	}
-	gatewayHost, gatewayPort := util.GetGatewayHostAndPort()
-	message := "Visit this link in the next 60 minutes to validate your account: " + util.GetMicroservicesProtocol() +
-		"://" + gatewayHost + ":" + gatewayPort + "/api/auth/validate/" + util.Uint2String(user.ID) + "/" + user.ValidationUid //+ "/" + uid
+	agentHost, agentPort := util.GetAgentHostAndPort()
+	message := "Visit this link in the next 60 minutes to validate your account: " + util.GetAgentProtocol() +
+		"://" + agentHost + ":" + agentPort + "/api/auth/validate/" + util.Uint2String(user.ID) + "/" + user.ValidationUid //+ "/" + uid
 	go util.SendMail(dto.Email, "Account Validation", message)
 	return nil
 }
@@ -41,11 +42,11 @@ func (service *AuthService) LogIn(dto dto.LogInDTO) (*model.User, error) {
 		return nil, fmt.Errorf("'" + dto.Email + "' " + err.Error())
 	}
 	if !user.IsValidated {
-		return nil, fmt.Errorf(util.GetLoggingStringFromID(user.ID) + " NOT VALIDATED")
+		return nil, fmt.Errorf(util.Uint2String(user.ID) + " NOT VALIDATED")
 	}
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(dto.Password))
 	if err != nil {
-		return nil, fmt.Errorf(util.GetLoggingStringFromID(user.ID) + " " + err.Error())
+		return nil, err
 	}
 	return user, nil
 }
@@ -56,6 +57,48 @@ func (service *AuthService) GetPrivileges(id uint) *[]string {
 		return nil
 	}
 	return privileges
+}
+
+func (service *AuthService) RBAC(handler func(http.ResponseWriter, *http.Request),privilege string, returnCollection bool) func(http.ResponseWriter, *http.Request) {
+
+	finalHandler := func(pass bool) func(http.ResponseWriter, *http.Request) {
+		if pass {
+			return handler
+		} else {
+			return func(writer http.ResponseWriter, request *http.Request) {
+				writer.WriteHeader(http.StatusOK)
+				writer.Header().Set("Content-Type", "application/json")
+				if returnCollection {
+					_, _ = writer.Write([]byte("[{\"status\":\"fail\", \"reason\":\"unauthorized\"}]"))
+				} else {
+					_, _ = writer.Write([]byte("{\"status\":\"fail\", \"reason\":\"unauthorized\"}"))
+				}
+			}
+		}
+	}
+
+	return func(writer http.ResponseWriter, request *http.Request) {
+		var handleFunc func(http.ResponseWriter, *http.Request)
+		id := util.GetLoggedUserIDFromToken(request)
+		if id == 0 {
+			handleFunc = finalHandler(false)
+		} else {
+			validPrivileges := service.GetPrivileges(id)
+			valid := false
+			for _, val := range *validPrivileges {
+				if val == privilege {
+					valid = true
+					break
+				}
+			}
+			if valid {
+				handleFunc = finalHandler(true)
+			} else {
+				handleFunc = finalHandler(false)
+			}
+		}
+		handleFunc(writer, request)
+	}
 }
 
 func hashAndSalt(pass string) string {

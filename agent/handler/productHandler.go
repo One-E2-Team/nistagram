@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"nistagram/agent/dto"
 	"nistagram/agent/service"
-	"nistagram/util"
+	"nistagram/agent/util"
 	"os"
 	"strings"
 )
@@ -125,6 +125,26 @@ func (handler *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	err = handler.ProductService.UpdateProduct(updateProductDto)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte("{\"message\":\"ok\"}"))
+	w.Header().Set("Content-Type", "application/json")
+}
+
+func (handler *ProductHandler) CreateOrder(w http.ResponseWriter, r *http.Request){
+	loggedUserId := util.GetLoggedUserIDFromToken(r)
+	var orderDto dto.OrderDTO
+	err := json.NewDecoder(r.Body).Decode(&orderDto)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	err = handler.ProductService.CreateOrder(orderDto, loggedUserId)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)

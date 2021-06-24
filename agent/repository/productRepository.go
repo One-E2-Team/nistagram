@@ -34,7 +34,7 @@ func (repo *ProductRepository) GetAllProducts() []model.Product{
 	return result
 }
 
-func (repo *ProductRepository) GetProductsValidPrice(productId uint) float32{
+func (repo *ProductRepository) GetProductsValidPrice(productId uint) float64{
 	var result model.AgentProduct
 	repo.Database.Table("agent_products").Find(&result, "is_valid = 1 and product_id = ?", productId)
 	return result.PricePerItem
@@ -77,4 +77,13 @@ func (repo *ProductRepository) UpdateProduct(product *model.Product) error{
 
 func (repo *ProductRepository) UpdateAgentProduct(agentProduct *model.AgentProduct) error{
 	return repo.Database.Save(agentProduct).Error
+}
+
+func (repo *ProductRepository) CreateOrder(order *model.Order) error{
+	result := repo.Database.Create(order)
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("Order not created")
+	}
+	fmt.Println("Order created")
+	return nil
 }

@@ -7,7 +7,7 @@ import (
 	"nistagram/agent/dto"
 	"nistagram/agent/model"
 	"nistagram/agent/service"
-	"nistagram/util"
+	"nistagram/agent/util"
 )
 
 type AuthHandler struct {

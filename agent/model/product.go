@@ -17,7 +17,7 @@ type AgentProduct struct {
 	UserID          uint          `json:"userId" gorm:"not null"`
 	ProductID       uint          `json:"productId" gorm:"not null"`
 	Quantity        uint          `json:"quantity" gorm:"not null"`
-	PricePerItem    float32       `json:"pricePerItem" gorm:"not null"`
+	PricePerItem    float64       `json:"pricePerItem" gorm:"not null"`
 	ValidFrom       time.Time     `json:"validFrom" gorm:"not null"`
 	IsValid         bool          `json:"isValid" gorm:"not null"`
 }

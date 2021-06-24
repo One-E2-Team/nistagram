@@ -8,7 +8,7 @@ import (
 type Order struct {
 	gorm.Model
 	Timestamp 	 time.Time	   `json:"timestamp" gorm:"not null"`
-	FullPrice    float32       `json:"fullPrice" gorm:"not null"`
+	FullPrice    float64       `json:"fullPrice" gorm:"not null"`
 	UserId       uint          `json:"userId" gorm:"not null"`
 	AgentId      uint          `json:"agentId" gorm:"not null"`
 	Items        []Item        `json:"items"`

@@ -10,7 +10,6 @@ import (
 	"nistagram/agent/model"
 	"nistagram/agent/repository"
 	"nistagram/agent/service"
-	"nistagram/agent/util"
 	"os"
 	"time"
 )
@@ -125,13 +124,15 @@ func handlerFunc(authHandler *handler.AuthHandler, productHandler *handler.Produ
 	router.HandleFunc("/register", authHandler.Register).Methods("POST")
 	router.HandleFunc("/login", authHandler.LogIn).Methods("POST")
 	router.HandleFunc("/product",
-		util.RBAC(productHandler.CreateProduct, authHandler.AuthService, "CREATE_PRODUCT", false)).Methods("POST")
+		authHandler.AuthService.RBAC(productHandler.CreateProduct, "CREATE_PRODUCT", false)).Methods("POST")
 	router.HandleFunc("/product",
-		util.RBAC(productHandler.GetAllProducts, authHandler.AuthService, "READ_PRODUCT", true)).Methods("GET")
+		authHandler.AuthService.RBAC(productHandler.GetAllProducts, "READ_PRODUCT", true)).Methods("GET")
 	router.HandleFunc("/product/{id}",
-		util.RBAC(productHandler.DeleteProduct, authHandler.AuthService, "DELETE_PRODUCT", false)).Methods("DELETE")
+		authHandler.AuthService.RBAC(productHandler.DeleteProduct, "DELETE_PRODUCT", false)).Methods("DELETE")
 	router.HandleFunc("/product",
-		util.RBAC(productHandler.UpdateProduct, authHandler.AuthService, "EDIT_PRODUCT", false)).Methods("PUT")
+		authHandler.AuthService.RBAC(productHandler.UpdateProduct, "UPDATE_PRODUCT", false)).Methods("PUT")
+	router.HandleFunc("/order",
+		authHandler.AuthService.RBAC(productHandler.CreateOrder, "CREATE_ORDER", false)).Methods("POST")
 	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD")
 	_, ok1 := os.LookupEnv("DOCKER_ENV_SET_DEV")
 	var agentHost, agentPort = "localhost", "9000" // dev_db
