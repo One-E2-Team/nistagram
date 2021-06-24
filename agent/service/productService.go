@@ -11,9 +11,9 @@ type ProductService struct {
 	ProductRepository *repository.ProductRepository
 }
 
-func (service *ProductService) CreateProduct(dto dto.ProductDTO, loggedUserId uint) error{
+func (service *ProductService) CreateProduct(dto dto.ProductDTO, loggedUserId uint, fileName string) error{
 
-	product := model.Product{Name: dto.Name, PicturePath: dto.PicturePath}
+	product := model.Product{Name: dto.Name, PicturePath: fileName}
 
 	err := service.ProductRepository.CreateProduct(&product)
 	if err != nil{

@@ -129,7 +129,7 @@ func handlerFunc(authHandler *handler.AuthHandler, productHandler *handler.Produ
 	router.HandleFunc("/product",
 		util.RBAC(productHandler.GetAllProducts, authHandler.AuthService, "READ_PRODUCT", true)).Methods("GET")
 	router.HandleFunc("/product/{id}",
-		util.RBAC(productHandler.CreateProduct, authHandler.AuthService, "DELETE_PRODUCT", false)).Methods("DELETE")
+		util.RBAC(productHandler.DeleteProduct, authHandler.AuthService, "DELETE_PRODUCT", false)).Methods("DELETE")
 	router.HandleFunc("/product",
 		util.RBAC(productHandler.UpdateProduct, authHandler.AuthService, "EDIT_PRODUCT", false)).Methods("PUT")
 	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD")

@@ -3,11 +3,16 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"io"
+	"mime/multipart"
 	"net/http"
 	"nistagram/agent/dto"
 	"nistagram/agent/service"
 	"nistagram/util"
+	"os"
+	"strings"
 )
 
 type ProductHandler struct {
@@ -17,21 +22,67 @@ type ProductHandler struct {
 func (handler *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request){
 	loggedUserID := util.GetLoggedUserIDFromToken(r)
 	var productDto dto.ProductDTO
-	err := json.NewDecoder(r.Body).Decode(&productDto)
-	if err != nil {
+
+	if err := r.ParseMultipartForm(0); err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	err = handler.ProductService.CreateProduct(productDto, loggedUserID)
+
+	data := r.MultipartForm.Value["data"]
+
+	if err := json.Unmarshal([]byte(data[0]), &productDto); err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	picture, picHeader, err := r.FormFile("file")
+	if err != nil{
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	uid := uuid.NewString()
+	fileSplitted := strings.Split(picHeader.Filename, ".")
+	fileName := uid + "." + fileSplitted[1]
+
+	err = handler.ProductService.CreateProduct(productDto, loggedUserID, fileName)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
+	err = handler.savePicture(fileName, picture)
+	if err != nil{
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusCreated)
 	_, _ = w.Write([]byte("{\"message\":\"ok\"}"))
 	w.Header().Set("Content-Type", "application/json")
+}
+
+func (handler *ProductHandler) savePicture(fileName string, picture multipart.File) error {
+	f, err := os.OpenFile("../../nistagramstaticdata/data/"+fileName, os.O_WRONLY|os.O_CREATE, 0666)
+	defer func(f *os.File) {
+		_ = f.Close()
+	}(f)
+	defer func(picture multipart.File) {
+		_ = picture.Close()
+	}(picture)
+	if err != nil {
+		return err
+	}
+	_, err = io.Copy(f, picture)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (handler *ProductHandler) GetAllProducts(w http.ResponseWriter, r *http.Request){
