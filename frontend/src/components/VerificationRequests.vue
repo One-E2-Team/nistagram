@@ -19,11 +19,11 @@
             </v-card-text>
             <v-row>
                 <v-col>
-                    <v-btn @click="accept(r.ID)">Accept</v-btn>
+                    <v-btn @click="accept(r.ID)" color="success">Accept</v-btn>
                 </v-col>
                 <v-col></v-col>
                 <v-col>
-                    <v-btn @click="reject(r.ID)">Reject</v-btn>
+                    <v-btn @click="reject(r.ID)" color="error">Reject</v-btn>
                 </v-col>
             </v-row>
             </v-card>

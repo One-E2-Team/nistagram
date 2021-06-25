@@ -355,16 +355,24 @@ func (service *ProfileService) GetByInterests(interests []string) ([]model.Profi
 }
 
 func (service *ProfileService) ProcessAgentRequest(requestDTO dto.ProcessAgentRequest) error {
-	request, err := service.ProfileRepository.GetAgentRequestByProfileID(util.String2Uint(requestDTO.ProfileID))
+	profileID := util.String2Uint(requestDTO.ProfileID)
+	request, err := service.ProfileRepository.GetAgentRequestByProfileID(profileID)
 	if err != nil {
 		return err
 	}
+	profile, err := service.ProfileRepository.GetProfileByID(profileID)
+	if err != nil {
+		return err
+	}
+	subject, message := "Agent Request Rejected", "Your agent request has been declined!"
 	if requestDTO.Accept {
 		err = makeAgent(request.ProfileId)
 		if err != nil {
 			return err
 		}
+		subject, message = "Agent Request Accepted", "Your agent request has been accepted!"
 	}
+	go util.SendMail(profile.Email, subject, message)
 	return service.ProfileRepository.DeleteAgentRequest(request)
 }
 
