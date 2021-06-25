@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -140,9 +141,10 @@ func handlerFunc(authHandler *handler.AuthHandler, productHandler *handler.Produ
 	if ok || ok1 {
 		agentHost = "agent"
 		agentPort = "8080"
-		err = http.ListenAndServeTLS(agentHost+":"+agentPort, "../cert.pem", "../key.pem", router)
+		err = http.ListenAndServeTLS(agentHost+":"+agentPort, "../cert.pem", "../key.pem",
+			handlers.CORS(handlers.AllowedOrigins([]string{"*"}))(router))
 	} else {
-		err = http.ListenAndServe(":"+agentPort, router)
+		err = http.ListenAndServe(":"+agentPort, handlers.CORS(handlers.AllowedOrigins([]string{"*"}))(router))
 	}
 	if err != nil{
 		fmt.Println(err)

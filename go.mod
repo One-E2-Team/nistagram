@@ -7,9 +7,9 @@ require (
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/go-redis/redis/v8 v8.10.0
 	github.com/google/uuid v1.2.0
+	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/leodido/go-urn v1.2.1 // indirect
-	github.com/lib/pq v1.10.2
 	github.com/neo4j/neo4j-go-driver/v4 v4.3.0
 	github.com/pquerna/otp v1.3.0
 	go.mongodb.org/mongo-driver v1.5.3

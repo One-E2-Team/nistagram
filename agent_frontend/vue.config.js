@@ -1,8 +1,8 @@
 module.exports = {
   devServer: {
-    port: 3000
+    port: 3001
   },
-  publicPath: '/web',
+  publicPath: '/agent-web',
   transpileDependencies: [
     'vuetify'
   ]
