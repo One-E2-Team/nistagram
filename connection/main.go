@@ -142,6 +142,10 @@ func handleFunc(handler *handler.Handler) {
 
 	router.HandleFunc("/connection/messaging/request",
 		util.RBAC(handler.GetAllMessageRequests, "READ_CONNECTION_REQUESTS", true)).Methods("GET") //frontend func
+
+	router.HandleFunc("/connection/recommendation",
+		util.RBAC(handler.RecommendProfiles, "READ_CONNECTION_STATUS", false)).Methods("GET") // frontend func
+
 	fmt.Println("Starting server..")
 	host, port := util.GetConnectionHostAndPort()
 	var err error
