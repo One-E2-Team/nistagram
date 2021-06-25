@@ -49,6 +49,9 @@
                     mdi-checkbox-marked-circle
                   </v-icon>
                 </v-btn>
+                <v-btn small @click="agentRequest()" class="ma-2" color="primary" dark v-if="isMyProfile && !isAgent">
+                  Agent request
+                </v-btn>
               </v-list-item-title>
               <v-list-item-subtitle class="text-h6 text-left">Name : {{profile.personalData.name}}</v-list-item-subtitle>
               <v-list-item-subtitle class="text-h6 text-left">Surname : {{profile.personalData.surname}}</v-list-item-subtitle>
@@ -67,46 +70,58 @@
 import axios from 'axios'
 import * as comm from '../configuration/communication.js'
 export default {
-name: 'PersonalData',
-props: ['username'],
-data() {
-  return {
-    profile: {
-      personalData: {}
-    },
-    isMyProfile: true
-}},
-methods: {
-  getPersonalData(){
-    axios({
-            method: "get",
-            url: comm.protocol + '://' + comm.server + '/api/profile/get/' + this.username,
-        }).then(response => {
-            if(response.status==200){
-                this.profile = response.data;
-                this.isMyProfile = comm.getLoggedUserID() == this.profile.ID;
-                this.$emit('loaded-user', this.profile)
-            }else{
-              this.$router.push({name: 'NotFound'})
-            }
-        }).catch(reason => {
-            console.log(reason);
-            this.$router.push({name: 'NotFound'})
-        });
+  name: 'PersonalData',
+  props: ['username'],
+  data() {
+    return {
+      profile: {
+        personalData: {}
       },
-    verifyProfile(){
-      this.$router.push({name : 'CreateVerificationRequest'});
+      isMyProfile: true,
+      isAgent: comm.hasRole('AGENT'),
     }
-},
-created(){
-    this.getPersonalData();
-},
-watch:{
-        username: function() { 
-          this.getPersonalData()
+  },
+  methods: {
+    getPersonalData(){
+      axios({
+        method: "get",
+        url: comm.protocol + '://' + comm.server + '/api/profile/get/' + this.username,
+      }).then(response => {
+        if(response.status==200) {
+          this.profile = response.data;
+          this.isMyProfile = comm.getLoggedUserID() == this.profile.ID;
+          this.$emit('loaded-user', this.profile);
+        } else {
+          this.$router.push({name: 'NotFound'})
         }
+      }).catch(reason => {
+          console.log(reason);
+          this.$router.push({name: 'NotFound'})
+      });
+    },
+    verifyProfile() {
+      this.$router.push({name : 'CreateVerificationRequest'});
+    },
+    agentRequest() {
+      axios({
+        method: "post",
+        url: comm.protocol + '://' + comm.server + '/api/profile/send-agent-request',
+        headers: comm.getHeader(),
+      }).then(response => {
+        if (response.status == 200) {
+          alert('Successfully created agent request!');
+        }
+    })
+    },
+  },
+  created(){
+      this.getPersonalData();
+  },
+  watch: {
+    username: function() { 
+      this.getPersonalData();
     }
-
+  }
 }
 </script>
 
