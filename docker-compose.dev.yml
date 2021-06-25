@@ -190,7 +190,7 @@ services:
             - ./conf/certs/pem/agent.cert.pem:/nistagram/cert.pem
             - ../nistagramstaticdata:/nistagramstaticdata
         ports:
-            - 7005:8080
+            - 82:8080
         networks:
             - net_apigateway
             - net_db_relational
