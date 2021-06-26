@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"net/http"
+	"nistagram/connection/dto"
 	"nistagram/connection/model"
 	"nistagram/util"
 	"strconv"
@@ -49,4 +50,27 @@ func (handler *Handler) ReActivateProfile(w http.ResponseWriter, r *http.Request
 	} else {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
+}
+
+
+func (handler *Handler) RecommendProfiles(writer http.ResponseWriter, request *http.Request) {
+	profileId := util.GetLoggedUserIDFromToken(request)
+	if profileId == 0 {
+		writer.Write([]byte("[{\"status\":\"error\"}]"))
+		writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	var users *[]dto.ProfileRecommendationDTO
+	users, ok := handler.ConnectionService.GetRecommendations(profileId)
+
+	if !ok {
+		writer.Write([]byte("[{\"status\":\"error\"}]"))
+		writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	writer.WriteHeader(http.StatusOK)
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(users)
 }
