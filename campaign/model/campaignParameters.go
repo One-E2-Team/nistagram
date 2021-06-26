@@ -12,4 +12,5 @@ type CampaignParameters struct {
 	CampaignID       uint              `json:"campaignId" gorm:"not null"`
 	Interests        []Interest        `json:"interests" gorm:"many2many:parameters_interests;"`
 	CampaignRequests []CampaignRequest `json:"campaignRequests"`
+	Timestamps  	 []Timestamp	   `json:"timestamps" gorm:"not null"`
 }
