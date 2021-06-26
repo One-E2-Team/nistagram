@@ -80,7 +80,8 @@
             }).then(response => {
               if(response.status==200){
                 comm.setJWTToken(response.data);
-                this.$router.push({name: "HomePage"})
+                this.$router.push({name: "HomePage"});
+                this.$root.$emit('loggedUser')
               }
             }).catch(() => {
               this.alert = true

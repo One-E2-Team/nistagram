@@ -1,4 +1,5 @@
 export let server = 'localhost:82'
+export let nistagram_server = 'localhost:81'
 
 export let protocol = 'https'
 
@@ -35,10 +36,12 @@ export function getHeader() {
 }
 
 export function getLoggedUserID() {
-  if (getJWTToken()) {
-    return getJWTToken().profileId;
-  }
-  return 0;
+  let jwt = getJWTToken();
+  if (jwt == undefined || jwt == null || jwt == {})
+    return 0;
+  
+    return getJWTToken().userId;
+  
 }
 
 export function isUserLogged() {
