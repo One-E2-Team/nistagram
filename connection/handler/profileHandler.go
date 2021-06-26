@@ -56,16 +56,16 @@ func (handler *Handler) ReActivateProfile(w http.ResponseWriter, r *http.Request
 func (handler *Handler) RecommendProfiles(writer http.ResponseWriter, request *http.Request) {
 	profileId := util.GetLoggedUserIDFromToken(request)
 	if profileId == 0 {
-		writer.Write([]byte("{\"status\":\"error\"}"))
+		writer.Write([]byte("[{\"status\":\"error\"}]"))
 		writer.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	var users *[]dto.UserDTO
+	var users *[]dto.ProfileRecommendationDTO
 	users, ok := handler.ConnectionService.GetRecommendations(profileId)
 
 	if !ok {
-		writer.Write([]byte("{\"status\":\"error\"}"))
+		writer.Write([]byte("[{\"status\":\"error\"}]"))
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
