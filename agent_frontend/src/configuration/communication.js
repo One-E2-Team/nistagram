@@ -1,4 +1,5 @@
 export let server = 'localhost:82'
+export let nistagram_server = 'localhost:81'
 
 export let protocol = 'https'
 
