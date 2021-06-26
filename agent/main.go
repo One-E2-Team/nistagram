@@ -142,11 +142,11 @@ func handlerFunc(authHandler *handler.AuthHandler, productHandler *handler.Produ
 		agentPort = "8080"
 		err = http.ListenAndServeTLS(agentHost+":"+agentPort, "../cert.pem", "../key.pem",
 			handlers.CORS(handlers.AllowedOrigins([]string{"*"}),
-				handlers.AllowedHeaders([]string{"Authorization"}),
+				handlers.AllowedHeaders([]string{"Authorization", "Content-Type"}),
 				handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"}))(router))
 	} else {
 		err = http.ListenAndServe(":"+agentPort, handlers.CORS(handlers.AllowedOrigins([]string{"*"}),
-			handlers.AllowedHeaders([]string{"Authorization"}),
+			handlers.AllowedHeaders([]string{"Authorization", "Content-Type"}),
 			handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"}))(router))
 	}
 	if err != nil{

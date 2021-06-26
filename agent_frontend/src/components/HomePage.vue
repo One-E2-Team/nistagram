@@ -20,7 +20,7 @@
                             Amount
                           </th>
                           <th class="text-center">
-                            Price
+                            Price (RSD)
                           </th>
                         </tr>
                       </thead>
@@ -121,7 +121,6 @@ import { bus } from '../main'
        axios({
                 method: "get",
                 url: comm.protocol +'://' + comm.server + '/product',
-                headers: comm.getHeader(),
             }).then(response => {
               if(response.status==200){
                 this.products = response.data;
@@ -144,6 +143,10 @@ import { bus } from '../main'
        this.cart.push(p);
      },
      makeOrder(){
+       if(!comm.isUserLogged()){
+         alert("You need to be logged in to make order!");
+         return;
+       }
        let data = {};
        let items = [];
        for (let p of this.cart){

@@ -36,10 +36,12 @@ export function getHeader() {
 }
 
 export function getLoggedUserID() {
-  if (getJWTToken()) {
-    return getJWTToken().profileId;
-  }
-  return 0;
+  let jwt = getJWTToken();
+  if (jwt == undefined || jwt == null || jwt == {})
+    return 0;
+  
+    return getJWTToken().userId;
+  
 }
 
 export function isUserLogged() {
