@@ -126,8 +126,7 @@ func handlerFunc(authHandler *handler.AuthHandler, productHandler *handler.Produ
 	router.HandleFunc("/login", authHandler.LogIn).Methods("POST")
 	router.HandleFunc("/product",
 		authHandler.AuthService.RBAC(productHandler.CreateProduct, "CREATE_PRODUCT", false)).Methods("POST")
-	router.HandleFunc("/product",
-		authHandler.AuthService.RBAC(productHandler.GetAllProducts, "READ_PRODUCT", true)).Methods("GET")
+	router.HandleFunc("/product", productHandler.GetAllProducts).Methods("GET")
 	router.HandleFunc("/product/{id}",
 		authHandler.AuthService.RBAC(productHandler.DeleteProduct, "DELETE_PRODUCT", false)).Methods("DELETE")
 	router.HandleFunc("/product",
@@ -142,9 +141,13 @@ func handlerFunc(authHandler *handler.AuthHandler, productHandler *handler.Produ
 		agentHost = "agent"
 		agentPort = "8080"
 		err = http.ListenAndServeTLS(agentHost+":"+agentPort, "../cert.pem", "../key.pem",
-			handlers.CORS(handlers.AllowedOrigins([]string{"*"}))(router))
+			handlers.CORS(handlers.AllowedOrigins([]string{"*"}),
+				handlers.AllowedHeaders([]string{"Authorization"}),
+				handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"}))(router))
 	} else {
-		err = http.ListenAndServe(":"+agentPort, handlers.CORS(handlers.AllowedOrigins([]string{"*"}))(router))
+		err = http.ListenAndServe(":"+agentPort, handlers.CORS(handlers.AllowedOrigins([]string{"*"}),
+			handlers.AllowedHeaders([]string{"Authorization"}),
+			handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"}))(router))
 	}
 	if err != nil{
 		fmt.Println(err)
