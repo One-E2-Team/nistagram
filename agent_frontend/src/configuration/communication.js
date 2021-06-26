@@ -1,4 +1,4 @@
-export let server = 'localhost:7005'
+export let server = 'localhost:82'
 
 export let protocol = 'https'
 
