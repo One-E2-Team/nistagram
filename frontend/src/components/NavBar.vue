@@ -41,6 +41,9 @@
               <v-col>
                 <follow-requests v-if="isUserLogged"/>
               </v-col>
+              <v-col>
+                <connection-recommendation-modal v-if="isUserLogged"/>
+              </v-col>
             </v-row>
           </v-col>
           <v-col cols="12" sm="1" class="float-right">
@@ -56,11 +59,13 @@ import * as comm from '../configuration/communication.js'
 import Settings from '../components/Settings.vue'
 import FollowRequests from '../components/FollowRequests.vue'
 import MessageRequestsModal from '../modals/MessageRequestsModal.vue'
+import ConnectionRecommendationModal from '../modals/ConnectionRecommendationModal.vue'
 export default {
     name: "NavBar",
     components: {
       FollowRequests,
       MessageRequestsModal,
+      ConnectionRecommendationModal,
       Settings
     },
     data(){
