@@ -1,11 +1,7 @@
 package service
 
 import (
-	"encoding/json"
-	"fmt"
 	"gorm.io/gorm"
-	"io"
-	"net/http"
 	"nistagram/campaign/dto"
 	"nistagram/campaign/model"
 	"nistagram/campaign/repository"
@@ -18,16 +14,13 @@ type CampaignService struct {
 }
 
 func (service *CampaignService) CreateCampaign (userId uint, campaignRequest dto.CampaignDTO) (model.Campaign,error){
-	//TODO: dobavi interese
-	//TODO: dobavi usere
-	//TODO: tip kampanje
 	campaignParams := model.CampaignParameters{
 		Model:            gorm.Model{},
 		Start:            campaignRequest.Start,
 		End:              campaignRequest.End,
 		CampaignID:       0,
 		Interests:        service.getInterestsFromRequest(campaignRequest.Interests),
-		CampaignRequests: getCampaignRequestsFromUsernames(campaignRequest.InfluencerUsernames),
+		CampaignRequests: getCampaignRequestsForProfileId(campaignRequest.InfluencerProfileIds),
 		Timestamps:       getTimestampsFromRequest(campaignRequest.Timestamps),
 	}
 
@@ -54,18 +47,12 @@ func getTimestampsFromRequest(timestamps []time.Time) []model.Timestamp{
 	return ret
 }
 
-func getCampaignRequestsFromUsernames(usernames []string) []model.CampaignRequest{
-	ids, err := getProfileIdsByUsernames(usernames)
-
-	if err != nil {
-		fmt.Println(err)
-		return make([]model.CampaignRequest,0)
-	}
+func getCampaignRequestsForProfileId(profileIds []string) []model.CampaignRequest{
 	ret := make([]model.CampaignRequest,0)
-	for _ , value := range ids{
+	for _ , value := range profileIds{
 		ret = append(ret,model.CampaignRequest{
 			Model:                gorm.Model{},
-			InfluencerID:         value,
+			InfluencerID:         util.String2Uint(value),
 			RequestStatus:        model.SENT,
 			CampaignParametersID: 0,
 		})
@@ -77,44 +64,17 @@ func (service *CampaignService) getInterestsFromRequest(interests []string) []mo
 	return service.CampaignRepository.GetInterests(interests)
 }
 
-func getProfileIdsByUsernames(usernames []string) ([]uint, error) {
-	profileHost, profilePort := util.GetProfileHostAndPort()
-
-	type data struct {
-		Usernames []string `json:"usernames"`
+func (service *CampaignService) UpdateCampaignParameters(id uint, params dto.CampaignParametersDTO) error {
+	newParams := model.CampaignParameters{
+		Model:            gorm.Model{},
+		Start:            time.Time{},
+		End:              params.End,
+		CampaignID:       id,
+		Interests:        service.getInterestsFromRequest(params.Interests),
+		CampaignRequests: getCampaignRequestsForProfileId(params.InfluencerProfileIds),
+		Timestamps:       getTimestampsFromRequest(params.Timestamps),
 	}
-
-	bodyData := data{Usernames: usernames}
-	jsonBody, err := json.Marshal(bodyData)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := util.CrossServiceRequest(http.MethodPost,
-		util.GetCrossServiceProtocol()+"://"+profileHost+":"+profilePort+"/get-by-usernames",
-		jsonBody,  map[string]string{"Content-Type": "application/json;"})
-
-	if err != nil {
-		return nil, err
-	}
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	defer func(Body io.ReadCloser) {
-		_ = Body.Close()
-	}(resp.Body)
-	var ids []string
-	if err = json.Unmarshal(body, &ids); err != nil {
-		return nil, err
-	}
-	var ret []uint
-	for _,value := range ids {
-		ret = append(ret,util.String2Uint(value))
-	}
-
-	return ret, err
+	return service.CampaignRepository.UpdateCampaignParameters(newParams)
 }
 
 func getCampaignTypeFromRequest(start time.Time,end time.Time, timestampsLength int) model.CampaignType{

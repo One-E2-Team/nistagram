@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"gorm.io/gorm"
 	"nistagram/campaign/model"
+	"time"
 )
 
 type CampaignRepository struct {
@@ -20,24 +21,35 @@ func (repo *CampaignRepository) CreateCampaign(campaign model.Campaign) (model.C
 	return campaign, nil
 }
 
-func (repo *CampaignRepository) UpdateCampaignParameters(campaignParameters model.CampaignParameters) error {
-	oldCampParam := &model.CampaignParameters{}
-	tx := repo.Database.Table("campaignParameters").Begin()
-	if result := tx.Where("campaignId = ? AND start < ?",campaignParameters.CampaignID, campaignParameters.Start).Last(&oldCampParam).Order("start desc"); result.Error != nil {
+func (repo *CampaignRepository) UpdateCampaignParameters(campaignParameters model.CampaignParameters)  error {
+
+	var oldValue model.CampaignParameters
+	tomorrow := time.Now().Add(24 * time.Hour)
+	tx := repo.Database.Begin()
+	result := tx.Table("campaign_parameters").Exec("UPDATE campaign_parameters SET end = ? WHERE id IN" +
+		"(SELECT searched.id FROM (SELECT * FROM campaign_parameters cp WHERE cp.campaign_id = ? AND cp.start < ? AND cp.deleted_at IS NULL " +
+		"ORDER BY cp.start DESC LIMIT 1) searched)",tomorrow, campaignParameters.CampaignID, tomorrow).Scan(&oldValue)
+	if result.Error != nil {
 		return result.Error
 	}
 
-	oldCampParam.End = campaignParameters.Start
+	newCampParams := model.CampaignParameters{
+		Model:            gorm.Model{},
+		Start:            tomorrow,
+		End:              campaignParameters.End,
+		CampaignID:       campaignParameters.CampaignID,
+		Interests:        campaignParameters.Interests,
+		CampaignRequests: campaignParameters.CampaignRequests,
+		Timestamps:       campaignParameters.Timestamps,
+	}
 
-	if err := tx.Save(oldCampParam).Error; err != nil{
+
+	if err := tx.Table("campaign_parameters").Create(&newCampParams).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
 
-	if err := tx.Create(campaignParameters).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
+	tx.Commit()
 	return nil
 }
 
