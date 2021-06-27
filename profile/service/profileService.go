@@ -3,7 +3,6 @@ package service
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"nistagram/profile/dto"
 	"nistagram/profile/model"
@@ -36,13 +35,10 @@ func (service *ProfileService) Register(dto dto.RegistrationDto) error {
 		"username":  profile.Username,
 	})
 	//responseBody := bytes.NewBuffer(postBody)
-	go func() {
-		err := registerInAuth(postBody)
-		if err != nil {
-			fmt.Println("auth bug")
-			fmt.Println(err)
-		}
-	}()
+	err = registerInAuth(postBody)
+	if err != nil{
+		return err
+	}
 	go func() {
 		err := registerInConnection(profile.ID, postBody)
 		if err != nil {
@@ -51,6 +47,23 @@ func (service *ProfileService) Register(dto dto.RegistrationDto) error {
 		}
 	}()
 	return nil
+}
+
+func (service *ProfileService) RegisterAgent(dto dto.RegistrationDto) error {
+	err := service.Register(dto)
+	if err != nil{
+		return err
+	}
+
+	profile, err := service.GetProfileByUsername(dto.Username)
+	if err != nil{
+		return err
+	}
+
+	fmt.Println("Profile id: ", profile.ID)
+	err = makeAgent(profile.ID)
+
+	return err
 }
 
 func registerInAuth(postBody []byte) error {
@@ -85,32 +98,17 @@ func (service *ProfileService) SearchForTag(loggedUserId uint, username string) 
 	var ret []string
 	usernames := service.ProfileRepository.FindUsernameContains(username)
 
-	resp, err := getUserFollowers(loggedUserId)
-
+	followingProfiles, err := getFollowingProfiles(loggedUserId)
 	if err != nil {
-		return nil, err
+		return ret, err
 	}
-
-	var followingProfiles []uint
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	defer resp.Body.Close()
-
-	if err = json.Unmarshal(body, &followingProfiles); err != nil {
-		return nil, err
-	}
-
-	fmt.Println(followingProfiles)
 
 	for i := 0; i < len(usernames); i++ {
 		profile, err := service.GetProfileByUsername(usernames[i])
 		if err != nil {
 			fmt.Println("Can't get profile by username!")
 		}
-		if util.Contains(followingProfiles, profile.ID) && profile.ProfileSettings.CanBeTagged {
+		if util.IsFollowed(followingProfiles, profile.ID) && profile.ProfileSettings.CanBeTagged {
 			ret = append(ret, profile.Username)
 		}
 	}
@@ -118,12 +116,24 @@ func (service *ProfileService) SearchForTag(loggedUserId uint, username string) 
 	return ret, nil
 }
 
-func getUserFollowers(loggedUserId uint) (*http.Response, error) {
+func getFollowingProfiles(loggedUserId uint) ([]util.FollowingProfileDTO, error) {
 	connHost, connPort := util.GetConnectionHostAndPort()
 	resp, err := util.CrossServiceRequest(http.MethodGet,
 		util.GetCrossServiceProtocol()+"://"+connHost+":"+connPort+"/connection/following/show/"+util.Uint2String(loggedUserId),
 		nil, map[string]string{})
-	return resp, err
+
+	if err != nil {
+		return nil, err
+	}
+
+	var followingProfiles []util.FollowingProfileDTO
+
+	err = json.NewDecoder(resp.Body).Decode(&followingProfiles)
+	if err != nil{
+		return nil, err
+	}
+
+	return followingProfiles, err
 }
 
 func (service *ProfileService) GetProfileByUsername(username string) (*model.Profile, error) {

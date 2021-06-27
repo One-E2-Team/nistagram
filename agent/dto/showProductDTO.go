@@ -5,4 +5,5 @@ type ShowProductDTO struct {
 	Name            string        `json:"name"`
 	PicturePath     string        `json:"picturePath"`
 	PricePerItem    float64       `json:"pricePerItem"`
+	Quantity        uint          `json:"quantity"`
 }

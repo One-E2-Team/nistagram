@@ -98,10 +98,8 @@ import * as validator from '../plugins/validator.js'
             data: JSON.stringify(data),
           }).then((response) => {
             if (response.status == 200) {
-              if(response.data.message == 'ok'){
-                  alert('Check your email!');
-                  this.alert = false;
-              }
+                alert('Check your email!');
+                this.alert = false;
             if(response.data.message=="Invalid data."){
                 this.alert = true;
                   if(response.data.errors.includes("Password")){

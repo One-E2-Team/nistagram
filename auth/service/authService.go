@@ -158,6 +158,17 @@ func (service *AuthService) ValidateUser(id string, uuid string) error {
 	return err
 }
 
+func (service *AuthService) GetAgentAPIToken(loggedUserID uint) (string, error) {
+	user, err := service.AuthRepository.GetUserByProfileID(loggedUserID)
+	if err != nil {
+		return "", err
+	}
+	apiToken := uuid.NewString()
+	user.APIToken = hashAndSalt(apiToken)
+	service.AuthRepository.UpdateUser(*user)
+	return apiToken, nil
+}
+
 func (service *AuthService) GetPrivileges(id uint) *[]string {
 	user, err := service.AuthRepository.GetUserByProfileID(id)
 	if err != nil {

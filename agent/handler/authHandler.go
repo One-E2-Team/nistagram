@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/mux"
 	"net/http"
 	"nistagram/agent/dto"
 	"nistagram/agent/model"
@@ -70,4 +71,24 @@ func (handler *AuthHandler) LogIn(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(respJson)
 	w.Header().Set("Content-Type", "application/json")
+}
+
+func (handler *AuthHandler) ValidateUser(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	err := handler.AuthService.ValidateUser(vars["id"], vars["uuid"])
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	frontHost, frontPort := util.GetFrontHostAndPort()
+	_, err = fmt.Fprintf(w, "<html><head><script>window.location.href = \""+util.GetFrontProtocol()+"://"+
+		frontHost+":"+frontPort+"/agent-web#/log-in\";</script></head><body></body></html>")
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 }

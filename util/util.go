@@ -50,3 +50,26 @@ func Contains(array []uint, el uint) bool {
 func GetStringIDFromMongoID(mongoID primitive.ObjectID) string {
 	return strings.Split(mongoID.String(), "\"")[1]
 }
+
+func IsFollowed(array []FollowingProfileDTO, el uint) bool {
+	for _, a := range array {
+		if a.ProfileID == el {
+			return true
+		}
+	}
+	return false
+}
+
+func IsCloseFriend(array []FollowingProfileDTO, el uint) bool {
+	for _, a := range array {
+		if a.ProfileID == el && a.CloseFriend{
+			return true
+		}
+	}
+	return false
+}
+
+type FollowingProfileDTO struct {
+	ProfileID        uint     `json:"profileID"`
+	CloseFriend 	 bool     `json:"closeFriend"`
+}

@@ -44,3 +44,18 @@ func (repo *AuthRepository) GetPrivilegesByUserID(id uint) (*[]string, error) {
 	}
 	return &privileges, nil
 }
+
+func (repo *AuthRepository) GetUserByProfileID(id uint) (*model.User, error) {
+	user := &model.User{}
+	if err := repo.Database.Table("users").First(&user, "id = ?", id).Error; err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+func (repo *AuthRepository) UpdateUser(user model.User) error {
+	if err := repo.Database.Save(user).Error; err != nil {
+		return err
+	}
+	return nil
+}

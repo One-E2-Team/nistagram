@@ -2,15 +2,13 @@ package util
 
 import (
 	"fmt"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/smtp"
 	"os"
 	"strconv"
-	"strings"
 )
 
 func GetAgentHostAndPort() (string, string) {
-	var agentHost, agentPort = "localhost", "7005"
+	var agentHost, agentPort = "localhost", "82"
 	return agentHost, agentPort
 }
 
@@ -65,6 +63,17 @@ func Contains(array []uint, el uint) bool {
 	return false
 }
 
-func GetStringIDFromMongoID(mongoID primitive.ObjectID) string {
-	return strings.Split(mongoID.String(), "\"")[1]
+func GetFrontProtocol() string {
+	if DockerChecker(){
+		return "https"
+	}
+	return "http"
+}
+
+func GetFrontHostAndPort() (string, string) {
+	var frontHost, frontPort = "localhost", "3001"
+	if DockerChecker() {
+		frontPort = "82"
+	}
+	return frontHost, frontPort
 }

@@ -53,6 +53,23 @@
             <v-row>
               <v-col v-for="p in products" :key="p.id" cols="12" sm="4">
                 <v-card class="mx-auto my-12" width="330" >
+                    <template v-if="hasRole('AGENT')">
+                    <v-menu offset-y>
+                      <template v-slot:activator="{ on, attrs }">
+                        <v-btn icon v-bind="attrs" v-on="on">
+                          <v-icon>mdi-dots-vertical</v-icon>
+                        </v-btn>
+                      </template>
+                      <v-list>
+                        <v-list-item>
+                          <v-list-item-title @click="sendItem(p)"><router-link :to="{ name: 'EditProduct'}">Edit</router-link></v-list-item-title>
+                        </v-list-item>
+                        <v-list-item>
+                          <v-list-item-title @click="deleteProduct(p.id)"><router-link  :to="{ name: 'HomePage'}">Delete</router-link></v-list-item-title>
+                        </v-list-item>
+                      </v-list>
+                  </v-menu>
+                  </template>   
                   <template slot="progress">
                     <v-progress-linear color="deep-purple" height="10" indeterminate ></v-progress-linear>
                   </template>
@@ -118,6 +135,30 @@ import { bus } from '../main'
     })
     },
     mounted(){
+       this.getProducts();
+    },
+    methods: {
+    sendItem(item){
+       bus.$emit('product-data', item);
+    },
+     hasRole(role){
+      return comm.hasRole(role);
+    },
+     deleteProduct(id){
+       axios({
+                method: "delete",
+                url: comm.protocol +'://' + comm.server + '/product/' + id,
+                headers: comm.getHeader()
+            }).then(response => {
+              if(response.status==200){
+                console.log("ok");
+              }
+            }).catch(() => {
+              console.log("error")
+            });
+      this.getProducts();
+    },
+     getProducts(){
        axios({
                 method: "get",
                 url: comm.protocol +'://' + comm.server + '/product',
@@ -129,8 +170,7 @@ import { bus } from '../main'
             }).catch((response) => {
               console.log(response.data)
             });
-    },
-    methods: {
+     }, 
      addToCart(p){
        p.amount = 1;
        if(this.productAmount[p.id] != null)

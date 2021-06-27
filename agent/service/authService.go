@@ -31,7 +31,7 @@ func (service *AuthService) Register(dto dto.RegisterDTO) error {
 	}
 	agentHost, agentPort := util.GetAgentHostAndPort()
 	message := "Visit this link in the next 60 minutes to validate your account: " + util.GetAgentProtocol() +
-		"://" + agentHost + ":" + agentPort + "/api/auth/validate/" + util.Uint2String(user.ID) + "/" + user.ValidationUid //+ "/" + uid
+		"://" + agentHost + ":" + agentPort + "/validate/" + util.Uint2String(user.ID) + "/" + user.ValidationUid //+ "/" + uid
 	go util.SendMail(dto.Email, "Account Validation", message)
 	return nil
 }
@@ -99,6 +99,21 @@ func (service *AuthService) RBAC(handler func(http.ResponseWriter, *http.Request
 		}
 		handleFunc(writer, request)
 	}
+}
+
+func (service *AuthService) ValidateUser(id string, uuid string) error {
+	user, err := service.AuthRepository.GetUserByProfileID(util.String2Uint(id))
+	if err != nil {
+		return err
+	}
+	if user.ValidationUid != uuid || time.Now().Unix() > user.ValidationExpire.Unix() {
+		return fmt.Errorf("BAD_VALIDATION_DATA")
+	}
+	user.IsValidated = true
+	user.ValidationUid = ""
+	user.ValidationExpire = time.Now()
+	err = service.AuthRepository.UpdateUser(*user)
+	return err
 }
 
 func hashAndSalt(pass string) string {

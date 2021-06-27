@@ -124,6 +124,7 @@ func handlerFunc(authHandler *handler.AuthHandler, productHandler *handler.Produ
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/register", authHandler.Register).Methods("POST")
 	router.HandleFunc("/login", authHandler.LogIn).Methods("POST")
+	router.HandleFunc("/validate/{id}/{uuid}", authHandler.ValidateUser).Methods("GET")
 	router.HandleFunc("/product",
 		authHandler.AuthService.RBAC(productHandler.CreateProduct, "CREATE_PRODUCT", false)).Methods("POST")
 	router.HandleFunc("/product", productHandler.GetAllProducts).Methods("GET")
