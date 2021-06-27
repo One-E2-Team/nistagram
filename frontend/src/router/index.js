@@ -108,6 +108,12 @@ const routes = [{
     component: () =>
       import ('./../components/AgentRequests.vue')
   },
+  {
+    path: '/register-agent',
+    name: 'RegisterAgent',
+    component: () =>
+      import ('./../components/RegisterAgent.vue')
+  },
 ]
 const router = new VueRouter({
   routes

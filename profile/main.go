@@ -110,6 +110,8 @@ func initHandler(service *service.ProfileService) *handler.Handler {
 func handleFunc(handler *handler.Handler) {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", handler.Register).Methods("POST")               // frontend func
+	router.HandleFunc("/agent", util.RBAC(handler.RegisterAgent,
+		"CREATE_AGENT", false)).Methods("POST")			 //frontend func
 	router.HandleFunc("/search/{username}", handler.Search).Methods("GET") // frontend func
 	router.HandleFunc("/search-for-tag/{username}", handler.SearchForTag).Methods("GET")
 	router.HandleFunc("/get/{username}", handler.GetProfileByUsername).Methods("GET") // frontend func
