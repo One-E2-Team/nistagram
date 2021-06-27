@@ -83,6 +83,8 @@ func handlerFunc(handler *handler.AuthHandler) {
 	router.HandleFunc("/recover", handler.ChangePassword).Methods("POST")               //frontend func
 	/*router.HandleFunc("/validate/{id}/{uuid}/{qruuid}", handler.ValidateUser).Methods("GET") //frontend func*/
 	router.HandleFunc("/validate/{id}/{uuid}", handler.ValidateUser).Methods("GET") //frontend func
+	router.HandleFunc("/api-token",
+		util.RBAC(handler.GetAgentAPIToken, "READ_API_TOKEN", false)).Methods("GET") //frontend func
 	router.HandleFunc("/register",
 		util.MSAuth(handler.Register, []string{"profile"})).Methods("POST")
 	router.HandleFunc("/update-user",
