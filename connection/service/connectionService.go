@@ -16,23 +16,37 @@ func (service *Service) GetConnection(followerId, profileId uint) *model.Connect
 	return connection
 }
 
-func (service *Service) GetConnectedProfiles(conn model.ConnectionEdge, excludeMuted, excludeBlocked bool) *[]uint {
-	ret := service.ConnectionRepository.GetConnectedProfiles(conn, excludeMuted)
-	if ret == nil {
+func (service *Service) GetConnectedProfiles(conn model.ConnectionEdge, excludeMuted, excludeBlocked bool) *[]dto.ConnectedProfileDTO {
+	profiles := service.ConnectionRepository.GetConnectedProfiles(conn, excludeMuted)
+	if profiles == nil {
 		temp := make([]uint, 0)
-		return &temp
+		profiles = &temp
 	}
 	if !excludeBlocked {
 		var final []uint
 		blocking := service.ConnectionRepository.GetBlockedProfiles(conn.PrimaryProfile, false)
-		for _, val := range *ret {
+		for _, val := range *profiles {
 			if !contains(blocking, val) {
 				final = append(final, val)
 			}
 		}
-		return &final
+		profiles = &final
 	}
-	return ret
+	ret := make([]dto.ConnectedProfileDTO, 0)
+	for _, val := range *profiles {
+		var closeFriend bool
+		invConnection, ok := service.ConnectionRepository.SelectConnection(val, conn.PrimaryProfile, false)
+		if !ok || invConnection == nil {
+			closeFriend = false
+		} else {
+			closeFriend = invConnection.CloseFriend
+		}
+		ret = append(ret, dto.ConnectedProfileDTO{
+			ProfileID:   val,
+			CloseFriend: closeFriend,
+		})
+	}
+	return &ret
 }
 
 func (service *Service) UpdateConnection(id uint, conn model.ConnectionEdge) (*model.ConnectionEdge, bool) {

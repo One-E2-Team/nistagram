@@ -19,7 +19,7 @@ type PostRepository struct {
 	Client *mongo.Client
 }
 
-func (repo *PostRepository) GetProfilesPosts(followingProfiles []uint, targetUsername string) ([]model.Post, error) {
+func (repo *PostRepository) GetProfilesPosts(followingProfiles []dto.FollowingProfileDTO, targetUsername string) ([]model.Post, error) {
 	collection := repo.getCollection()
 
 	filter := bson.D{{"isdeleted", false}, {"publisherusername", targetUsername}}
@@ -34,8 +34,11 @@ func (repo *PostRepository) GetProfilesPosts(followingProfiles []uint, targetUse
 	for cursor.Next(context.TODO()) {
 		var result model.Post
 		err = cursor.Decode(&result)
-		if result.IsPrivate == false || util.Contains(followingProfiles, result.PublisherId) {
+		if result.IsPrivate == false || util.IsFollowed(followingProfiles, result.PublisherId) {
 			if result.PostType == model.GetPostType("story") {
+				if result.IsCloseFriendsOnly && !util.IsCloseFriend(followingProfiles, result.PublisherId){
+					continue
+				}
 				duration, err := time.ParseDuration("24h")
 				if err != nil {
 					return nil, err
@@ -176,7 +179,7 @@ func (repo *PostRepository) GetMyPosts(loggedUserId uint) ([]model.Post, error) 
 	return posts, nil
 }
 
-func (repo *PostRepository) GetPostsForHomePage(followingProfiles []uint) ([]model.Post, error) {
+func (repo *PostRepository) GetPostsForHomePage(followingProfiles []dto.FollowingProfileDTO) ([]model.Post, error) {
 	collection := repo.getCollection()
 
 	cursor, err := collection.Find(context.TODO(), bson.D{})
@@ -189,8 +192,12 @@ func (repo *PostRepository) GetPostsForHomePage(followingProfiles []uint) ([]mod
 	for cursor.Next(context.TODO()) {
 		var result model.Post
 		err = cursor.Decode(&result)
-		if util.Contains(followingProfiles, result.PublisherId) {
+		if util.IsFollowed(followingProfiles, result.PublisherId) {
 			if result.PostType == model.GetPostType("story") {
+				if result.IsCloseFriendsOnly && !util.IsCloseFriend(followingProfiles, result.PublisherId){
+						continue
+					}
+				}
 				duration, err := time.ParseDuration("24h")
 				if err != nil {
 					return nil, err
@@ -202,7 +209,6 @@ func (repo *PostRepository) GetPostsForHomePage(followingProfiles []uint) ([]mod
 				posts = append(posts, result)
 			}
 		}
-	}
 
 	return posts, nil
 }
