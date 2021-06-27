@@ -35,13 +35,10 @@ func (service *ProfileService) Register(dto dto.RegistrationDto) error {
 		"username":  profile.Username,
 	})
 	//responseBody := bytes.NewBuffer(postBody)
-	go func() {
-		err := registerInAuth(postBody)
-		if err != nil {
-			fmt.Println("auth bug")
-			fmt.Println(err)
-		}
-	}()
+	err = registerInAuth(postBody)
+	if err != nil{
+		return err
+	}
 	go func() {
 		err := registerInConnection(profile.ID, postBody)
 		if err != nil {
@@ -50,6 +47,23 @@ func (service *ProfileService) Register(dto dto.RegistrationDto) error {
 		}
 	}()
 	return nil
+}
+
+func (service *ProfileService) RegisterAgent(dto dto.RegistrationDto) error {
+	err := service.Register(dto)
+	if err != nil{
+		return err
+	}
+
+	profile, err := service.GetProfileByUsername(dto.Username)
+	if err != nil{
+		return err
+	}
+
+	fmt.Println("Profile id: ", profile.ID)
+	err = makeAgent(profile.ID)
+
+	return err
 }
 
 func registerInAuth(postBody []byte) error {

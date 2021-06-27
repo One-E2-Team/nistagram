@@ -1828,6 +1828,28 @@
           "target": ""
         }
       ]
+    },
+    {
+      "endpoint": "/api/profile/agent",
+      "method": "POST",
+      "output_encoding": "json",
+      "extra_config": {},
+      "headers_to_pass": [
+        "Authorization"
+      ],
+      "backend": [
+        {
+          "url_pattern": "/agent",
+          "encoding": "json",
+          "sd": "static",
+          "method": "POST",
+          "extra_config": {},
+          "host": [
+            "https://profile:8080"
+          ],
+          "disable_host_sanitize": false
+        }
+      ]
     }
   ],
   "read_timeout": "0s",
