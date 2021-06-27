@@ -22,10 +22,39 @@
     },
     "github_com/devopsfaith/krakend-logstash": {
       "enabled": false
+    },
+    "github_com/devopsfaith/krakend-opencensus": {
+      "sample_rate": 100,
+      "reporting_period": 1,
+      "exporters": {
+        "prometheus": {
+          "port": 9090
+        },
+        "logger": {}
+      }
+    },
+    "github_com/letgoapp/krakend-influx":{
+      "address":"http://influx:8086",
+      "ttl":"25s",
+      "buffer_size":0,
+      "db": "krakend",
+      "username": "letgo",
+      "password": "pas5w0rd"
+    },
+    "github_com/devopsfaith/krakend-metrics": {
+      "collection_time": "15s",
+      "listen_address": "127.0.0.1:8099"
+    },
+    "github_com/devopsfaith/krakend-gologging": {
+      "level": "INFO",
+      "prefix": "[KRAKEND]",
+      "syslog": true,
+      "stdout": true,
+      "format": "default"
     }
   },
   "timeout": "3000ms",
-  "cache_ttl": "0s",
+  "cache_ttl": "300s",
   "output_encoding": "json",
   "name": "test",
   "port": 80,
