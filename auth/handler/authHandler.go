@@ -162,6 +162,18 @@ func (handler *AuthHandler) ValidateUser(w http.ResponseWriter, r *http.Request)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 }
 
+func (handler *AuthHandler) GetAgentAPIToken(w http.ResponseWriter, r *http.Request) {
+	apiToken, err := handler.AuthService.GetAgentAPIToken(util.GetLoggedUserIDFromToken(r))
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte("{\"apiToken\":\"" + apiToken + "\"}"))
+	w.Header().Set("Content-Type", "application/json")
+}
+
 func (handler *AuthHandler) GetPrivileges(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := util.String2Uint(vars["profileId"])
