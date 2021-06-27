@@ -383,6 +383,21 @@ services:
       - net_prometheus
       - net_influx
 
+  nginxexporter:
+    image: nginx/nginx-prometheus-exporter
+    container_name: cnginx_exporter
+    restart: always
+    environment: 
+      SCRAPE_URI: http://static:80/metrics
+      TELEMETRY_PATH: /prometheus
+      NGINX_RETRIES: 10
+    ports: 
+      - 9113:9113
+    depends_on: 
+      - static
+    networks: 
+      - net_apigateway
+
 networks:
   net_apigateway:
   net_db_relational:
