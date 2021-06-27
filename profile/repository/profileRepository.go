@@ -179,6 +179,15 @@ func (repo *ProfileRepository) GetByInterests(interests []string) ([]model.Profi
 	return profiles, nil
 }
 
+func (repo *ProfileRepository) GetProfilesByUsernames(usernames []string) ([]string, error) {
+	var ret []string
+
+	if err := repo.RelationalDatabase.Table("profiles").Raw("select p.id from profiles p where p.username in ?", usernames).Error ; err != nil {
+		return make([]string,0), err
+	}
+	return ret,nil
+}
+
 func (repo *ProfileRepository) InsertInRedis(key string, value string) error {
 	//model := model.Interest{
 	//	Model: gorm.Model{},

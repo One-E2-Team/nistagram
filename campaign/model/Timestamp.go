@@ -7,5 +7,6 @@ import (
 
 type Timestamp struct {
 	gorm.Model
-	Time []time.Time `json:"timestamp"`
+	CampaignParametersID uint `json:"campaignParametersID"`
+	Time time.Time `json:"timestamp"`
 }

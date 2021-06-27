@@ -445,6 +445,10 @@ func (service *ProfileService) changeUsernameInPostService(loggedUserId uint, us
 	return err
 }
 
+func (service *ProfileService) GetProfileIdsByUsernames(usernames []string) ([]string, error) {
+	return service.ProfileRepository.GetProfilesByUsernames(usernames)
+}
+
 func makeAgent(profileID uint) error {
 	authHost, authPort := util.GetAuthHostAndPort()
 	resp, err := util.CrossServiceRequest(http.MethodPut,

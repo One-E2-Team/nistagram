@@ -52,6 +52,10 @@ func initDB() *gorm.DB {
 	if err != nil {
 		return nil
 	}
+	err = db.AutoMigrate(&model.Timestamp{})
+	if err != nil {
+		return nil
+	}
 	err = db.AutoMigrate(&model.CampaignRequest{})
 	if err != nil {
 		return nil
@@ -82,6 +86,7 @@ func initAuthHandler(service *service.CampaignService) *handler.CampaignHandler 
 func handlerFunc(handler *handler.CampaignHandler) {
 	fmt.Println("Campaign server started...")
 	router := mux.NewRouter().StrictSlash(true)
+	router.HandleFunc("/campaign", handler.CreateCampaign).Methods("POST")
 	host, port := util.GetCampaignHostAndPort()
 	var err error
 	if util.DockerChecker() {

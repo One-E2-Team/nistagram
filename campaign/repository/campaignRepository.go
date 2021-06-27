@@ -11,13 +11,13 @@ type CampaignRepository struct {
 }
 
 
-func (repo *CampaignRepository) CreateCampaign(campaign *model.Campaign) error {
-	result := repo.Database.Create(campaign)
+func (repo *CampaignRepository) CreateCampaign(campaign model.Campaign) (model.Campaign,error) {
+	result := repo.Database.Create(&campaign)
 	if result.RowsAffected == 0 {
-		return fmt.Errorf("User not created")
+		return campaign, fmt.Errorf("User not created")
 	}
 	fmt.Println("User Created")
-	return nil
+	return campaign, nil
 }
 
 func (repo *CampaignRepository) UpdateCampaignParameters(campaignParameters model.CampaignParameters) error {
@@ -46,4 +46,13 @@ func (repo *CampaignRepository) DeleteCampaign(campaignID uint) error{
 		return err
 	}
 	return nil
+}
+
+func (repo *CampaignRepository) GetInterests(interests []string) []model.Interest {
+	var ret []model.Interest
+
+	if err := repo.Database.Table("interests").Find(&ret,"name IN ? ", interests).Error ; err != nil {
+		return make([]model.Interest,0)
+	}
+	return ret
 }
