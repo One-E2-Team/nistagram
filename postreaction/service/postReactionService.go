@@ -311,22 +311,9 @@ func getPost(postID string) (*postModel.Post, error) {
 }
 
 func canUsersBeTagged(description string, publisherId uint) error {
-	var followingProfiles []uint
 
-	resp, err := getUserFollowers(publisherId)
+	followingProfiles, err := getFollowingProfiles(publisherId)
 	if err != nil {
-		return err
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-	defer func(Body io.ReadCloser) {
-		_ = Body.Close()
-	}(resp.Body)
-
-	if err = json.Unmarshal(body, &followingProfiles); err != nil {
 		return err
 	}
 
@@ -351,7 +338,7 @@ func canUsersBeTagged(description string, publisherId uint) error {
 				return errors.New(taggedProfile.Username + " can't be tagged!")
 			}
 
-			if !util.Contains(followingProfiles, taggedProfile.ProfileId) {
+			if !util.IsFollowed(followingProfiles, taggedProfile.ProfileId) {
 				return errors.New(taggedProfile.Username + " is not followed by this profile!")
 			}
 		}
@@ -359,12 +346,24 @@ func canUsersBeTagged(description string, publisherId uint) error {
 	return nil
 }
 
-func getUserFollowers(loggedUserId uint) (*http.Response, error) {
+func getFollowingProfiles(loggedUserId uint) ([]util.FollowingProfileDTO, error) {
 	connHost, connPort := util.GetConnectionHostAndPort()
 	resp, err := util.CrossServiceRequest(http.MethodGet,
 		util.GetCrossServiceProtocol()+"://"+connHost+":"+connPort+"/connection/following/show/"+util.Uint2String(loggedUserId),
 		nil, map[string]string{})
-	return resp, err
+
+	if err != nil {
+		return nil, err
+	}
+
+	var followingProfiles []util.FollowingProfileDTO
+
+	err = json.NewDecoder(resp.Body).Decode(&followingProfiles)
+	if err != nil{
+		return nil, err
+	}
+
+	return followingProfiles, err
 }
 
 func getProfileByUsername(username string) (*http.Response, error) {

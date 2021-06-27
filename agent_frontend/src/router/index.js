@@ -32,6 +32,12 @@ const routes = [{
     component: () =>
       import ('./../components/HomePage.vue')
   },
+  {
+    path: '/newProduct',
+    name: 'NewProduct',
+    component: () =>
+      import ('./../components/NewProduct.vue')
+  },
 ]
 const router = new VueRouter({
   routes
