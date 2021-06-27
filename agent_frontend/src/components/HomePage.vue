@@ -53,7 +53,7 @@
             <v-row>
               <v-col v-for="p in products" :key="p.id" cols="12" sm="4">
                 <v-card class="mx-auto my-12" width="330" >
-                    <template >
+                    <template v-if="hasRole('AGENT')">
                     <v-menu offset-y>
                       <template v-slot:activator="{ on, attrs }">
                         <v-btn icon v-bind="attrs" v-on="on">
@@ -62,7 +62,7 @@
                       </template>
                       <v-list>
                         <v-list-item>
-                          <v-list-item-title><router-link :to="{ name: 'EditProduct'}">Edit</router-link></v-list-item-title>
+                          <v-list-item-title @click="sendItem(p)"><router-link :to="{ name: 'EditProduct'}">Edit</router-link></v-list-item-title>
                         </v-list-item>
                         <v-list-item>
                           <v-list-item-title @click="deleteProduct(p.id)"><router-link  :to="{ name: 'HomePage'}">Delete</router-link></v-list-item-title>
@@ -138,6 +138,12 @@ import { bus } from '../main'
        this.getProducts();
     },
     methods: {
+    sendItem(item){
+       bus.$emit('product-data', item);
+    },
+     hasRole(role){
+      return comm.hasRole(role);
+    },
      deleteProduct(id){
        axios({
                 method: "delete",
@@ -203,9 +209,6 @@ import { bus } from '../main'
             })
        this.showCart = false;
      }
-    },
-    hasRole(role){
-      return comm.hasRole(role);
     },
   }
 </script>
