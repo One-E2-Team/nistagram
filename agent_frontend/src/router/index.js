@@ -38,6 +38,12 @@ const routes = [{
     component: () =>
       import ('./../components/NewProduct.vue')
   },
+  {
+    path: '/edit-product',
+    name: 'EditProduct',
+    component: () =>
+      import ('./../components/EditProduct.vue')
+  },
 ]
 const router = new VueRouter({
   routes
