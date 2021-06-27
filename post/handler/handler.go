@@ -79,7 +79,6 @@ func (handler Handler) GetPostsForHomePage(w http.ResponseWriter, r *http.Reques
 	}
 
 	followingProfiles, err := getFollowingProfiles(loggedUserID)
-	fmt.Println(followingProfiles)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -106,7 +105,7 @@ func (handler Handler) GetProfilesPosts(w http.ResponseWriter, r *http.Request) 
 	params := mux.Vars(r)
 	targetUsername := template.HTMLEscapeString(params["username"])
 	loggedUserId := util.GetLoggedUserIDFromToken(r)
-	var followingProfiles []dto.FollowingProfileDTO
+	var followingProfiles []util.FollowingProfileDTO
 	var err error
 	if loggedUserId != 0 {
 		followingProfiles, err = getFollowingProfiles(loggedUserId)
@@ -398,7 +397,7 @@ func safePostDto(postDto dto.PostDto) dto.PostDto {
 	return postDto
 }
 
-func getFollowingProfiles(loggedUserId uint) ([]dto.FollowingProfileDTO, error) {
+func getFollowingProfiles(loggedUserId uint) ([]util.FollowingProfileDTO, error) {
 	connHost, connPort := util.GetConnectionHostAndPort()
 	resp, err := util.CrossServiceRequest(http.MethodGet,
 		util.GetCrossServiceProtocol()+"://"+connHost+":"+connPort+"/connection/following/show/"+util.Uint2String(loggedUserId),
@@ -408,7 +407,7 @@ func getFollowingProfiles(loggedUserId uint) ([]dto.FollowingProfileDTO, error) 
 		return nil, err
 	}
 
-	var followingProfiles []dto.FollowingProfileDTO
+	var followingProfiles []util.FollowingProfileDTO
 
 	err = json.NewDecoder(resp.Body).Decode(&followingProfiles)
 	if err != nil{

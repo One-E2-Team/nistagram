@@ -19,7 +19,7 @@ type PostRepository struct {
 	Client *mongo.Client
 }
 
-func (repo *PostRepository) GetProfilesPosts(followingProfiles []dto.FollowingProfileDTO, targetUsername string) ([]model.Post, error) {
+func (repo *PostRepository) GetProfilesPosts(followingProfiles []util.FollowingProfileDTO, targetUsername string) ([]model.Post, error) {
 	collection := repo.getCollection()
 
 	filter := bson.D{{"isdeleted", false}, {"publisherusername", targetUsername}}
@@ -179,7 +179,7 @@ func (repo *PostRepository) GetMyPosts(loggedUserId uint) ([]model.Post, error) 
 	return posts, nil
 }
 
-func (repo *PostRepository) GetPostsForHomePage(followingProfiles []dto.FollowingProfileDTO) ([]model.Post, error) {
+func (repo *PostRepository) GetPostsForHomePage(followingProfiles []util.FollowingProfileDTO) ([]model.Post, error) {
 	collection := repo.getCollection()
 
 	cursor, err := collection.Find(context.TODO(), bson.D{})

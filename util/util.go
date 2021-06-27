@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/smtp"
-	"nistagram/post/dto"
 	"os"
 	"strconv"
 	"strings"
@@ -52,7 +51,7 @@ func GetStringIDFromMongoID(mongoID primitive.ObjectID) string {
 	return strings.Split(mongoID.String(), "\"")[1]
 }
 
-func IsFollowed(array []dto.FollowingProfileDTO, el uint) bool {
+func IsFollowed(array []FollowingProfileDTO, el uint) bool {
 	for _, a := range array {
 		if a.ProfileID == el {
 			return true
@@ -61,11 +60,16 @@ func IsFollowed(array []dto.FollowingProfileDTO, el uint) bool {
 	return false
 }
 
-func IsCloseFriend(array []dto.FollowingProfileDTO, el uint) bool {
+func IsCloseFriend(array []FollowingProfileDTO, el uint) bool {
 	for _, a := range array {
 		if a.ProfileID == el && a.CloseFriend{
 			return true
 		}
 	}
 	return false
+}
+
+type FollowingProfileDTO struct {
+	ProfileID        uint     `json:"profileID"`
+	CloseFriend 	 bool     `json:"closeFriend"`
 }
