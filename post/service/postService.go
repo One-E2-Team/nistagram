@@ -32,7 +32,7 @@ func (service *PostService) GetPublic(loggedUserID uint) ([]dto.ResponsePostDTO,
 	return responseDTO, err
 }
 
-func (service *PostService) GetProfilesPosts(followingProfiles []uint, targetUsername string, loggedUserID uint) ([]dto.ResponsePostDTO, error) {
+func (service *PostService) GetProfilesPosts(followingProfiles []dto.FollowingProfileDTO, targetUsername string, loggedUserID uint) ([]dto.ResponsePostDTO, error) {
 	posts, err := service.PostRepository.GetProfilesPosts(followingProfiles, targetUsername)
 	if err != nil{
 		return nil, err
@@ -76,7 +76,7 @@ func (service *PostService) GetMyPosts(loggedUserID uint) ([]dto.ResponsePostDTO
 	return responseDTO, err
 }
 
-func (service *PostService) GetPostsForHomePage(followingProfiles []uint, loggedUserID uint) ([]dto.ResponsePostDTO, error) {
+func (service *PostService) GetPostsForHomePage(followingProfiles []dto.FollowingProfileDTO, loggedUserID uint) ([]dto.ResponsePostDTO, error) {
 	posts, err := service.PostRepository.GetPostsForHomePage(followingProfiles)
 	if err != nil{
 		return nil, err
