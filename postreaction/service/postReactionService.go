@@ -78,7 +78,26 @@ func (service *PostReactionService) CommentPost(commentDTO dto.CommentDTO, logge
 	}
 	comment := model.Comment{PostID: commentDTO.PostID, ProfileID: loggedUserID,
 		Content: commentDTO.Content, Time: time.Now()}
-	return service.PostReactionRepository.CommentPost(&comment)
+	err = service.PostReactionRepository.CommentPost(&comment)
+	if err != nil {
+		return err
+	}
+
+	if post.IsCampaign {
+		go func() {
+			event := &dto.EventDTO{EventType: "COMMENT", PostId: commentDTO.PostID,
+				ProfileId: loggedUserID, CampaignId: commentDTO.CampaignID,
+				InfluencerId: commentDTO.InfluencerID, InfluencerUsername: commentDTO.InfluencerUsername}
+			if commentDTO.InfluencerID == 0 {
+				err = saveToMonitoringMsInfluencer(event)
+			}
+			err = saveToMonitoringMsTargetGroup(event)
+			if err != nil {
+				fmt.Println("Monitoring bug!")
+				fmt.Println(err)
+			}
+		}()
+	}
 }
 
 func (service *PostReactionService) ReportPost(postID string, reason string) error {
