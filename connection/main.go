@@ -74,7 +74,15 @@ func handleFunc(handler *handler.Handler) {
 
 	router.HandleFunc("/connection/block/relationships/{id}", util.MSAuth(handler.GetBlockingRelationships, []string{"post"})).Methods("GET")
 
-	router.HandleFunc("/connection/following/all/{id}", handler.GetFollowedProfiles).Methods("GET")
+	router.HandleFunc("/connection/following/all/{id}", handler.GetFollowedProfiles).Methods("GET") // frontend & backend func
+
+	router.HandleFunc("/connection/following/my/all",
+		util.RBAC(handler.GetMyFollowedProfiles, "READ_CONNECTION_STATUS", true)).Methods("GET") // frontend func
+
+	router.HandleFunc("/connection/followers/all/{id}", handler.GetFollowerProfiles).Methods("GET") // frontend & backend func
+
+	router.HandleFunc("/connection/followers/my/all",
+		util.RBAC(handler.GetMyFollowerProfiles, "READ_CONNECTION_STATUS", true)).Methods("GET") // frontend func
 
 	router.HandleFunc("/connection/following/show/{id}",
 		util.MSAuth(handler.GetFollowedProfilesNotMuted, []string{"post", "profile", "postreaction"})).Methods("GET")
