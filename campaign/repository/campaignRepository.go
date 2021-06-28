@@ -63,11 +63,11 @@ func (repo *CampaignRepository) DeleteCampaign(campaignID uint) error{
 	tx := repo.Database.Begin()
 
 	//check if campaign have params in past
-	if result := tx.Table("campaign_parameters").Find(&model.CampaignParameters{}, "start < ? AND id = ?",now,campaignID); result.Error != nil{
+	if result := tx.Table("campaign_parameters").Find(&model.CampaignParameters{}, "start < ? AND campaign_id = ?",now,campaignID); result.Error != nil{
 		return result.Error
 	}else if result.RowsAffected == 0 {
 		//if there is no params delete campaign
-		if err := repo.forceDeleteCampaing(campaignID); err != nil{
+		if err := repo.forceDeleteCampaing(campaignID,tx); err != nil{
 			return err
 		}
 		tx.Commit()
@@ -75,7 +75,22 @@ func (repo *CampaignRepository) DeleteCampaign(campaignID uint) error{
 	}
 
 	//delete all future campaign params
-	if result := tx.Unscoped().Delete(&model.CampaignParameters{CampaignID: campaignID}, "start > ? AND campaign_id = ?", time.Now(), campaignID); result.Error != nil {
+	var deletedCampaignParameters []model.CampaignParameters
+	if result := tx.Find(&deletedCampaignParameters,"start > ? AND campaign_id = ?", time.Now(), campaignID); result.Error != nil {
+		tx.Rollback()
+		return result.Error
+	}
+	ids := make([]uint , 0)
+	for _, value := range(deletedCampaignParameters){
+		ids = append(ids,value.ID)
+	}
+	if err:=beforeDeleteCampaignParameters(ids,tx); err != nil{
+		tx.Rollback()
+		return err
+	}
+
+	if result := tx.Unscoped().Delete(&[]model.CampaignParameters{},"id IN ?",ids); result.Error != nil {
+		tx.Rollback()
 		return result.Error
 	}
 
@@ -111,24 +126,32 @@ func (repo *CampaignRepository) GetInterests(interests []string) []model.Interes
 }
 
 func (repo *CampaignRepository) forceDeleteCampaing(id uint, tx *gorm.DB) error {
-	if err := beforeDeleteCampaign(id,tx); err != nil {
+	if err := deleteCampaignParameters(id,tx); err != nil {
 		return err
 	}
 	return tx.Unscoped().Delete(&model.Campaign{},"id = ?",id).Error
 }
 
-func  beforeDeleteCampaign(campaignId uint, tx *gorm.DB) error {
-	if err := beforeDeleteCampaignParameters(campaignId,tx); err != nil {
+func  deleteCampaignParameters(campaignId uint, tx *gorm.DB) error {
+	var ret []model.CampaignParameters
+	if err := tx.Table("campaign_parameters").Find(&ret,"campaign_id = ? ", campaignId).Error ; err != nil {
+		return err
+	}
+	ids := make([]uint,0)
+	for _, value := range ret {
+		ids = append(ids,value.ID)
+	}
+	if err := beforeDeleteCampaignParameters(ids,tx); err != nil {
 		return err
 	}
 	return tx.Unscoped().Delete(&model.CampaignParameters{},"campaign_id = ?",campaignId).Error
 }
 
-func  beforeDeleteCampaignParameters(campaignParametersId uint,tx *gorm.DB) error {
-	if err:= tx.Unscoped().Delete(&model.CampaignRequest{},"campaign_parameters_id = ?",campaignParametersId).Error; err != nil{
+func  beforeDeleteCampaignParameters(campaignParametersId []uint,tx *gorm.DB) error {
+	if err:= tx.Unscoped().Delete(&model.CampaignRequest{},"campaign_parameters_id IN ?",campaignParametersId).Error; err != nil{
 		return err
 	}
-	if err:= tx.Unscoped().Delete(&model.Timestamp{},"campaign_parameters_id = ?",campaignParametersId).Error; err != nil{
+	if err:= tx.Unscoped().Delete(&model.Timestamp{},"campaign_parameters_id IN ?",campaignParametersId).Error; err != nil{
 		return err
 	}
 
