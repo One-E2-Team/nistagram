@@ -243,9 +243,7 @@ func (repo *PostRepository) Delete(id primitive.ObjectID) error {
 }
 
 func (repo *PostRepository) Update(id primitive.ObjectID, post dto.PostDto) error {
-
 	collection := repo.getCollection()
-
 	filter := bson.D{{"_id", id}}
 	update := bson.D{
 		{"$set", bson.D{
@@ -292,6 +290,22 @@ func (repo *PostRepository) ChangePrivacy(id uint, isPrivate bool) error {
 	}
 
 	return repo.updateMany(filter, update)
+}
+
+func (repo *PostRepository) MakeCampaign(id primitive.ObjectID) error {
+	collection := repo.getCollection()
+	filter := bson.D{{"_id", id}}
+	update := bson.D{
+		{"$set", bson.D{
+			{"iscampaign", true},
+		}},
+	}
+
+	result, _ := collection.UpdateOne(context.TODO(), filter, update)
+	if result.MatchedCount == 0 {
+		return mongo.ErrNoDocuments
+	}
+	return nil
 }
 
 func (repo *PostRepository) updateMany(filter bson.D, update bson.D) error {

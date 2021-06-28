@@ -3,6 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/gorilla/mux"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"net/http"
 	"nistagram/post/handler"
 	"nistagram/post/repository"
@@ -10,10 +13,6 @@ import (
 	"nistagram/util"
 	"os"
 	"time"
-
-	"github.com/gorilla/mux"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func initDB() *mongo.Client {
@@ -81,6 +80,8 @@ func handleFunc(handler *handler.Handler) {
 		util.MSAuth(handler.GetPost, []string{"postreaction"})).Methods("GET")
 	router.HandleFunc("/posts",
 		util.MSAuth(handler.GetPosts, []string{"postreaction"})).Methods("POST")
+	router.HandleFunc("/make-campaign/{id}/{agentID}",
+		util.MSAuth(handler.MakeCampaign, []string{"campaign"})).Methods("POST")
 	router.HandleFunc("/{id}",
 		util.RBAC(handler.DeletePost, "DELETE_POST", false)).Methods("DELETE") // frontend func
 	router.HandleFunc("/{id}", handler.UpdatePost).Methods("PUT")
