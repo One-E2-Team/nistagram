@@ -31,10 +31,18 @@ func (service *PostReactionService) ReactOnPost(reactionDto dto.ReactionDTO, log
 	if post.IsDeleted {
 		return fmt.Errorf("CANNOT REACT ON DELETED POST")
 	}
-	reaction := model.Reaction{ReactionType: reactionType, PostID: reactionDto.PostID, ProfileID: loggedUserID}
-	err = service.PostReactionRepository.ReactOnPost(&reaction)
-	if err != nil{
-		return err
+	if model.GetReactionTypeString(reactionType) == "like_reset" ||
+		model.GetReactionTypeString(reactionType) == "dislike_reset"{
+		err = service.DeleteReaction(reactionDto.PostID, loggedUserID)
+		if err != nil {
+			return err
+		}
+	}else {
+		reaction := model.Reaction{ReactionType: reactionType, PostID: reactionDto.PostID, ProfileID: loggedUserID}
+		err = service.PostReactionRepository.ReactOnPost(&reaction)
+		if err != nil {
+			return err
+		}
 	}
 	if post.IsCampaign{
 		go func() {
@@ -98,6 +106,7 @@ func (service *PostReactionService) CommentPost(commentDTO dto.CommentDTO, logge
 			}
 		}()
 	}
+	return nil
 }
 
 func (service *PostReactionService) ReportPost(postID string, reason string) error {

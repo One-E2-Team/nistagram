@@ -61,8 +61,8 @@ func handleFunc(handler *handler.PostReactionHandler) {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/react",
 		util.RBAC(handler.ReactOnPost, "REACT_ON_POST", false)).Methods("POST") //frontend func
-	router.HandleFunc("/react/{postID}",
-		util.RBAC(handler.DeleteReaction, "REACT_ON_POST", false)).Methods("DELETE") //frontend func
+	//router.HandleFunc("/react/{postID}",
+		//util.RBAC(handler.DeleteReaction, "REACT_ON_POST", false)).Methods("DELETE") //frontend func
 	router.HandleFunc("/comment",
 		util.RBAC(handler.CommentPost, "REACT_ON_POST", false)).Methods("POST") //frontend func
 	router.HandleFunc("/report",
