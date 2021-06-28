@@ -61,7 +61,10 @@ func initHandler(monitoringService *service.MonitoringService) *handler.Handler 
 func handleFunc(handler *handler.Handler) {
 	router := mux.NewRouter().StrictSlash(true)
 
-	router.HandleFunc("/", handler.CreateEvent).Methods("POST")
+	router.HandleFunc("/influencer",
+		util.MSAuth(handler.CreateEventInfluencer, []string{"postreaction"})).Methods("POST")
+	router.HandleFunc("/target-group",
+		util.MSAuth(handler.CreateEventTargetGroup, []string{"postreaction"})).Methods("POST")
 
 	fmt.Println("Starting server..")
 	host, port := util.GetMonitoringHostAndPort()

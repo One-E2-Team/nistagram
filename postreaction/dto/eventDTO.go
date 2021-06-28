@@ -1,7 +1,10 @@
 package dto
 
 type EventDTO struct {
-	Type 	  	string 		`json:"type"`
-	PostId	  	string		`json:"postId"`
-	ProfileId	uint		`json:"profileId"`
+	EventType 	    string 		`json:"eventType"`
+	PostId	  		string		`json:"postId"`
+	ProfileId		uint		`json:"profileId"`
+	CampaignId		uint		`json:"campaignId"`
+	InfluencerId	uint		`json:"influencerId"`
+	InfluencerUsername	string	`json:"influencerUsername"`
 }

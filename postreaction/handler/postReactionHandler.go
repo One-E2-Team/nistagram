@@ -30,7 +30,7 @@ func (handler *PostReactionHandler) ReactOnPost(w http.ResponseWriter, r *http.R
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	err = handler.PostReactionService.ReactOnPost(reactionDTO.PostID, util.GetLoggedUserIDFromToken(r), reactionType)
+	err = handler.PostReactionService.ReactOnPost(reactionDTO, util.GetLoggedUserIDFromToken(r), reactionType)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)

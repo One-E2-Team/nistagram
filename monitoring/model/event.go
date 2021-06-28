@@ -5,11 +5,15 @@ import (
 )
 
 type Event struct {
-	OriginalPostId        uint      	`json:"originalPostId"`
+	OriginalPostId        string      	`json:"originalPostId"`
 	EventType			  EventType		`json:"eventType"`
 	InfluencerUsername 	  string		`json:"influencerUsername"`
 	Timestamp   		  time.Time 	`json:"timestamp"`
 	CampaignId        	  uint      	`json:"campaignId"`
 	Interests			  []string		`json:"interests"`
 	WebSite 			  string		`json:"webSite"`
+}
+
+func (event *Event) AddInterest(i string) {
+	event.Interests = append(event.Interests, i)
 }
