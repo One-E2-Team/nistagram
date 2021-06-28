@@ -456,7 +456,7 @@ func (service *ProfileService) changeUsernameInPostService(loggedUserId uint, us
 }
 
 func (service *ProfileService) GetProfileIdsByUsernames(usernames []string) ([]string, error) {
-	return service.ProfileRepository.GetProfilesByUsernames(usernames)
+	return service.ProfileRepository.GetProfileIdsByUsernames(usernames)
 }
 
 func makeAgent(profileID uint) error {
