@@ -120,7 +120,65 @@ func (handler *Handler) GetFollowedProfiles(w http.ResponseWriter, r *http.Reque
 		ConnectionRequest: false,
 		Approved:          true,
 	}
-	profiles := handler.ConnectionService.GetConnectedProfiles(conn, false, false)
+	profiles := handler.ConnectionService.GetProfilesInFollowRelationship(conn, false, false, true)
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(*profiles)
+}
+
+func (handler *Handler) GetMyFollowedProfiles(w http.ResponseWriter, r *http.Request) {
+	id := util.GetLoggedUserIDFromToken(r)
+	conn := model.ConnectionEdge{
+		PrimaryProfile:    id,
+		SecondaryProfile:  0,
+		Muted:             false,
+		CloseFriend:       false,
+		NotifyPost:        false,
+		NotifyStory:       false,
+		NotifyComment:     false,
+		ConnectionRequest: false,
+		Approved:          true,
+	}
+	profiles := handler.ConnectionService.GetProfilesInFollowRelationship(conn, false, false, true)
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(*profiles)
+}
+
+func (handler *Handler) GetFollowerProfiles(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, _ := strconv.ParseUint(vars["id"], 10, 32)
+	conn := model.ConnectionEdge{
+		PrimaryProfile:    0,
+		SecondaryProfile:  uint(id),
+		Muted:             false,
+		CloseFriend:       false,
+		NotifyPost:        false,
+		NotifyStory:       false,
+		NotifyComment:     false,
+		ConnectionRequest: false,
+		Approved:          true,
+	}
+	profiles := handler.ConnectionService.GetProfilesInFollowRelationship(conn, false, false, false)
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(*profiles)
+}
+
+func (handler *Handler) GetMyFollowerProfiles(w http.ResponseWriter, r *http.Request) {
+	id := util.GetLoggedUserIDFromToken(r)
+	conn := model.ConnectionEdge{
+		PrimaryProfile:    0,
+		SecondaryProfile:  id,
+		Muted:             false,
+		CloseFriend:       false,
+		NotifyPost:        false,
+		NotifyStory:       false,
+		NotifyComment:     false,
+		ConnectionRequest: false,
+		Approved:          true,
+	}
+	profiles := handler.ConnectionService.GetProfilesInFollowRelationship(conn, false, false, false)
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(*profiles)
