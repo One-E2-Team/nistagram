@@ -31,10 +31,18 @@ func (service *PostReactionService) ReactOnPost(reactionDto dto.ReactionDTO, log
 	if post.IsDeleted {
 		return fmt.Errorf("CANNOT REACT ON DELETED POST")
 	}
-	reaction := model.Reaction{ReactionType: reactionType, PostID: reactionDto.PostID, ProfileID: loggedUserID}
-	err = service.PostReactionRepository.ReactOnPost(&reaction)
-	if err != nil{
-		return err
+	if model.GetReactionTypeString(reactionType) == "like_reset" ||
+		model.GetReactionTypeString(reactionType) == "dislike_reset"{
+		err = service.DeleteReaction(reactionDto.PostID, loggedUserID)
+		if err != nil {
+			return err
+		}
+	}else {
+		reaction := model.Reaction{ReactionType: reactionType, PostID: reactionDto.PostID, ProfileID: loggedUserID}
+		err = service.PostReactionRepository.ReactOnPost(&reaction)
+		if err != nil {
+			return err
+		}
 	}
 	if post.IsCampaign{
 		go func() {
@@ -78,7 +86,27 @@ func (service *PostReactionService) CommentPost(commentDTO dto.CommentDTO, logge
 	}
 	comment := model.Comment{PostID: commentDTO.PostID, ProfileID: loggedUserID,
 		Content: commentDTO.Content, Time: time.Now()}
-	return service.PostReactionRepository.CommentPost(&comment)
+	err = service.PostReactionRepository.CommentPost(&comment)
+	if err != nil {
+		return err
+	}
+
+	if post.IsCampaign {
+		go func() {
+			event := &dto.EventDTO{EventType: "COMMENT", PostId: commentDTO.PostID,
+				ProfileId: loggedUserID, CampaignId: commentDTO.CampaignID,
+				InfluencerId: commentDTO.InfluencerID, InfluencerUsername: commentDTO.InfluencerUsername}
+			if commentDTO.InfluencerID == 0 {
+				err = saveToMonitoringMsInfluencer(event)
+			}
+			err = saveToMonitoringMsTargetGroup(event)
+			if err != nil {
+				fmt.Println("Monitoring bug!")
+				fmt.Println(err)
+			}
+		}()
+	}
+	return nil
 }
 
 func (service *PostReactionService) ReportPost(postID string, reason string) error {
