@@ -621,6 +621,24 @@ func (handler *Handler) GetProfileIdsByUsernames(w http.ResponseWriter, r *http.
 	w.Header().Set("Content-Type", "application/json")
 }
 
+func (handler *Handler) GetPersonalDataByProfileId(w http.ResponseWriter, r *http.Request) {
+	var id uint
+	vars := mux.Vars(r)
+	id = util.String2Uint(vars["id"])
+	personalData, err := handler.ProfileService.GetPersonalDataByProfileId(id)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+	} else {
+		w.WriteHeader(http.StatusOK)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(*personalData)
+	if err != nil {
+		return
+	}
+}
+
 func safeRegistrationDto(dto dto.RegistrationDto) dto.RegistrationDto {
 	dto.Username = template.HTMLEscapeString(dto.Username)
 	dto.Name = template.HTMLEscapeString(dto.Name)
