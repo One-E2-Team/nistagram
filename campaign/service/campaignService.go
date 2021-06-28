@@ -1,7 +1,9 @@
 package service
 
 import (
+	"fmt"
 	"gorm.io/gorm"
+	"net/http"
 	"nistagram/campaign/dto"
 	"nistagram/campaign/model"
 	"nistagram/campaign/repository"
@@ -14,6 +16,10 @@ type CampaignService struct {
 }
 
 func (service *CampaignService) CreateCampaign (userId uint, campaignRequest dto.CampaignDTO) (model.Campaign,error){
+	err := makeCampaign(campaignRequest.PostID, userId)
+	if err != nil {
+		return model.Campaign{}, err
+	}
 	campaignParams := model.CampaignParameters{
 		Model:            gorm.Model{},
 		Start:            campaignRequest.Start,
@@ -87,6 +93,31 @@ func getCampaignTypeFromRequest(start time.Time,end time.Time, timestampsLength 
 	}else {
 		return model.REPEATABLE
 	}
+}
+
+func makeCampaign(postID string, loggedUserID uint) error {
+	postHost, postPort := util.GetPostHostAndPort()
+	resp, err := util.CrossServiceRequest(http.MethodPost,
+		util.GetCrossServiceProtocol()+"://"+postHost+":"+postPort+"make-campaign/"+postID + "/" + util.Uint2String(loggedUserID),
+		nil, map[string]string{})
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("BAD_POST_ID")
+	}
+	return nil
+}
+
+func (service *CampaignService) GetCurrentlyValidInterests(campaignId uint) ([]string,error) {
+	var ret []string
+	parameters, err := service.CampaignRepository.GetParametersByCampaignId(campaignId)
+
+	for _, i := range parameters.Interests{
+		ret = append(ret, i.Name)
+	}
+
+	return ret, err
 }
 
 

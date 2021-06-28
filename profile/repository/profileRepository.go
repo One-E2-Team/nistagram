@@ -216,3 +216,11 @@ func (repo *ProfileRepository) GetFromRedis(key string) (string, error) {
 	}
 	return value.Val(), nil
 }
+
+func (repo *ProfileRepository) GetPersonalDataByProfileId(id uint) (*model.PersonalData, error) {
+	data := &model.PersonalData{}
+	if err := repo.RelationalDatabase.Table("personal_data").Preload("InterestedIn").First(&data, "profile_id = ?", id).Error; err != nil {
+		return nil, err
+	}
+	return data, nil
+}

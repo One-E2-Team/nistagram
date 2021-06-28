@@ -7,7 +7,7 @@ import (
 	"nistagram/connection/model"
 )
 
-func (repo *Repository) GetConnectedProfiles(conn model.ConnectionEdge, excludeMuted bool) *[]uint {
+func (repo *Repository) GetConnectedProfiles(conn model.ConnectionEdge, excludeMuted bool, direction bool) *[]uint {
 	var additionalSelector string = ""
 	if conn.Approved == true {
 		additionalSelector += "AND e.approved = $approved "
@@ -29,13 +29,24 @@ func (repo *Repository) GetConnectedProfiles(conn model.ConnectionEdge, excludeM
 	if excludeMuted {
 		additionalSelector += "AND e.muted = FALSE "
 	}
+	var targetNode, matchNode, matchDescriptor string
+	if direction {
+		targetNode = "b"
+		matchDescriptor = "primary"
+		matchNode = "a"
+	} else {
+		targetNode = "a"
+		matchDescriptor = "secondary"
+		matchNode = "b"
+	}
 	session := (*repo.DatabaseDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	defer session.Close()
 	profileIDs, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
 		result, err := transaction.Run(
 			"MATCH (a:Profile)-[e:FOLLOWS]->(b:Profile) \n"+
-				"WHERE a.profileID = $primary AND a.deleted = FALSE AND b.deleted = FALSE " + additionalSelector + "\n"+
-				"RETURN b",
+				"WHERE " + matchNode + ".profileID = $" + matchDescriptor + " AND " +
+					matchNode + ".deleted = FALSE AND " + targetNode + ".deleted = FALSE " + additionalSelector + "\n"+
+				"RETURN " + targetNode,
 			conn.ToMap())
 		var ret []uint
 		if err != nil {
