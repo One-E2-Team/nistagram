@@ -79,6 +79,12 @@ func handlerFunc(handler *handler.AuthHandler) {
 	fmt.Println("Auth server started...")
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/login", handler.LogIn).Methods("POST")                          //frontend func
+	router.HandleFunc("/login/apitoken", handler.LogInAgentAPI).Methods("POST")
+	router.HandleFunc("/agent/test", util.AgentAuth(func(writer http.ResponseWriter, request *http.Request) {
+		writer.WriteHeader(http.StatusOK)
+		_, _ = writer.Write([]byte("{\"energy\":\"big dick energy\"}"))
+		writer.Header().Set("Content-Type", "application/json")
+	})).Methods("GET")
 	router.HandleFunc("/request-recovery", handler.RequestPassRecovery).Methods("POST") //frontend func
 	router.HandleFunc("/recover", handler.ChangePassword).Methods("POST")               //frontend func
 	/*router.HandleFunc("/validate/{id}/{uuid}/{qruuid}", handler.ValidateUser).Methods("GET") //frontend func*/

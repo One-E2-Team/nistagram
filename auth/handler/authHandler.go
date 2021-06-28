@@ -58,6 +58,29 @@ func (handler *AuthHandler) LogIn(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 }
 
+
+func (handler *AuthHandler) LogInAgentAPI(writer http.ResponseWriter, request *http.Request) {
+	var login dto.APILoginDTO
+	err := json.NewDecoder(request.Body).Decode(&login)
+	if err != nil {
+		writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	resp, err := handler.AuthService.AgentLoginAPIToken(login)
+	if err != nil {
+		writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	respJson, err := json.Marshal(*resp)
+	if err != nil {
+		writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	writer.WriteHeader(http.StatusOK)
+	_, _ = writer.Write(respJson)
+	writer.Header().Set("Content-Type", "application/json")
+}
+
 func (handler *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var registerDTO dto.RegisterDTO
 	err := json.NewDecoder(r.Body).Decode(&registerDTO)
