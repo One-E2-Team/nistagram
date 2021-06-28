@@ -4,6 +4,7 @@ import (
 	"math"
 	"nistagram/connection/dto"
 	"nistagram/connection/model"
+	"nistagram/util"
 )
 
 func (service *Service) AddOrUpdateProfile(profile model.ProfileVertex) (*model.ProfileVertex, bool) {
@@ -21,7 +22,7 @@ func (service *Service) GetRecommendations(id uint) (*[]dto.ProfileRecommendatio
 	var ret = make([]dto.ProfileRecommendationDTO, 0)
 	for key, degVals := range *degrees {
 		ret = append(ret, dto.ProfileRecommendationDTO{
-			Username:   getProfile(key).Username,
+			Username:   util.GetProfile(key).Username,
 			ProfileID:  key,
 			Confidence: rankingAlgorithm(degVals),
 		})

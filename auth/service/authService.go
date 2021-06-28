@@ -15,6 +15,29 @@ type AuthService struct {
 	AuthRepository *repository.AuthRepository
 }
 
+func (service *AuthService) AgentLoginAPIToken(data dto.APILoginDTO) (*dto.TokenResponseDTO, error) {
+	user, err := service.AuthRepository.GetUserByEmail(data.Email)
+	if err != nil {
+		return nil, fmt.Errorf("'" + data.Email + "' " + err.Error())
+	}
+	if err = bcrypt.CompareHashAndPassword([]byte(user.APIToken), []byte(data.ApiToken)); err == nil {
+		token, err := util.CreateAgentToken(user.ProfileId)
+		if err != nil {
+			return nil, fmt.Errorf("'" + data.Email + "' " + err.Error())
+		}
+		resp := dto.TokenResponseDTO{
+			Token:     token,
+			Email:     user.Email,
+			Username:  user.Username,
+			ProfileId: user.ProfileId,
+			Roles:     user.Roles,
+		}
+		return &resp, nil
+	} else {
+		return nil, fmt.Errorf("'" + data.Email + "' submitted invalid api token")
+	}
+}
+
 func (service *AuthService) LogIn(dto dto.LogInDTO) (*model.User, error) {
 	user, err := service.AuthRepository.GetUserByEmail(dto.Email)
 	if err != nil {
@@ -165,7 +188,23 @@ func (service *AuthService) GetAgentAPIToken(loggedUserID uint) (string, error) 
 	}
 	apiToken := uuid.NewString()
 	user.APIToken = hashAndSalt(apiToken)
-	service.AuthRepository.UpdateUser(*user)
+	role, err := service.AuthRepository.GetRoleByName("AGENT_API_CLIENT")
+	if err != nil {
+		return "", err
+	}
+	var hasRole = false
+	for _, val := range user.Roles {
+		if val.Name == "AGENT_API_CLIENT" {
+			hasRole = true
+		}
+	}
+	if !hasRole {
+		user.Roles = append(user.Roles, *role)
+	}
+	err = service.AuthRepository.UpdateUser(*user)
+	if err != nil {
+		return "", err
+	}
 	return apiToken, nil
 }
 

@@ -1,9 +1,14 @@
 package util
 
 import (
+	"encoding/json"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"io"
+	"io/ioutil"
+	"net/http"
 	"net/smtp"
+	"nistagram/profile/model"
 	"os"
 	"strconv"
 	"strings"
@@ -72,4 +77,62 @@ func IsCloseFriend(array []FollowingProfileDTO, el uint) bool {
 type FollowingProfileDTO struct {
 	ProfileID        uint     `json:"profileID"`
 	CloseFriend 	 bool     `json:"closeFriend"`
+}
+
+func GetProfile(id uint) *model.Profile {
+	var p model.Profile
+	profileHost, profilePort := GetProfileHostAndPort()
+	resp, err := CrossServiceRequest(http.MethodGet,
+		GetCrossServiceProtocol()+"://"+profileHost+":"+profilePort+"/get-by-id/"+Uint2String(id),
+		nil, map[string]string{})
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+
+		}
+	}(resp.Body)
+	body, err1 := ioutil.ReadAll(resp.Body)
+	if err1 != nil {
+		fmt.Println(err1)
+		return nil
+	}
+	err = json.Unmarshal(body, &p)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	return &p
+}
+
+func GetUserPrivileges(id uint) ([]string, bool) {
+	authHost, authPort := GetAuthHostAndPort()
+	resp, err := CrossServiceRequest(http.MethodGet,
+		GetCrossServiceProtocol()+"://"+authHost+":"+authPort+"/privileges/"+Uint2String(id),
+		nil, map[string]string{})
+	if err != nil {
+		fmt.Println(err)
+		return nil, false
+	}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(resp.Body)
+	body, err1 := ioutil.ReadAll(resp.Body)
+	if err1 != nil {
+		fmt.Println(err1)
+		return nil, false
+	}
+	var privileges []string
+	err = json.Unmarshal(body, &privileges)
+	if err != nil {
+		fmt.Println(err)
+		return nil, false
+	}
+	return privileges, true
 }

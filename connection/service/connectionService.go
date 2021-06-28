@@ -71,7 +71,7 @@ func (service *Service) GetProfilesInFollowRelationship(conn model.ConnectionEdg
 	}
 	ret := make([]dto.UserDTO, 0)
 	for _, val := range *profiles {
-		p := getProfile(val)
+		p := util.GetProfile(val)
 		if p == nil {
 			continue
 		}
@@ -103,7 +103,7 @@ func (service *Service) FollowRequest(followerId, profileId uint) (*model.Connec
 	if connection.Approved {
 		return nil, false
 	}
-	profile2 := getProfile(profileId)
+	profile2 := util.GetProfile(profileId)
 	if profile2 == nil {
 		return nil, false
 	}
@@ -137,8 +137,8 @@ func (service *Service) ApproveConnection(followerId, profileId uint) (*model.Co
 	if okSelect && connection == nil {
 		return connection, false
 	}
-	profile1 := getProfile(followerId)
-	profile2 := getProfile(profileId)
+	profile1 := util.GetProfile(followerId)
+	profile2 := util.GetProfile(profileId)
 	if profile1 == nil || profile2 == nil {
 		return nil, false
 	}
