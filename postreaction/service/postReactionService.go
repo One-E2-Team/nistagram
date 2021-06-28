@@ -32,7 +32,23 @@ func (service *PostReactionService) ReactOnPost(postID string, loggedUserID uint
 		return fmt.Errorf("CANNOT REACT ON DELETED POST")
 	}
 	reaction := model.Reaction{ReactionType: reactionType, PostID: postID, ProfileID: loggedUserID}
-	return service.PostReactionRepository.ReactOnPost(&reaction)
+	err = service.PostReactionRepository.ReactOnPost(&reaction)
+	if err != nil{
+		return err
+	}
+	if post.IsCampaign{
+		go func() {
+			event := &dto.EventDTO{Type: model.GetReactionTypeString(reactionType),
+				PostId: post.ID.Hex(), ProfileId: loggedUserID}
+			err = saveToMonitoringMs(event)
+			if err != nil {
+				fmt.Println("Monitoring bug!")
+				fmt.Println(err)
+			}
+		}()
+
+	}
+	return nil
 }
 
 func (service *PostReactionService) DeleteReaction(postID string, loggedUserID uint) error {
@@ -372,4 +388,17 @@ func getProfileByUsername(username string) (*http.Response, error) {
 		util.GetCrossServiceProtocol()+"://"+profileHost+":"+profilePort+"/get/"+username,
 		nil, map[string]string{})
 	return resp, err
+}
+
+func saveToMonitoringMs(eventDto *dto.EventDTO) error{
+	body, _ := json.Marshal(map[string]string{
+		"type": 		 eventDto.Type,
+		"postId":  		 eventDto.PostId,
+		"profileId":     util.Uint2String(eventDto.ProfileId),
+	})
+	monitoringHost, monitoringPort := util.GetMonitoringHostAndPort()
+	_, err := util.CrossServiceRequest(http.MethodPost,
+		util.GetCrossServiceProtocol()+"://"+monitoringHost+":"+monitoringPort+"/",
+		body, map[string]string{"Content-Type": "application/json;"})
+	return err
 }

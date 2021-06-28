@@ -6,9 +6,10 @@ import (
 
 type Event struct {
 	OriginalPostId        uint      	`json:"originalPostId"`
-	WebSite 			  string		`json:"webSite"`
+	EventType			  EventType		`json:"eventType"`
 	InfluencerUsername 	  string		`json:"influencerUsername"`
 	Timestamp   		  time.Time 	`json:"timestamp"`
 	CampaignId        	  uint      	`json:"campaignId"`
 	Interests			  []string		`json:"interests"`
+	WebSite 			  string		`json:"webSite"`
 }
