@@ -25,7 +25,22 @@ func (service *MonitoringService) CreateEventInfluencer(eventDto dto.EventDTO) e
 }
 
 func (service *MonitoringService) CreateEventTargetGroup(eventDto dto.EventDTO) error{
-	interests, err := getPersonalData(eventDto.ProfileId)
+	profilesInterests, err := getPersonalDataFromProfileMs(eventDto.ProfileId)
+	if err != nil{
+		return err
+	}
+	campaignInterests, err := getInterestsFromCampaignMs(eventDto.CampaignId)
+	if err != nil{
+		return err
+	}
+	var interests []string
+	for _, profInt := range profilesInterests{
+		for _, campInt := range campaignInterests{
+			if profInt == campInt{
+				interests = append(interests, profInt)
+			}
+		}
+	}
 
 	if err != nil{
 		return err
@@ -39,7 +54,7 @@ func (service *MonitoringService) CreateEventTargetGroup(eventDto dto.EventDTO) 
 	return err
 }
 
-func getPersonalData(profileId uint) ([]string, error){
+func getPersonalDataFromProfileMs(profileId uint) ([]string, error){
 	profileHost, profilePort := util.GetProfileHostAndPort()
 	resp, err := util.CrossServiceRequest(http.MethodGet,
 		util.GetCrossServiceProtocol()+"://"+profileHost+":"+profilePort+"/personal-data/"+ util.Uint2String(profileId),
@@ -62,4 +77,20 @@ func getPersonalData(profileId uint) ([]string, error){
 	}
 
 	return ret, nil
+}
+
+func getInterestsFromCampaignMs(campaignId uint) ([]string, error){
+	campHost, campPort := util.GetCampaignHostAndPort()
+	resp, err := util.CrossServiceRequest(http.MethodGet,
+		util.GetCrossServiceProtocol()+"://"+campHost+":"+campPort+"/interests/"+ util.Uint2String(campaignId),
+		nil, map[string]string{})
+
+	var ret []string
+	if err != nil{
+		return ret, err
+	}
+
+	err = json.NewDecoder(resp.Body).Decode(&ret)
+
+	return ret, err
 }

@@ -68,3 +68,13 @@ func (repo *CampaignRepository) GetInterests(interests []string) []model.Interes
 	}
 	return ret
 }
+
+func (repo *CampaignRepository) GetParametersByCampaignId(campaignId uint) (model.CampaignParameters, error) {
+	var ret model.CampaignParameters
+
+	err := repo.Database.Table("campaign_parameters").Preload("Interests").
+		Find(&ret).Where("campaign_id = ?", campaignId).
+		Where("start <= ?", time.Now()).Where("end >= ?", time.Now()).Error
+
+	return ret, err
+}

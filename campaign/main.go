@@ -88,6 +88,8 @@ func handlerFunc(handler *handler.CampaignHandler) {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/campaign", handler.CreateCampaign).Methods("POST")
 	router.HandleFunc("/campaign/{id}", handler.UpdateCampaignParameters).Methods("PUT")
+	router.HandleFunc("/interests/{campaignId}",
+		util.MSAuth(handler.GetCurrentlyValidInterests, []string{"monitoring"})).Methods("GET")
 	host, port := util.GetCampaignHostAndPort()
 	var err error
 	if util.DockerChecker() {

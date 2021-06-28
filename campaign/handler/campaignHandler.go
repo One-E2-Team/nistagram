@@ -53,3 +53,24 @@ func (handler CampaignHandler) UpdateCampaignParameters(w http.ResponseWriter, r
 
 	w.Header().Set("Content-Type", "application/json")
 }
+
+func (handler CampaignHandler) GetCurrentlyValidInterests(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	campaignId := params["campaignId"]
+
+	interests, err := handler.CampaignService.GetCurrentlyValidInterests(util.String2Uint(campaignId))
+	if err != nil{
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	err = json.NewEncoder(w).Encode(interests)
+	if err != nil{
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+}

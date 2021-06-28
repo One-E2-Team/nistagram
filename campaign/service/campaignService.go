@@ -105,5 +105,16 @@ func makeCampaign(postID string, loggedUserID uint) error {
 	return nil
 }
 
+func (service *CampaignService) GetCurrentlyValidInterests(campaignId uint) ([]string,error) {
+	var ret []string
+	parameters, err := service.CampaignRepository.GetParametersByCampaignId(campaignId)
+
+	for _, i := range parameters.Interests{
+		ret = append(ret, i.Name)
+	}
+
+	return ret, err
+}
+
 
 
