@@ -90,22 +90,6 @@ func (service *ProductService) CreateOrder(dto dto.OrderDTO, loggedUserId uint) 
 	return err
 }
 
-func (service *ProductService) GetProductById(productId uint) (*dto.ShowProductDTO, error){
-	p, err := service.ProductRepository.GetProductById(productId)
-	if err != nil {
-		return nil, err
-	}
-	agentProduct, err := service.ProductRepository.GetValidAgentProductByProductId(p.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	retItem := &dto.ShowProductDTO{ID: p.ID, Name: p.Name, PicturePath: p.PicturePath,
-		PricePerItem: agentProduct.PricePerItem, Quantity: agentProduct.Quantity}
-	
-	return retItem, err
-}
-
 func (service *ProductService) makeOrder(dto dto.OrderDTO, loggedUserId uint) (*model.Order, error) {
 	var items []model.Item
 	var agentId uint

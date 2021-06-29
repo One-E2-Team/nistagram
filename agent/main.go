@@ -128,7 +128,6 @@ func handlerFunc(authHandler *handler.AuthHandler, productHandler *handler.Produ
 	router.HandleFunc("/product",
 		authHandler.AuthService.RBAC(productHandler.CreateProduct, "CREATE_PRODUCT", false)).Methods("POST")
 	router.HandleFunc("/product", productHandler.GetAllProducts).Methods("GET")
-	router.HandleFunc("/product/{id}", productHandler.GetProductById).Methods("GET")
 	router.HandleFunc("/product/{id}",
 		authHandler.AuthService.RBAC(productHandler.DeleteProduct, "DELETE_PRODUCT", false)).Methods("DELETE")
 	router.HandleFunc("/product",
