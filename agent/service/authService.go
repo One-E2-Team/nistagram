@@ -24,7 +24,7 @@ func (service *AuthService) Register(dto dto.RegisterDTO) error {
 	}
 
 	user := model.User{Email: dto.Email, Password: pass,Address: dto.Address, ValidationUid: uuid.NewString(),
-		Roles: []model.Role{*role}, IsValidated: false, ValidationExpire: time.Now().Add(1 * time.Hour)}
+		Roles: []model.Role{*role}, IsValidated: false, ValidationExpire: time.Now().Add(1 * time.Hour), APIToken: util.EncryptedString{}}
 	err = service.AuthRepository.CreateUser(&user)
 	if err != nil {
 		return err
@@ -114,6 +114,15 @@ func (service *AuthService) ValidateUser(id string, uuid string) error {
 	user.ValidationExpire = time.Now()
 	err = service.AuthRepository.UpdateUser(*user)
 	return err
+}
+
+func (service *AuthService) CreateAPIToken(apiToken string, loggedUserID uint) error {
+	user, err := service.AuthRepository.GetUserByProfileID(loggedUserID)
+	if err != nil {
+		return err
+	}
+	user.APIToken.Data = apiToken
+	return service.AuthRepository.UpdateUser(*user)
 }
 
 func hashAndSalt(pass string) string {
