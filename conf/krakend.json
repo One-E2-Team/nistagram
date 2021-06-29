@@ -1962,6 +1962,32 @@
           "target": ""
         }
       ]
+    },
+    {
+      "endpoint": "/redirect/{campaignId}/{influencerId}/{mediaId}",
+      "method": "GET",
+      "output_encoding": "no-op",
+      "extra_config": {},
+      "backend": [
+        {
+          "url_pattern": "/redirect/{campaignId}/{influencerId}/{mediaId}",
+          "encoding": "no-op",
+          "sd": "static",
+          "method": "GET",
+          "extra_config": {
+            "github.com/devopsfaith/krakend/transport/http/client/executor": {
+              "name": "krakend-redirect"
+            }
+          },
+          "host": [
+            "https://monitoring:8080"
+          ],
+          "disable_host_sanitize": false
+        }
+      ],
+      "headers_to_pass": [
+        "Authorization"
+      ]
     }
   ],
   "read_timeout": "0s",

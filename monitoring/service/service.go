@@ -53,7 +53,7 @@ func (service *MonitoringService) CreateEventTargetGroup(eventDto dto.EventDTO) 
 	return err
 }
 
-func (service *MonitoringService) VisitSite(campaignId uint, influencerId uint,loggedUserId uint, mediaId uint) (string, error){
+func (service *MonitoringService) VisitSite(campaignId uint, influencerId uint,loggedUserId uint, mediaId string) (string, error){
 
 	webSite, err := getMediaByIdFromPostMs(mediaId)
 	if err != nil {
@@ -119,10 +119,10 @@ func getInterestsFromCampaignMs(campaignId uint) ([]string, error){
 	return ret, err
 }
 
-func getMediaByIdFromPostMs(mediaId uint) (string, error){
+func getMediaByIdFromPostMs(mediaId string) (string, error){
 	postHost, postPort := util.GetPostHostAndPort()
 	resp, err := util.CrossServiceRequest(http.MethodGet,
-		util.GetCrossServiceProtocol()+"://"+postHost+":"+postPort+"/media/"+ util.Uint2String(mediaId),
+		util.GetCrossServiceProtocol()+"://"+postHost+":"+postPort+"/media/"+ mediaId,
 		nil, map[string]string{})
 
 	var dto dto.MediaDTO
