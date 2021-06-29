@@ -154,3 +154,20 @@ func (handler *ProductHandler) CreateOrder(w http.ResponseWriter, r *http.Reques
 	_, _ = w.Write([]byte("{\"message\":\"ok\"}"))
 	w.Header().Set("Content-Type", "application/json")
 }
+
+func (handler *ProductHandler) GetProductById(w http.ResponseWriter, r *http.Request){
+	vars := mux.Vars(r)
+	productId := util.String2Uint(vars["id"])
+
+	result, err := handler.ProductService.GetProductById(productId)
+	if err != nil{
+		fmt.Println(err)
+		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(result)
+	w.Header().Set("Content-Type", "application/json")
+}
