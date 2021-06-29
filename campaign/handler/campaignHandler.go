@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	"gorm.io/gorm"
 	"net/http"
 	"nistagram/campaign/dto"
 	"nistagram/campaign/service"
@@ -52,6 +53,20 @@ func (handler CampaignHandler) UpdateCampaignParameters(w http.ResponseWriter, r
 	}
 
 	w.Header().Set("Content-Type", "application/json")
+}
+
+
+func (handler CampaignHandler) DeleteCampaign(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	campaignId := params["id"]
+	switch err := handler.CampaignService.DeleteCampaign(util.String2Uint(campaignId)); err {
+	case gorm.ErrRecordNotFound:
+		w.WriteHeader(http.StatusNotFound)
+	case nil:
+		w.WriteHeader(http.StatusOK)
+	default:
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }
 
 func (handler CampaignHandler) GetCurrentlyValidInterests(w http.ResponseWriter, r *http.Request) {

@@ -83,6 +83,10 @@ func (service *CampaignService) UpdateCampaignParameters(id uint, params dto.Cam
 	return service.CampaignRepository.UpdateCampaignParameters(newParams)
 }
 
+func (service *CampaignService) DeleteCampaign(id uint) error {
+	return service.CampaignRepository.DeleteCampaign(id)
+}
+
 func getCampaignTypeFromRequest(start time.Time,end time.Time, timestampsLength int) model.CampaignType{
 	if start.Equal(end) && timestampsLength == 1 {
 		return model.ONE_TIME
