@@ -44,6 +44,12 @@ const routes = [{
     component: () =>
       import ('./../components/EditProduct.vue')
   },
+  {
+    path: '/product/:id',
+    name: 'Product',
+    component: () =>
+      import ('./../components/Product.vue')
+  },
 ]
 const router = new VueRouter({
   routes

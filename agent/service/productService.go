@@ -90,6 +90,10 @@ func (service *ProductService) CreateOrder(dto dto.OrderDTO, loggedUserId uint) 
 	return err
 }
 
+func (service *ProductService) GetProductById(productId uint) (*model.Product, error){
+	return service.ProductRepository.GetProductById(productId)
+}
+
 func (service *ProductService) makeOrder(dto dto.OrderDTO, loggedUserId uint) (*model.Order, error) {
 	var items []model.Item
 	var agentId uint
