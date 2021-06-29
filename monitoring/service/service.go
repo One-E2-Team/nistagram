@@ -17,7 +17,8 @@ type MonitoringService struct {
 func (service *MonitoringService) CreateEventInfluencer(eventDto dto.EventDTO) error{
 	var interests []string
 	event := &model.Event{OriginalPostId: eventDto.PostId,
-		EventType: model.GetEventType(eventDto.EventType), InfluencerUsername: eventDto.InfluencerUsername,
+		EventType: model.GetEventType(eventDto.EventType), WebSite: eventDto.WebSite,
+		InfluencerId: eventDto.InfluencerId,
 	Timestamp: time.Now(), CampaignId: eventDto.CampaignId, Interests: interests}
 
 	err := service.MonitoringRepository.Create(event)
@@ -25,33 +26,56 @@ func (service *MonitoringService) CreateEventInfluencer(eventDto dto.EventDTO) e
 }
 
 func (service *MonitoringService) CreateEventTargetGroup(eventDto dto.EventDTO) error{
-	profilesInterests, err := getPersonalDataFromProfileMs(eventDto.ProfileId)
-	if err != nil{
-		return err
-	}
-	campaignInterests, err := getInterestsFromCampaignMs(eventDto.CampaignId)
-	if err != nil{
-		return err
-	}
 	var interests []string
-	for _, profInt := range profilesInterests{
-		for _, campInt := range campaignInterests{
-			if profInt == campInt{
-				interests = append(interests, profInt)
+	if eventDto.ProfileId != 0{
+		profilesInterests, err := getPersonalDataFromProfileMs(eventDto.ProfileId)
+		if err != nil{
+			return err
+		}
+		campaignInterests, err := getInterestsFromCampaignMs(eventDto.CampaignId)
+		if err != nil{
+			return err
+		}
+		for _, profInt := range profilesInterests{
+			for _, campInt := range campaignInterests{
+				if profInt == campInt{
+					interests = append(interests, profInt)
+				}
 			}
 		}
 	}
 
-	if err != nil{
-		return err
-	}
-
 	event := &model.Event{OriginalPostId: eventDto.PostId,
-		EventType: model.GetEventType(eventDto.EventType), InfluencerUsername: eventDto.InfluencerUsername,
+		EventType: model.GetEventType(eventDto.EventType), WebSite: eventDto.WebSite, InfluencerId: eventDto.InfluencerId,
 		Timestamp: time.Now(), CampaignId: eventDto.CampaignId, Interests: interests}
 
-	err = service.MonitoringRepository.Create(event)
+	err := service.MonitoringRepository.Create(event)
 	return err
+}
+
+func (service *MonitoringService) VisitSite(campaignId uint, influencerId uint,loggedUserId uint, mediaId uint) (string, error){
+
+	webSite, err := getMediaByIdFromPostMs(mediaId)
+	if err != nil {
+		return "", err
+	}
+
+	eventDto := &dto.EventDTO{EventType: "visit", PostId: "", WebSite: webSite,
+		ProfileId: loggedUserId, CampaignId: campaignId, InfluencerId: influencerId}
+
+	if influencerId != 0{
+		err := service.CreateEventInfluencer(*eventDto)
+		if err != nil{
+			return webSite, err
+		}
+	}else{
+		err := service.CreateEventTargetGroup(*eventDto)
+		if err != nil{
+			return webSite, err
+		}
+	}
+
+	return webSite, err
 }
 
 func getPersonalDataFromProfileMs(profileId uint) ([]string, error){
@@ -93,4 +117,20 @@ func getInterestsFromCampaignMs(campaignId uint) ([]string, error){
 	err = json.NewDecoder(resp.Body).Decode(&ret)
 
 	return ret, err
+}
+
+func getMediaByIdFromPostMs(mediaId uint) (string, error){
+	postHost, postPort := util.GetPostHostAndPort()
+	resp, err := util.CrossServiceRequest(http.MethodGet,
+		util.GetCrossServiceProtocol()+"://"+postHost+":"+postPort+"/media/{id}"+ util.Uint2String(mediaId),
+		nil, map[string]string{})
+
+	var dto dto.MediaDTO
+	if err != nil{
+		return "", err
+	}
+
+	err = json.NewDecoder(resp.Body).Decode(&dto)
+
+	return dto.WebSite, err
 }

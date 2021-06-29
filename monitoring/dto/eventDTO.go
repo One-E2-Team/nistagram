@@ -6,5 +6,5 @@ type EventDTO struct {
 	ProfileId		uint		`json:"profileId"`
 	CampaignId		uint		`json:"campaignId"`
 	InfluencerId	uint		`json:"influencerId"`
-	InfluencerUsername	string	`json:"influencerUsername"`
+	WebSite 		string		`json:"webSite"`
 }

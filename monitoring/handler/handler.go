@@ -3,9 +3,11 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/mux"
 	"net/http"
 	"nistagram/monitoring/dto"
 	"nistagram/monitoring/service"
+	"nistagram/util"
 )
 
 type Handler struct {
@@ -57,5 +59,26 @@ func (handler *Handler) CreateEventTargetGroup(w http.ResponseWriter, r *http.Re
 
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write([]byte("{\"message\":\"ok\"}"))
+	w.Header().Set("Content-Type", "application/json")
+}
+
+func (handler *Handler) VisitSite(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	campaignId := util.String2Uint(vars["campaignId"])
+	influencerId := util.String2Uint(vars["influencerId"])
+	mediaId := util.String2Uint(vars["mediaId"])
+
+	loggedUserId := util.GetLoggedUserIDFromToken(r)
+
+	website, err := handler.MonitoringService.VisitSite(campaignId, influencerId, loggedUserId, mediaId)
+	if err != nil{
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(website)
 	w.Header().Set("Content-Type", "application/json")
 }

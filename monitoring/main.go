@@ -65,6 +65,8 @@ func handleFunc(handler *handler.Handler) {
 		util.MSAuth(handler.CreateEventInfluencer, []string{"postreaction"})).Methods("POST")
 	router.HandleFunc("/target-group",
 		util.MSAuth(handler.CreateEventTargetGroup, []string{"postreaction"})).Methods("POST")
+	router.HandleFunc("/redirect/{campaignId}/{influencerId}/{mediaId}",
+		util.MSAuth(handler.VisitSite, []string{"postreaction"})).Methods("GET")
 
 	fmt.Println("Starting server..")
 	host, port := util.GetMonitoringHostAndPort()
