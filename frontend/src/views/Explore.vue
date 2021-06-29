@@ -2,20 +2,16 @@
     <v-container fluid>
       <search  v-on:searched-result='loadSearchResult($event)' />
 
-      <v-sheet
-        class="mx-auto"
-        elevation="1"
-        max-width="900"
-      >
-    <v-slide-group v-if="searchType == 'posts'" class="pa-4" >
-      <v-slide-item v-for="s in stories" :key="s._id" >
-        <div class="mx-3">
-          <show-story-modal  :post="s.post"/>
-          <h3>{{s.post.publisherUsername}}</h3>
-        </div>
-      </v-slide-item>
-    </v-slide-group>
-  </v-sheet>
+      <v-sheet class="mx-auto" elevation="1" max-width="900" >
+        <v-slide-group v-if="searchType == 'posts'" class="pa-4" >
+          <v-slide-item v-for="s in stories" :key="s._id" >
+            <div class="mx-3">
+              <show-story-modal  :post="s.post"/>
+              <h3>{{s.post.publisherUsername}}</h3>
+            </div>
+          </v-slide-item>
+        </v-slide-group>
+      </v-sheet>
         <v-row>
           <v-col></v-col>
         </v-row>
