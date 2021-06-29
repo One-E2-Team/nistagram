@@ -1,7 +1,7 @@
 <template>
     <v-container fluid>
       <v-sheet class="mx-auto" elevation="1" max-width="900" >
-        <v-slide-group v-if="searchType == 'posts'" class="pa-4" >
+        <v-slide-group class="pa-4" >
           <v-slide-item v-for="s in stories" :key="s._id" >
             <div class="mx-3">
               <show-story-modal  :post="s.post"/>
@@ -24,7 +24,7 @@
 <script>
   import axios from 'axios'
   import * as comm from '../configuration/communication.js'
-  import Post from './Posts/Post.vue'
+  import Post from '../components/Posts/Post.vue'
   import ShowStoryModal from '../modals/showStoryModal.vue'
   export default {
   components: { Post, ShowStoryModal },

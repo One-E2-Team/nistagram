@@ -192,12 +192,12 @@ func (repo *PostRepository) GetPostsForHomePage(followingProfiles []util.Followi
 	for cursor.Next(context.TODO()) {
 		var result model.Post
 		err = cursor.Decode(&result)
-		if util.IsFollowed(followingProfiles, result.PublisherId) {
+		if util.IsFollowed(followingProfiles, result.PublisherId) && !result.IsDeleted {
 			if result.PostType == model.GetPostType("story") {
-				if result.IsCloseFriendsOnly && !util.IsCloseFriend(followingProfiles, result.PublisherId){
-						continue
-					}
+				if result.IsCloseFriendsOnly && !util.IsCloseFriend(followingProfiles, result.PublisherId) {
+					continue
 				}
+
 				duration, err := time.ParseDuration("24h")
 				if err != nil {
 					return nil, err
@@ -209,6 +209,7 @@ func (repo *PostRepository) GetPostsForHomePage(followingProfiles []util.Followi
 				posts = append(posts, result)
 			}
 		}
+	}
 
 	return posts, nil
 }
