@@ -19,6 +19,22 @@ func GetAgentProtocol() string {
 	return "http"
 }
 
+func GetNistagramHostAndPort() (string, string) {
+	var nistagramHost, nistagramPort = "localhost", "81"
+	if DockerChecker() {
+		nistagramHost = "apigateway"
+		nistagramPort = "80"
+	}
+	return nistagramHost, nistagramPort
+}
+
+func GetNistagramProtocol() string {
+	if DockerChecker(){
+		return "https"
+	}
+	return "http"
+}
+
 func DockerChecker() bool {
 	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD") // dev production environment
 	_, ok1 := os.LookupEnv("DOCKER_ENV_SET_DEV") // dev front environment

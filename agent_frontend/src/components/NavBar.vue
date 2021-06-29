@@ -6,13 +6,21 @@
           color="blue"
           dense
         >
-        <button @click="goToHomePage()"><img src="../assets/home.png" width="65" height="65"></button>
-        <v-spacer></v-spacer>
-        <button @click="goToNewProduct()"><img src="../assets/add.png" width="40" height="40"></button>
-        <button @click="showCartModal()"><img src="../assets/cart.png" width="40" height="40"></button>
-        <!--<v-col cols="12" sm="1" class="float-right">
-              <settings v-if="isUserLogged"/>
-        </v-col>-->
+        <v-col cols="12" sm="4">
+          <button @click="goToHomePage()"><img src="../assets/home.png" width="65" height="65"></button>
+          <v-spacer></v-spacer>
+        </v-col>
+        <v-col cols="12" sm="4">
+          <router-link :to="{ name: 'MyPosts'}">Posts</router-link> 
+          <router-link :to="{ name: 'MyCampaigns'}">Campaigns</router-link> 
+        </v-col>
+        <v-col cols="12" sm="4">
+          <button @click="goToNewProduct()"><img src="../assets/add.png" width="40" height="40"></button>
+          <button @click="showCartModal()"><img src="../assets/cart.png" width="40" height="40"></button>
+          <!--<v-col cols="12" sm="1" class="float-right">
+                <settings v-if="isUserLogged"/>
+          </v-col>-->
+        </v-col>
         </v-app-bar>
       </v-row>
     </v-container>

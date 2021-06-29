@@ -1964,6 +1964,25 @@
       ]
     },
     {
+      "endpoint": "/agent-api/auth/login/apitoken",
+      "method": "POST",
+      "output_encoding": "string",
+      "extra_config": {},
+      "backend": [
+        {
+          "url_pattern": "/login/apitoken",
+          "encoding": "string",
+          "sd": "static",
+          "method": "POST",
+          "extra_config": {},
+          "host": [
+            "https://auth:8080"
+          ],
+          "disable_host_sanitize": false
+        }
+      ]
+	  },
+	  {
       "endpoint": "/redirect/{campaignId}/{influencerId}/{mediaId}",
       "method": "GET",
       "output_encoding": "no-op",

@@ -78,7 +78,7 @@ func (handler *AuthHandler) LogInAgentAPI(writer http.ResponseWriter, request *h
 	}
 	writer.WriteHeader(http.StatusOK)
 	_, _ = writer.Write(respJson)
-	writer.Header().Set("Content-Type", "application/json")
+	writer.Header().Set("Content-Type", "text/plain")
 }
 
 func (handler *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
