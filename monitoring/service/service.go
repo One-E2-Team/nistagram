@@ -122,7 +122,7 @@ func getInterestsFromCampaignMs(campaignId uint) ([]string, error){
 func getMediaByIdFromPostMs(mediaId uint) (string, error){
 	postHost, postPort := util.GetPostHostAndPort()
 	resp, err := util.CrossServiceRequest(http.MethodGet,
-		util.GetCrossServiceProtocol()+"://"+postHost+":"+postPort+"/media/{id}"+ util.Uint2String(mediaId),
+		util.GetCrossServiceProtocol()+"://"+postHost+":"+postPort+"/media/"+ util.Uint2String(mediaId),
 		nil, map[string]string{})
 
 	var dto dto.MediaDTO

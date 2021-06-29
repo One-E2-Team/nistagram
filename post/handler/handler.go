@@ -403,6 +403,28 @@ func (handler *Handler) MakeCampaign(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 }
 
+func (handler Handler) GetMediaById(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	mediaId := template.HTMLEscapeString(params["id"])
+
+	result, err := handler.PostService.GetMediaById(mediaId)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	err = json.NewEncoder(w).Encode(result)
+	if err != nil{
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+}
+
 func safePostDto(postDto dto.PostDto) dto.PostDto {
 	postDto.Description = template.HTMLEscapeString(postDto.Description)
 	postDto.HashTags = template.HTMLEscapeString(postDto.HashTags)

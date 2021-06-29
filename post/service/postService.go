@@ -163,6 +163,10 @@ func (service *PostService) MakeCampaign(postID string, agentID uint) error {
 	return service.PostRepository.MakeCampaign(id)
 }
 
+func (service *PostService) GetMediaById(mediaId string) (model.Media,error) {
+	return service.PostRepository.GetMediaById(mediaId)
+}
+
 func deletePostsReports(postId primitive.ObjectID) error {
 	postReactionHost, postReactionPort := util.GetPostReactionHostAndPort()
 	_, err := util.CrossServiceRequest(http.MethodDelete,

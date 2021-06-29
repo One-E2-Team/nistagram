@@ -309,6 +309,37 @@ func (repo *PostRepository) MakeCampaign(id primitive.ObjectID) error {
 	return nil
 }
 
+func (repo *PostRepository) GetMediaById(id string) (model.Media, error) {
+	var ret_media model.Media
+	mediaId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return ret_media, err
+	}
+	collection := repo.getCollection()
+
+	filter := bson.D{{"media", bson.M{"_id" : mediaId}}}
+
+	cursor, err := collection.Find(context.TODO(), filter)
+	if err != nil {
+		return ret_media, err
+	}
+
+	var post model.Post
+
+	for cursor.Next(context.TODO()) {
+		err = cursor.Decode(&post)
+	}
+
+
+	for _, media := range post.Medias{
+		if media.ID == mediaId{
+			ret_media = media
+		}
+	}
+
+	return ret_media, nil
+}
+
 func (repo *PostRepository) updateMany(filter bson.D, update bson.D) error {
 	collection := repo.getCollection()
 

@@ -78,7 +78,6 @@ func (handler *Handler) VisitSite(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(website)
+	http.Redirect(w, r, website, http.StatusSeeOther)
 	w.Header().Set("Content-Type", "application/json")
 }

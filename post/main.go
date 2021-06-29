@@ -85,6 +85,8 @@ func handleFunc(handler *handler.Handler) {
 	router.HandleFunc("/{id}",
 		util.RBAC(handler.DeletePost, "DELETE_POST", false)).Methods("DELETE") // frontend func
 	router.HandleFunc("/{id}", handler.UpdatePost).Methods("PUT")
+	router.HandleFunc("/media/{id}",
+		util.MSAuth(handler.GetMediaById, []string{"monitoring"})).Methods("GET")
 	fmt.Println("Starting server..")
 	host, port := util.GetPostHostAndPort()
 	var err error
