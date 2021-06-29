@@ -22,6 +22,9 @@ func (es *EncryptedString) Scan(value interface{}) error {
 	}
 	key := []byte(env)
 	ciphertext := value.([]byte)
+	if len(ciphertext) == 0 {
+		es.Data = ""
+	}
 	c, err := aes.NewCipher(key)
 	if err != nil {
 		fmt.Println(err)
@@ -49,6 +52,9 @@ func (es *EncryptedString) Scan(value interface{}) error {
 
 func (es EncryptedString) Value() (driver.Value, error) {
 	text := []byte(es.Data)
+	if len(text) == 0 {
+		return text, nil
+	}
 	env := os.Getenv("DB_SEC_ENC")
 	if env == "" {
 		env = "iMaMaEsBaByRADOSiMaMaEsBaByRADOS"
@@ -69,5 +75,7 @@ func (es EncryptedString) Value() (driver.Value, error) {
 		fmt.Println(err)
 		return nil, err
 	}
-	return gcm.Seal(nonce, nonce, text, nil), nil
+
+	x := gcm.Seal(nonce, nonce, text, nil)
+	return x, nil
 }

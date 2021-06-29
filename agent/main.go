@@ -135,6 +135,8 @@ func handlerFunc(authHandler *handler.AuthHandler, productHandler *handler.Produ
 		authHandler.AuthService.RBAC(productHandler.UpdateProduct, "UPDATE_PRODUCT", false)).Methods("PUT")
 	router.HandleFunc("/order",
 		authHandler.AuthService.RBAC(productHandler.CreateOrder, "CREATE_ORDER", false)).Methods("POST")
+	router.HandleFunc("/api-token",
+		authHandler.AuthService.RBAC(authHandler.CreateAPIToken, "CREATE_TOKEN", false)).Methods("POST")
 	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD")
 	_, ok1 := os.LookupEnv("DOCKER_ENV_SET_DEV")
 	var agentHost, agentPort = "localhost", "9000" // dev_db
