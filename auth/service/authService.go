@@ -15,7 +15,7 @@ type AuthService struct {
 	AuthRepository *repository.AuthRepository
 }
 
-func (service *AuthService) AgentLoginAPIToken(data dto.APILoginDTO) (*dto.TokenResponseDTO, error) {
+func (service *AuthService) AgentLoginAPIToken(data dto.APILoginDTO) (*string, error) {
 	user, err := service.AuthRepository.GetUserByEmail(data.Email)
 	if err != nil {
 		return nil, fmt.Errorf("'" + data.Email + "' " + err.Error())
@@ -25,14 +25,7 @@ func (service *AuthService) AgentLoginAPIToken(data dto.APILoginDTO) (*dto.Token
 		if err != nil {
 			return nil, fmt.Errorf("'" + data.Email + "' " + err.Error())
 		}
-		resp := dto.TokenResponseDTO{
-			Token:     token,
-			Email:     user.Email,
-			Username:  user.Username,
-			ProfileId: user.ProfileId,
-			Roles:     user.Roles,
-		}
-		return &resp, nil
+		return &token, nil
 	} else {
 		return nil, fmt.Errorf("'" + data.Email + "' submitted invalid api token")
 	}

@@ -38,7 +38,7 @@
 <script>
 import axios from 'axios'
 import * as comm from '../configuration/communication.js'
-import PostReactions from '../components/Posts/PostReactions.vue'
+import PostReactions from '../components/Post/PostReactions.vue'
 export default {
     name: "PostReactionsModal",
     props: ['postID'],

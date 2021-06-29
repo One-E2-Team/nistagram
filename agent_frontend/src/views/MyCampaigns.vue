@@ -4,7 +4,6 @@
 
 <script>
 import PostTypeTabsSlider from '../components/PostTypeTabsSlider.vue'
-import PostTypeTabsSlider from '../components/PostTypeTabsSlider.vue'
 export default {
   components: { PostTypeTabsSlider },
     data(){

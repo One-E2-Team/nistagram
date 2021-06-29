@@ -8,7 +8,6 @@ import (
 )
 
 func RBAC(handler func(http.ResponseWriter, *http.Request), privilege string, returnCollection bool) func(http.ResponseWriter, *http.Request) {
-
 	finalHandler := func(pass bool) func(http.ResponseWriter, *http.Request) {
 		if pass {
 			return handler

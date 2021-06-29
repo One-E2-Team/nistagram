@@ -28,7 +28,7 @@
 </template>
 
 <script>
-  import Post from '../components/Posts/Post.vue'
+  import Post from '../components/Post/Post.vue'
   export default {
     components:{Post},
     props: ['posts'],

@@ -93,7 +93,7 @@
 </template>
 
 <script>
-import PostMedia from '../components/Posts/PostMedia.vue'
+import PostMedia from '../components/Post/PostMedia.vue'
 import PostReactionsModal from './PostReactionsModal.vue'
 import * as comm from '../configuration/communication.js'
 import axios from 'axios'
