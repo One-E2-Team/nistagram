@@ -96,6 +96,7 @@
 <script>
 import axios from 'axios'
 import * as comm from '../configuration/communication.js'
+import { bus } from '../main'
   export default {
     name: "HomePage",
     data() {return {
@@ -107,6 +108,15 @@ import * as comm from '../configuration/communication.js'
       showCart : false,
       fullPrice: 0
     }},
+    created(){
+      bus.$on('show-cart', (data) => {
+      this.showCart = data;
+      this.fullPrice = 0;
+      for (let item of this.cart){
+        this.fullPrice += item.amount * item.pricePerItem;
+      }
+    })
+    },
     mounted(){
        axios({
                 method: "get",
@@ -132,6 +142,33 @@ import * as comm from '../configuration/communication.js'
          }
        }
        this.cart.push(p);
+     },
+      makeOrder(){
+       if(!comm.isUserLogged()){
+         alert("You need to be logged in to make order!");
+         return;
+       }
+       let data = {};
+       let items = [];
+       for (let p of this.cart){
+         let item = {"productId" : p.id, "quantity" : parseInt(p.amount)};
+         items.push(item);
+       }
+       data.items = items;
+       let json = JSON.stringify(data)
+       axios({
+                method: "post",
+                url: comm.protocol +'://' + comm.server + '/order',
+                data: json,
+                headers: comm.getHeader()
+            }).then(response => {
+              if(response.status==200){
+                console.log("ok");
+              }
+            }).catch(() => {
+              console.log("error")
+            })
+       this.showCart = false;
      }
     }
   }
