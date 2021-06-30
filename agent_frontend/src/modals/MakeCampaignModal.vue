@@ -144,7 +144,9 @@
 <script>
 import * as validator from '../plugins/validator.js'
 export default {
-    data() {return {
+    props:['postId'],
+    data() {
+      return {
         token: '',
         rules:validator.rules,
         valid: true,
@@ -167,10 +169,22 @@ export default {
         //TODO: ucitaj sve moguce influensere i smesti ih u allFollowers
       },
        confirm(){
-           if(this.$refs.form.validate()){
-               console.log("uspeo")
+           if(!this.$refs.form.validate()){
+               return
            }
-           //TODO: uradi sta treba kad se unese token
+            let startDate = new Date(this.start)
+            let endDate = new Date(this.end)
+            let data = {
+              postId : this.postId,
+              start : startDate.toISOString(),
+              end: endDate.toISOString(),
+              interests : this.interests,
+              timestamps : this.getAllTimestampsAsDate(),
+              influencerProfileIds : this.getAllInfluencerProfileIds()
+            }
+            console.log(data)
+            //TODO: posalji zahtev za kreiranje kampanje
+
        },
        addTime(){
          if (!this.isTimeExists(this.selectedTime))
@@ -195,6 +209,21 @@ export default {
           }
         }
         return false
+      },
+      getAllTimestampsAsDate(){
+        let ret = [];
+        for(let t of this.timestamps){
+          let date = new Date();
+          let parts = t.split(":")
+          date.setHours(parts[0])
+          date.setMinutes(parts[1])
+          ret.push(date.toISOString());
+        }
+        return ret;
+      },
+      getAllInfluencerProfileIds(){
+        //TODO: izvuci id-eve iz profila influensera
+        return []
       }
       
     },
