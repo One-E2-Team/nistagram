@@ -110,6 +110,24 @@
                       </v-combobox>
                     </v-col>
                   </v-row>
+                  <v-row justify="center">
+                    <v-col cols="12" sm="8" >
+                      <v-combobox v-model="influensers" :items="allFollowers" chips
+                        clearable label="Influensers" multiple solo >
+                        <template v-slot:selection="{ attrs, item, select, selected }">
+                          <v-chip
+                            v-bind="attrs"
+                            :input-value="selected"
+                            close
+                            @click="select"
+                            @click:close="removeInfluenser(item)"
+                          >
+                            <strong>{{ item }}</strong>&nbsp;
+                          </v-chip>
+                        </template>
+                      </v-combobox>
+                    </v-col>
+                  </v-row>
               </v-form>
             </v-card-text>
             <v-card-actions class="justify-end">
@@ -140,10 +158,13 @@ export default {
         selectedTime: '',
         interests: [],
         allInterests: [],
+        influensers: [],
+        allFollowers: [],
     }},
     methods: {
       createDialog(){
-        //TODO: ucitaj sve interese i smesti ih u allInterests
+        //TODO: ucitaj sve interese i smesti ih u allInterests 
+        //TODO: ucitaj sve moguce influensere i smesti ih u allFollowers
       },
        confirm(){
            if(this.$refs.form.validate()){
@@ -162,6 +183,10 @@ export default {
         removeInterest(item) {
           this.interests.splice(this.interests.indexOf(item), 1)
           this.interests = [...this.interests]
+        },
+        removeInfluenser(item) {
+          this.influensers.splice(this.influensers.indexOf(item), 1)
+          this.influensers = [...this.influensers]
         },
       isTimeExists(time){
         for (let t of this.timestamps){
