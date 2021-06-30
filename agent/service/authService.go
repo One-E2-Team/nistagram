@@ -1,9 +1,11 @@
 package service
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
+	"io/ioutil"
 	"net/http"
 	"nistagram/agent/dto"
 	"nistagram/agent/model"
@@ -122,7 +124,33 @@ func (service *AuthService) CreateAPIToken(apiToken string, loggedUserID uint) e
 		return err
 	}
 	user.APIToken.Data = apiToken
-	return service.AuthRepository.UpdateUser(*user)
+	err = service.AuthRepository.UpdateUser(*user)
+	if err != nil {
+		return err
+	}
+	type LoginData struct {
+		Email    string `json:"email"`
+		ApiToken string `json:"apiToken"`
+	}
+	req := LoginData{
+		Email:    user.Email,
+		ApiToken: apiToken,
+	}
+	jsonReq, _ := json.Marshal(req)
+
+	resp, err := util.NistagramRequest(http.MethodPost,  "/agent-api/auth/login/apitoken",
+		jsonReq, map[string]string{"Content-Type": "application/json;"})
+	if err != nil {
+		return err
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	fmt.Println(string(body))
+	util.SetJwt(string(body))
+	return nil
 }
 
 func hashAndSalt(pass string) string {

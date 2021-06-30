@@ -317,7 +317,7 @@ func (repo *PostRepository) GetMediaById(id string) (model.Media, error) {
 	}
 	collection := repo.getCollection()
 
-	filter := bson.D{{"medias._id", mediaId}}
+	filter := bson.D{{"media", bson.M{"_id" : mediaId}}}
 
 	cursor, err := collection.Find(context.TODO(), filter)
 	if err != nil {

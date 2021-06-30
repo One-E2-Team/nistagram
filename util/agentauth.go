@@ -4,61 +4,45 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"net/http"
-	"os"
 	"time"
 )
 
 const AgentExpiresIn = 86400000
 
-var AgentTokenSecret = ""
-
-type AgentTokenClaims struct {
-	AgentID uint `json:"agentID"`
-	jwt.StandardClaims
-}
-
-func initAgentToken() {
-	env := os.Getenv("AGENT_JWT_TOKEN_SECRET")
-	if env == "" {
-		AgentTokenSecret = "token_secret"
-	} else {
-		AgentTokenSecret = env
-	}
-}
 
 func CreateAgentToken(id uint) (string, error) {
-	if AgentTokenSecret == "" {
-		initAgentToken()
+	if TokenSecret == "" {
+		initPublicToken()
 	}
-	claims := AgentTokenClaims{
-		AgentID: id,
+	claims := TokenClaims{
+		LoggedUserId: id,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Unix() + AgentExpiresIn,
 			IssuedAt:  time.Now().Unix(),
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(AgentTokenSecret))
+	return token.SignedString([]byte(TokenSecret))
 }
 
-func parseAgentTokenClaim(r *http.Request) (*AgentTokenClaims, bool) {
-	if AgentTokenSecret == "" {
-		initAgentToken()
+func parseAgentTokenClaim(r *http.Request) (*TokenClaims, bool) {
+	if TokenSecret == "" {
+		initPublicToken()
 	}
 	tokenString, err := getToken(r.Header)
 	if err != nil {
 		fmt.Println(err)
 		return nil, false
 	}
-	token, err := jwt.ParseWithClaims(tokenString, &AgentTokenClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(AgentTokenSecret), nil
+	token, err := jwt.ParseWithClaims(tokenString, &TokenClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(TokenSecret), nil
 	})
 	if err != nil {
 		fmt.Println(err)
 		return nil, false
 	}
 	if token.Valid {
-		return token.Claims.(*AgentTokenClaims), true
+		return token.Claims.(*TokenClaims), true
 	} else {
 		return nil, false
 	}
@@ -66,7 +50,7 @@ func parseAgentTokenClaim(r *http.Request) (*AgentTokenClaims, bool) {
 
 func ValidateAgentToken(r *http.Request) bool {
 	if claims, ok := parseAgentTokenClaim(r); ok {
-		if agentHasAPIAccessPrivilege(claims.AgentID) {
+		if agentHasAPIAccessPrivilege(claims.LoggedUserId) {
 			return true
 		} else {
 			return false
