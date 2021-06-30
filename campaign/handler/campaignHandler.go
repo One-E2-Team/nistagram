@@ -69,6 +69,23 @@ func (handler CampaignHandler) DeleteCampaign(w http.ResponseWriter, r *http.Req
 	}
 }
 
+func (handler *CampaignHandler) GetMyCampaigns(w http.ResponseWriter, r *http.Request) {
+	campaigns, err := handler.CampaignService.GetMyCampaigns(util.GetLoggedUserIDFromToken(r))
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if js, err := json.Marshal(campaigns); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	} else {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write(js)
+	}
+	w.Header().Set("Content-Type", "application/json")
+}
+
 func (handler CampaignHandler) GetCurrentlyValidInterests(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	campaignId := params["campaignId"]

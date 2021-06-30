@@ -3,6 +3,7 @@ package util
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 )
@@ -27,4 +28,16 @@ func NistagramRequest(method string, urlPath string, data []byte, headers map[st
 		req.Header.Set(key, value)
 	}
 	return client.Do(req)
+}
+
+func GetResponseJSON(response http.Response) []byte{
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		fmt.Println(err)
+		return make([]byte, 0)
+	}
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(response.Body)
+	return body
 }
