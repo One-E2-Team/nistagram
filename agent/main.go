@@ -171,6 +171,8 @@ func handlerFunc(authHandler *handler.AuthHandler, productHandler *handler.Produ
 		authHandler.AuthService.RBAC(campaignHandler.GetInterests, "CREATE_CAMPAIGN", true)).Methods("GET")
 	router.HandleFunc("/followed-profiles",
 		authHandler.AuthService.RBAC(connectionHandler.GetMyFollowedProfiles, "CREATE_CAMPAIGN", true)).Methods("GET")
+	router.HandleFunc("/campaign/{id}",
+		authHandler.AuthService.RBAC(campaignHandler.EditCampaign, "EDIT_CAMPAIGN", false)).Methods("PUT")
 	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD")
 	_, ok1 := os.LookupEnv("DOCKER_ENV_SET_DEV")
 	var agentHost, agentPort = "localhost", "9000" // dev_db

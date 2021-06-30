@@ -86,8 +86,13 @@ func initAuthHandler(service *service.CampaignService) *handler.CampaignHandler 
 func handlerFunc(handler *handler.CampaignHandler) {
 	fmt.Println("Campaign server started...")
 	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/campaign", util.AgentAuth(handler.CreateCampaign)).Methods("POST") //frontend func
-	router.HandleFunc("/campaign/{id}", handler.UpdateCampaignParameters).Methods("PUT")
+
+	router.HandleFunc("/campaign",
+		util.AgentAuth(handler.CreateCampaign)).Methods("POST") //frontend func
+
+	router.HandleFunc("/campaign/{id}",
+		util.AgentAuth(handler.UpdateCampaignParameters)).Methods("PUT") //frontend func
+
 	router.HandleFunc("/campaign/{id}", handler.DeleteCampaign).Methods("DELETE")
 	router.HandleFunc("/campaign/monitoring/{id}", handler.GetCampaignByIdForMonitoring).Methods("GET")
 	router.HandleFunc("/interests/{campaignId}",
