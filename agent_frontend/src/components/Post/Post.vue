@@ -10,6 +10,9 @@
          <v-row>
           <v-col>{{post.hashTags}} </v-col>
          </v-row>
+          <v-row>
+            <v-col><make-campaign-modal :postId="post.id"/> </v-col>
+         </v-row>
        </v-container>
     </v-card-text>
   </v-card>
@@ -17,8 +20,9 @@
 
 <script>
 import ShowPostModal from '../../modals/showPostModal.vue'
+import MakeCampaignModal from '../../modals/MakeCampaignModal.vue'
 export default {
-  components: { ShowPostModal},
+  components: { ShowPostModal, MakeCampaignModal},
   name: 'Post',
   props: ['post'],
   data() {

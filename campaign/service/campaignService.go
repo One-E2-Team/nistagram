@@ -87,6 +87,14 @@ func (service *CampaignService) DeleteCampaign(id uint) error {
 	return service.CampaignRepository.DeleteCampaign(id)
 }
 
+func (service *CampaignService) GetMyCampaigns(agentID uint) ([]model.Campaign, error) {
+	return service.CampaignRepository.GetMyCampaigns(agentID)
+}
+
+func (service *CampaignService) GetAllInterests() ([]string, error) {
+	return service.CampaignRepository.GetAllInterests()
+}
+
 func getCampaignTypeFromRequest(start time.Time,end time.Time, timestampsLength int) model.CampaignType{
 	if start.Equal(end) && timestampsLength == 1 {
 		return model.ONE_TIME
@@ -98,7 +106,7 @@ func getCampaignTypeFromRequest(start time.Time,end time.Time, timestampsLength 
 func makeCampaign(postID string, loggedUserID uint) error {
 	postHost, postPort := util.GetPostHostAndPort()
 	resp, err := util.CrossServiceRequest(http.MethodPost,
-		util.GetCrossServiceProtocol()+"://"+postHost+":"+postPort+"make-campaign/"+postID + "/" + util.Uint2String(loggedUserID),
+		util.GetCrossServiceProtocol()+"://"+postHost+":"+postPort+"/make-campaign/"+postID + "/" + util.Uint2String(loggedUserID),
 		nil, map[string]string{})
 	if err != nil {
 		return err

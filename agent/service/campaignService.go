@@ -10,21 +10,20 @@ import (
 )
 
 type CampaignService struct {
-
 }
 
-func (service *CampaignService) SaveCampaignReport(campaignId uint) error{
-	resp, err := util.NistagramRequest(http.MethodGet, "/agent-api/statistics/" + util.Uint2String(campaignId),
+func (service *CampaignService) SaveCampaignReport(campaignId uint) error {
+	resp, err := util.NistagramRequest(http.MethodGet, "/agent-api/statistics/"+util.Uint2String(campaignId),
 		nil, map[string]string{})
 
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
 	var stat dto.StatisticsDTO
 
 	err = json.NewDecoder(resp.Body).Decode(&stat)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
@@ -42,8 +41,8 @@ func (service *CampaignService) SaveCampaignReport(campaignId uint) error{
 	//TODO: at the end - basicInfo.End
 
 	//overall stats
-	for _, event := range stat.Events{
-		switch strings.ToLower(event.EventType){
+	for _, event := range stat.Events {
+		switch strings.ToLower(event.EventType) {
 		case "like":
 			oStats.Likes += 1
 		case "dislike":
@@ -61,26 +60,26 @@ func (service *CampaignService) SaveCampaignReport(campaignId uint) error{
 	}
 
 	//params stats
-	for _, params := range stat.Campaign.CampaignParameters{
+	for _, params := range stat.Campaign.CampaignParameters {
 		var ps model.ParametersStatistics
 		ps.Start = params.Start
 		ps.End = params.End
 		ps.Timestamps = params.Timestamps
 
 		var infNotAccepted []string
-		for _, req := range params.CampaignRequests{
-			if strings.ToLower(req.RequestStatus) == "declined"{
+		for _, req := range params.CampaignRequests {
+			if strings.ToLower(req.RequestStatus) == "declined" {
 				infNotAccepted = append(infNotAccepted, req.InfluencerUsername)
 			}
 		}
 
-		for _, event := range stat.Events{
-			if event.Timestamp.After(params.Start) && event.Timestamp.Before(params.End){
-				if event.InfluencerId != 0{
+		for _, event := range stat.Events {
+			if event.Timestamp.After(params.Start) && event.Timestamp.Before(params.End) {
+				if event.InfluencerId != 0 {
 					ps.AddEventForInf(event.InfluencerUsername, event.EventType, event.WebSite)
-				}else if len(event.Interests) != 0{
+				} else if len(event.Interests) != 0 {
 					ps.AddEventForInterest(event.Interests, event.EventType, event.WebSite)
-				}else{
+				} else {
 					//TODO: direct event
 				}
 			}
@@ -96,4 +95,22 @@ func (service *CampaignService) SaveCampaignReport(campaignId uint) error{
 	report.ParametersStatistics = paramStat
 
 	return nil
+}
+
+func (service *CampaignService) GetMyCampaigns() (*http.Response, error) {
+	return util.NistagramRequest(http.MethodGet, "/agent-api/campaign/my-campaigns", nil, map[string]string{})
+}
+
+func (service *CampaignService) CreateCampaign(requestBody []byte) (*http.Response, error) {
+	return util.NistagramRequest(http.MethodPost, "/agent-api/campaign/create",
+		requestBody, map[string]string{"Content-Type": "application/json"})
+}
+
+func (service *CampaignService) GetInterests() (*http.Response, error) {
+	return util.NistagramRequest(http.MethodGet, "/agent-api/campaign/interests", nil, map[string]string{})
+}
+
+func (service *CampaignService) EditCampaign(postID string, requestBody []byte) (*http.Response, error) {
+	return util.NistagramRequest(http.MethodPut, "/agent-api/campaign/update/"+postID,
+		requestBody, map[string]string{"Content-Type": "application/json"})
 }

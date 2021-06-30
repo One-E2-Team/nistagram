@@ -7,12 +7,12 @@ import (
 	"nistagram/agent/util"
 )
 
-type PostHandler struct {
-	PostService *service.PostService
+type ConnectionHandler struct {
+	ConnectionService *service.ConnectionService
 }
 
-func (handler *PostHandler) GetMyPosts(w http.ResponseWriter, r *http.Request) {
-	resp, err := handler.PostService.GetMyPosts()
+func (handler *ConnectionHandler) GetMyFollowedProfiles(w http.ResponseWriter, r *http.Request) {
+	resp, err := handler.ConnectionService.GetMyFollowedProfiles()
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)

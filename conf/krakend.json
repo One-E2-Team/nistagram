@@ -2031,6 +2031,122 @@
           "target": ""
         }
       ]
+    },
+    {
+      "endpoint": "/agent-api/campaign/my-campaigns",
+      "method": "GET",
+      "output_encoding": "json",
+      "extra_config": {},
+      "headers_to_pass": [
+        "Authorization"
+      ],
+      "backend": [
+        {
+          "url_pattern": "/my-campaigns",
+          "encoding": "json",
+          "sd": "static",
+          "method": "GET",
+          "extra_config": {},
+          "host": [
+            "https://campaign:8080"
+          ],
+          "disable_host_sanitize": false,
+          "is_collection": true,
+          "target": ""
+        }
+      ]
+    },
+    {
+      "endpoint": "/agent-api/campaign/create",
+      "method": "POST",
+      "output_encoding": "json",
+      "extra_config": {},
+      "headers_to_pass": [
+        "Authorization"
+      ],
+      "backend": [
+        {
+          "url_pattern": "/campaign",
+          "encoding": "json",
+          "sd": "static",
+          "method": "POST",
+          "extra_config": {},
+          "host": [
+            "https://campaign:8080"
+          ],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/agent-api/campaign/interests",
+      "method": "GET",
+      "output_encoding": "json",
+      "extra_config": {},
+      "headers_to_pass": [
+        "Authorization"
+      ],
+      "backend": [
+        {
+          "url_pattern": "/interests",
+          "encoding": "json",
+          "sd": "static",
+          "method": "GET",
+          "extra_config": {},
+          "host": [
+            "https://campaign:8080"
+          ],
+          "disable_host_sanitize": false,
+          "is_collection": true,
+          "target": ""
+        }
+      ]
+    },
+    {
+      "endpoint": "/agent-api/connection/following/my/all-agent",
+      "method": "GET",
+      "output_encoding": "json",
+      "extra_config": {},
+      "headers_to_pass": [
+        "Authorization"
+      ],
+      "backend": [
+        {
+          "url_pattern": "/connection/following/my/all-agent",
+          "encoding": "json",
+          "sd": "static",
+          "method": "GET",
+          "extra_config": {},
+          "host": [
+            "https://connection:8080"
+          ],
+          "disable_host_sanitize": false,
+          "is_collection": true,
+          "target": ""
+        }
+      ]
+    },
+    {
+      "endpoint": "/agent-api/campaign/update/{id}",
+      "method": "PUT",
+      "output_encoding": "json",
+      "extra_config": {},
+      "headers_to_pass": [
+        "Authorization"
+      ],
+      "backend": [
+        {
+          "url_pattern": "/campaign/{id}",
+          "encoding": "json",
+          "sd": "static",
+          "method": "PUT",
+          "extra_config": {},
+          "host": [
+            "https://campaign:8080"
+          ],
+          "disable_host_sanitize": false
+        }
+      ]
     }
   ],
   "read_timeout": "0s",

@@ -15,9 +15,9 @@ type CampaignRepository struct {
 func (repo *CampaignRepository) CreateCampaign(campaign model.Campaign) (model.Campaign,error) {
 	result := repo.Database.Create(&campaign)
 	if result.RowsAffected == 0 {
-		return campaign, fmt.Errorf("User not created")
+		return campaign, fmt.Errorf("Campaign not created")
 	}
-	fmt.Println("User Created")
+	fmt.Println("Campaign Created")
 	return campaign, nil
 }
 
@@ -81,7 +81,7 @@ func (repo *CampaignRepository) DeleteCampaign(campaignID uint) error{
 		return result.Error
 	}
 	ids := make([]uint , 0)
-	for _, value := range(deletedCampaignParameters){
+	for _, value := range deletedCampaignParameters{
 		ids = append(ids,value.ID)
 	}
 	if err:=beforeDeleteCampaignParameters(ids,tx); err != nil{
@@ -105,6 +105,21 @@ func (repo *CampaignRepository) DeleteCampaign(campaignID uint) error{
 
 	tx.Commit()
 	return nil
+}
+
+func (repo *CampaignRepository) GetMyCampaigns(agentID uint) ([]model.Campaign, error) {
+	var ret []model.Campaign
+
+	if err := repo.Database.Table("campaigns").Find(&ret,"agent_id = ? ", agentID).Error ; err != nil {
+		return make([]model.Campaign,0), err
+	}
+	return ret, nil
+}
+
+func (repo *CampaignRepository) GetAllInterests() ([]string, error) {
+	var interests []string
+	result := repo.Database.Table("interests").Select("name").Find(&interests, "name LIKE ?", "%%")
+	return interests, result.Error
 }
 
 func (repo *CampaignRepository) checkIfCampaignExists(campaignID uint) error {

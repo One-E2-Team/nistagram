@@ -28,10 +28,23 @@ func GetNistagramHostAndPort() (string, string) {
 	return nistagramHost, nistagramPort
 }
 
+func GetExistDBHostAndPort() (string, string) {
+	var existHost, existPort = "localhost", "8666"
+	if DockerChecker() {
+		existHost = "exist"
+		existPort = "8080"
+	}
+	return existHost, existPort
+}
+
 func GetNistagramProtocol() string {
 	if DockerChecker(){
 		return "https"
 	}
+	return "http"
+}
+
+func GetExistDBProtocol() string {
 	return "http"
 }
 
