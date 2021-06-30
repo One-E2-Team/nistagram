@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 	"nistagram/monitoring/dto"
 	"nistagram/monitoring/model"
@@ -85,24 +86,49 @@ func (service *MonitoringService) GetCampaignStatistics(campaignId uint) (dto.St
 		return statistics, err
 	}
 
-	statistics.CampaignId = campaignId
-	statistics.Campaign = campaign
-
-	var eventDtos []dto.ShowEventDTO
-
 	events, err := service.MonitoringRepository.GetEventsByCampaignId(campaignId)
 	if err != nil {
 		return statistics, err
 	}
 
-	//TODO: get influencers username
+	var infIds []uint
+	for _, param := range campaign.CampaignParameters{
+		for _, req := range param.CampaignRequests{
+			if req.InfluencerID != 0 && !util.Contains(infIds, req.InfluencerID){
+				infIds = append(infIds,req.InfluencerID)
+			}
+		}
+	}
 
 	for _, e := range events{
+		if e.InfluencerId != 0 && !util.Contains(infIds, e.InfluencerId){
+			infIds = append(infIds, e.InfluencerId)
+		}
+	}
+
+	usernames, err := getProfileUsernamesByIDs(infIds)
+
+	var usersMap map[uint]string
+	for i, id := range infIds{
+		usersMap[id] = usernames[i]
+	}
+
+	for _, param := range campaign.CampaignParameters{
+		for _, req := range param.CampaignRequests{
+			req.InfluencerUsername = usersMap[req.InfluencerID]
+		}
+	}
+
+	var eventDtos []dto.ShowEventDTO
+	for _, e := range events{
 		eventDto := &dto.ShowEventDTO{EventType: e.EventType.ToString(), InfluencerId: e.InfluencerId,
+			InfluencerUsername: usersMap[e.InfluencerId],
 			Interests: e.Interests, WebSite: e.WebSite, Timestamp: e.Timestamp}
 		eventDtos = append(eventDtos, *eventDto)
 	}
 
+	statistics.CampaignId = campaignId
+	statistics.Campaign = campaign
 	statistics.Events = eventDtos
 
 	return statistics, err
@@ -179,4 +205,43 @@ func getCampaignByCampaignId(campaignId uint) (dto.CampaignMonitoringDTO, error)
 	err = json.NewDecoder(resp.Body).Decode(&ret)
 
 	return ret, err
+}
+
+func getProfileUsernamesByIDs(profileIDs []uint) ([]string, error) {
+	type data struct {
+		Ids []string `json:"ids"`
+	}
+	req := make([]string, 0)
+	for _, value := range profileIDs {
+		req = append(req, util.Uint2String(value))
+	}
+	bodyData := data{Ids: req}
+	jsonBody, err := json.Marshal(bodyData)
+	if err != nil {
+		return nil, err
+	}
+	profileHost, profilePort := util.GetProfileHostAndPort()
+	resp, err := util.CrossServiceRequest(http.MethodPost,
+		util.GetCrossServiceProtocol()+"://"+profileHost+":"+profilePort+"/get-by-ids",
+		jsonBody, map[string]string{"Content-Type": "application/json;"})
+	if err != nil {
+		return nil, err
+	}
+
+	var ret []string
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(resp.Body)
+
+	if err = json.Unmarshal(body, &ret); err != nil {
+		return nil, err
+	}
+
+	return ret, nil
 }
