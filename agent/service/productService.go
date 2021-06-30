@@ -38,8 +38,12 @@ func (service *ProductService) GetAllProducts() []dto.ShowProductDTO{
 	products := service.ProductRepository.GetAllProducts()
 
 	for _, p := range products{
+		agentProduct, err := service.ProductRepository.GetValidAgentProductByProductId(p.ID)
+		if err != nil{
+			continue
+		}
 		retItem := dto.ShowProductDTO{ID: p.ID, Name: p.Name, PicturePath: p.PicturePath,
-			PricePerItem: service.ProductRepository.GetProductsValidPrice(p.ID)}
+			PricePerItem: agentProduct.PricePerItem, Quantity: agentProduct.Quantity}
 		ret = append(ret, retItem)
 	}
 

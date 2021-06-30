@@ -17,7 +17,7 @@ func (service *Service) GetConnection(followerId, profileId uint) *model.Connect
 }
 
 func (service *Service) GetConnectedProfiles(conn model.ConnectionEdge, excludeMuted, excludeBlocked bool) *[]dto.ConnectedProfileDTO {
-	profiles := service.ConnectionRepository.GetConnectedProfiles(conn, excludeMuted)
+	profiles := service.ConnectionRepository.GetConnectedProfiles(conn, excludeMuted, true)
 	if profiles == nil {
 		temp := make([]uint, 0)
 		profiles = &temp
@@ -49,6 +49,40 @@ func (service *Service) GetConnectedProfiles(conn model.ConnectionEdge, excludeM
 	return &ret
 }
 
+func (service *Service) GetProfilesInFollowRelationship(conn model.ConnectionEdge, excludeMuted, excludeBlocked bool, following bool) *[]dto.UserDTO {
+	profiles := service.ConnectionRepository.GetConnectedProfiles(conn, excludeMuted, following)
+	if profiles == nil {
+		temp := make([]uint, 0)
+		profiles = &temp
+	}
+	if !excludeBlocked {
+		var final []uint
+		blockId := conn.PrimaryProfile
+		if !following {
+			blockId = conn.SecondaryProfile
+		}
+		blocking := service.ConnectionRepository.GetBlockedProfiles(blockId, false)
+		for _, val := range *profiles {
+			if !contains(blocking, val) {
+				final = append(final, val)
+			}
+		}
+		profiles = &final
+	}
+	ret := make([]dto.UserDTO, 0)
+	for _, val := range *profiles {
+		p := util.GetProfile(val)
+		if p == nil {
+			continue
+		}
+		ret = append(ret, dto.UserDTO{
+			ProfileID:	val,
+			Username:	p.Username,
+		})
+	}
+	return &ret
+}
+
 func (service *Service) UpdateConnection(id uint, conn model.ConnectionEdge) (*model.ConnectionEdge, bool) {
 	if id == conn.PrimaryProfile {
 		return service.ConnectionRepository.UpdateConnection(&conn)
@@ -69,7 +103,7 @@ func (service *Service) FollowRequest(followerId, profileId uint) (*model.Connec
 	if connection.Approved {
 		return nil, false
 	}
-	profile2 := getProfile(profileId)
+	profile2 := util.GetProfile(profileId)
 	if profile2 == nil {
 		return nil, false
 	}
@@ -103,8 +137,8 @@ func (service *Service) ApproveConnection(followerId, profileId uint) (*model.Co
 	if okSelect && connection == nil {
 		return connection, false
 	}
-	profile1 := getProfile(followerId)
-	profile2 := getProfile(profileId)
+	profile1 := util.GetProfile(followerId)
+	profile2 := util.GetProfile(profileId)
 	if profile1 == nil || profile2 == nil {
 		return nil, false
 	}

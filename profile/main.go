@@ -135,6 +135,8 @@ func handleFunc(handler *handler.Handler) {
 		util.MSAuth(handler.GetProfileByID, []string{"connection", "post"})).Methods("GET")
 	router.HandleFunc("/get-by-ids",
 		util.MSAuth(handler.GetProfileUsernamesByIDs, []string{"postreaction"})).Methods("POST")
+	router.HandleFunc("/personal-data/{id}",
+		util.MSAuth(handler.GetPersonalDataByProfileId, []string{"monitoring"})).Methods("GET")
 	router.HandleFunc("/{id}",
 		util.RBAC(handler.DeleteProfile, "DELETE_PROFILE", false)).Methods("DELETE") //frontend func
 	router.HandleFunc("/send-agent-request",
@@ -145,6 +147,7 @@ func handleFunc(handler *handler.Handler) {
 	router.HandleFunc("/agent-request",
 		util.RBAC(handler.ProcessAgentRequest, "EDIT_AGENT_REQUEST", false)).Methods("PUT") //frontend func
 	router.HandleFunc("/test", handler.Test).Methods("GET")
+	router.HandleFunc("/get-by-usernames", handler.GetProfileIdsByUsernames).Methods("POST")
 	fmt.Println("Starting server..")
 	host, port := util.GetProfileHostAndPort()
 	var err error

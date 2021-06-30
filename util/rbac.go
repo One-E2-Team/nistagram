@@ -1,10 +1,6 @@
 package util
 
 import (
-	"encoding/json"
-	"fmt"
-	"io"
-	"io/ioutil"
 	"net/http"
 	"reflect"
 	"runtime"
@@ -12,7 +8,6 @@ import (
 )
 
 func RBAC(handler func(http.ResponseWriter, *http.Request), privilege string, returnCollection bool) func(http.ResponseWriter, *http.Request) {
-
 	finalHandler := func(pass bool) func(http.ResponseWriter, *http.Request) {
 		if pass {
 			return handler
@@ -38,44 +33,21 @@ func RBAC(handler func(http.ResponseWriter, *http.Request), privilege string, re
 		if id == 0 {
 			handleFunc = finalHandler(false)
 		} else {
-			authHost, authPort := GetAuthHostAndPort()
-			resp, err := CrossServiceRequest(http.MethodGet,
-				GetCrossServiceProtocol()+"://"+authHost+":"+authPort+"/privileges/"+Uint2String(id),
-				nil, map[string]string{})
-			if err != nil {
-				fmt.Println(err)
+			validPrivileges, ok := GetUserPrivileges(id)
+			if !ok {
 				handleFunc = finalHandler(false)
 			} else {
-				defer func(Body io.ReadCloser) {
-					err := Body.Close()
-					if err != nil {
-
+				valid := false
+				for _, val := range validPrivileges {
+					if val == privilege {
+						valid = true
+						break
 					}
-				}(resp.Body)
-				body, err1 := ioutil.ReadAll(resp.Body)
-				if err1 != nil {
-					fmt.Println(err1)
-					handleFunc = finalHandler(false)
+				}
+				if valid {
+					handleFunc = finalHandler(true)
 				} else {
-					var validPrivileges []string
-					err = json.Unmarshal(body, &validPrivileges)
-					if err != nil {
-						fmt.Println(err)
-						handleFunc = finalHandler(false)
-					} else {
-						valid := false
-						for _, val := range validPrivileges {
-							if val == privilege {
-								valid = true
-								break
-							}
-						}
-						if valid {
-							handleFunc = finalHandler(true)
-						} else {
-							handleFunc = finalHandler(false)
-						}
-					}
+					handleFunc = finalHandler(false)
 				}
 			}
 		}

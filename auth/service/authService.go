@@ -15,6 +15,22 @@ type AuthService struct {
 	AuthRepository *repository.AuthRepository
 }
 
+func (service *AuthService) AgentLoginAPIToken(data dto.APILoginDTO) (*string, error) {
+	user, err := service.AuthRepository.GetUserByEmail(data.Email)
+	if err != nil {
+		return nil, fmt.Errorf("'" + data.Email + "' " + err.Error())
+	}
+	if err = bcrypt.CompareHashAndPassword([]byte(user.APIToken), []byte(data.ApiToken)); err == nil {
+		token, err := util.CreateAgentToken(user.ProfileId)
+		if err != nil {
+			return nil, fmt.Errorf("'" + data.Email + "' " + err.Error())
+		}
+		return &token, nil
+	} else {
+		return nil, fmt.Errorf("'" + data.Email + "' submitted invalid api token")
+	}
+}
+
 func (service *AuthService) LogIn(dto dto.LogInDTO) (*model.User, error) {
 	user, err := service.AuthRepository.GetUserByEmail(dto.Email)
 	if err != nil {
@@ -156,6 +172,33 @@ func (service *AuthService) ValidateUser(id string, uuid string) error {
 	user.ValidationExpire = time.Now()
 	err = service.AuthRepository.UpdateUser(*user)
 	return err
+}
+
+func (service *AuthService) GetAgentAPIToken(loggedUserID uint) (string, error) {
+	user, err := service.AuthRepository.GetUserByProfileID(loggedUserID)
+	if err != nil {
+		return "", err
+	}
+	apiToken := uuid.NewString()
+	user.APIToken = hashAndSalt(apiToken)
+	role, err := service.AuthRepository.GetRoleByName("AGENT_API_CLIENT")
+	if err != nil {
+		return "", err
+	}
+	var hasRole = false
+	for _, val := range user.Roles {
+		if val.Name == "AGENT_API_CLIENT" {
+			hasRole = true
+		}
+	}
+	if !hasRole {
+		user.Roles = append(user.Roles, *role)
+	}
+	err = service.AuthRepository.UpdateUser(*user)
+	if err != nil {
+		return "", err
+	}
+	return apiToken, nil
 }
 
 func (service *AuthService) GetPrivileges(id uint) *[]string {

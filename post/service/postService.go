@@ -148,6 +148,25 @@ func (service *PostService) ChangePrivacy(profileId uint, isPrivate bool) error 
 	return service.PostRepository.ChangePrivacy(profileId, isPrivate)
 }
 
+func (service *PostService) MakeCampaign(postID string, agentID uint) error {
+	id, err := primitive.ObjectIDFromHex(postID)
+	if err != nil {
+		return err
+	}
+	post, err := service.PostRepository.Read(id)
+	if err != nil {
+		return err
+	}
+	if post.PublisherId != agentID {
+		return fmt.Errorf("BAD_AGENT_ID")
+	}
+	return service.PostRepository.MakeCampaign(id)
+}
+
+func (service *PostService) GetMediaById(mediaId string) (model.Media,error) {
+	return service.PostRepository.GetMediaById(mediaId)
+}
+
 func deletePostsReports(postId primitive.ObjectID) error {
 	postReactionHost, postReactionPort := util.GetPostReactionHostAndPort()
 	_, err := util.CrossServiceRequest(http.MethodDelete,

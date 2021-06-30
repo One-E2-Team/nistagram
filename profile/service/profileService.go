@@ -386,6 +386,14 @@ func (service *ProfileService) ProcessAgentRequest(requestDTO dto.ProcessAgentRe
 	return service.ProfileRepository.DeleteAgentRequest(request)
 }
 
+func (service *ProfileService) GetPersonalDataByProfileId(id uint) (*model.PersonalData, error) {
+	profile, err := service.ProfileRepository.GetPersonalDataByProfileId(id)
+	if err != nil {
+		return nil, err
+	}
+	return profile, nil
+}
+
 func (service *ProfileService) deleteProfileInAuth(profileId uint) error {
 	authHost, authPort := util.GetAuthHostAndPort()
 	_, err := util.CrossServiceRequest(http.MethodDelete,
@@ -453,6 +461,10 @@ func (service *ProfileService) changeUsernameInPostService(loggedUserId uint, us
 		fmt.Println(err)
 	}
 	return err
+}
+
+func (service *ProfileService) GetProfileIdsByUsernames(usernames []string) ([]string, error) {
+	return service.ProfileRepository.GetProfileIdsByUsernames(usernames)
 }
 
 func makeAgent(profileID uint) error {

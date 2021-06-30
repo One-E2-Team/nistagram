@@ -1,11 +1,12 @@
 export let server = 'localhost:82'
 export let nistagram_server = 'localhost:81'
+export let static_server = 'localhost:81'
 
 export let protocol = 'https'
 
 export function setJWTToken(jwt) {
   let new_roles = [];
-  for(let item of jwt.roles){
+  for (let item of jwt.roles) {
     new_roles.push(item.name);
   }
   jwt.roles = new_roles;
@@ -14,7 +15,7 @@ export function setJWTToken(jwt) {
 
 export function hasRole(role) {
   let jwt = JSON.parse(sessionStorage.getItem("JWT"));
-  if (jwt == undefined || jwt == null || jwt == {}){
+  if (jwt == undefined || jwt == null || jwt == {}) {
     return false;
   }
   return jwt.roles.includes(role);
@@ -39,9 +40,9 @@ export function getLoggedUserID() {
   let jwt = getJWTToken();
   if (jwt == undefined || jwt == null || jwt == {})
     return 0;
-  
-    return getJWTToken().userId;
-  
+
+  return getJWTToken().userId;
+
 }
 
 export function isUserLogged() {

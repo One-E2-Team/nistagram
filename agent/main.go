@@ -119,7 +119,24 @@ func initProductHandler(service *service.ProductService) *handler.ProductHandler
 	return &handler.ProductHandler{ProductService: service}
 }
 
-func handlerFunc(authHandler *handler.AuthHandler, productHandler *handler.ProductHandler) {
+func initPostService() *service.PostService {
+	return &service.PostService{}
+}
+
+func initPostHandler(postService *service.PostService) *handler.PostHandler {
+	return &handler.PostHandler{PostService: postService}
+}
+
+func initCampaignService() *service.CampaignService {
+	return &service.CampaignService{}
+}
+
+func initCampaignHandler(campaignService *service.CampaignService) *handler.CampaignHandler {
+	return &handler.CampaignHandler{CampaignService: campaignService}
+}
+
+func handlerFunc(authHandler *handler.AuthHandler, productHandler *handler.ProductHandler,
+	postHandler *handler.PostHandler, campaignHandler *handler.CampaignHandler) {
 	fmt.Println("Agent application started...")
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/register", authHandler.Register).Methods("POST")
@@ -134,6 +151,12 @@ func handlerFunc(authHandler *handler.AuthHandler, productHandler *handler.Produ
 		authHandler.AuthService.RBAC(productHandler.UpdateProduct, "UPDATE_PRODUCT", false)).Methods("PUT")
 	router.HandleFunc("/order",
 		authHandler.AuthService.RBAC(productHandler.CreateOrder, "CREATE_ORDER", false)).Methods("POST")
+	router.HandleFunc("/api-token",
+		authHandler.AuthService.RBAC(authHandler.CreateAPIToken, "CREATE_TOKEN", false)).Methods("POST")
+	router.HandleFunc("/my-posts",
+		authHandler.AuthService.RBAC(postHandler.GetMyPosts, "READ_POSTS", true)).Methods("GET")
+	router.HandleFunc("/my-campaigns",
+		authHandler.AuthService.RBAC(campaignHandler.GetMyCampaigns, "READ_CAMPAIGNS", true)).Methods("GET")
 	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD")
 	_, ok1 := os.LookupEnv("DOCKER_ENV_SET_DEV")
 	var agentHost, agentPort = "localhost", "9000" // dev_db
@@ -164,5 +187,9 @@ func main() {
 	productRepo := initProductRepo(db)
 	productService := initProductService(productRepo)
 	productHandler := initProductHandler(productService)
-	handlerFunc(authHandler, productHandler)
+	postService := initPostService()
+	postHandler := initPostHandler(postService)
+	campaignService := initCampaignService()
+	campaignHandler := initCampaignHandler(campaignService)
+	handlerFunc(authHandler, productHandler, postHandler, campaignHandler)
 }

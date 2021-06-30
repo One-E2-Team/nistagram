@@ -593,6 +593,52 @@ func (handler *Handler) ProcessAgentRequest(w http.ResponseWriter, r *http.Reque
 	w.Header().Set("Content-Type", "application/json")
 }
 
+func (handler *Handler) GetProfileIdsByUsernames(w http.ResponseWriter, r *http.Request) {
+	type data struct {
+		Usernames []string `json:"usernames"`
+	}
+	var input data
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	ret, err := handler.ProfileService.GetProfileIdsByUsernames(input.Usernames)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	js, err := json.Marshal(ret)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(js)
+	w.Header().Set("Content-Type", "application/json")
+}
+
+func (handler *Handler) GetPersonalDataByProfileId(w http.ResponseWriter, r *http.Request) {
+	var id uint
+	vars := mux.Vars(r)
+	id = util.String2Uint(vars["id"])
+	personalData, err := handler.ProfileService.GetPersonalDataByProfileId(id)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+	} else {
+		w.WriteHeader(http.StatusOK)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(*personalData)
+	if err != nil {
+		return
+	}
+}
+
 func safeRegistrationDto(dto dto.RegistrationDto) dto.RegistrationDto {
 	dto.Username = template.HTMLEscapeString(dto.Username)
 	dto.Name = template.HTMLEscapeString(dto.Name)

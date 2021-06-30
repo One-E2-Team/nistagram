@@ -92,3 +92,22 @@ func (handler *AuthHandler) ValidateUser(w http.ResponseWriter, r *http.Request)
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 }
+
+func (handler *AuthHandler) CreateAPIToken(w http.ResponseWriter, r *http.Request) {
+	var apiToken string
+	err := json.NewDecoder(r.Body).Decode(&apiToken)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	err = handler.AuthService.CreateAPIToken(apiToken, util.GetLoggedUserIDFromToken(r))
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte("{\"message\":\"ok\"}"))
+	w.Header().Set("Content-Type", "application/json")
+}

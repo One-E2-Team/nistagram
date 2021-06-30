@@ -20,8 +20,8 @@ type PostReactionService struct {
 	PostReactionRepository *repository.PostReactionRepository
 }
 
-func (service *PostReactionService) ReactOnPost(postID string, loggedUserID uint, reactionType model.ReactionType) error {
-	post, err := getPost(postID)
+func (service *PostReactionService) ReactOnPost(reactionDto dto.ReactionDTO, loggedUserID uint, reactionType model.ReactionType) error {
+	post, err := getPost(reactionDto.PostID)
 	if err != nil {
 		return err
 	}
@@ -31,8 +31,36 @@ func (service *PostReactionService) ReactOnPost(postID string, loggedUserID uint
 	if post.IsDeleted {
 		return fmt.Errorf("CANNOT REACT ON DELETED POST")
 	}
-	reaction := model.Reaction{ReactionType: reactionType, PostID: postID, ProfileID: loggedUserID}
-	return service.PostReactionRepository.ReactOnPost(&reaction)
+	if model.GetReactionTypeString(reactionType) == "like_reset" ||
+		model.GetReactionTypeString(reactionType) == "dislike_reset"{
+		err = service.DeleteReaction(reactionDto.PostID, loggedUserID)
+		if err != nil {
+			return err
+		}
+	}else {
+		reaction := model.Reaction{ReactionType: reactionType, PostID: reactionDto.PostID, ProfileID: loggedUserID}
+		err = service.PostReactionRepository.ReactOnPost(&reaction)
+		if err != nil {
+			return err
+		}
+	}
+	if post.IsCampaign{
+		go func() {
+			event := &dto.EventDTO{EventType: reactionDto.ReactionType, PostId: reactionDto.PostID,
+				ProfileId: loggedUserID, CampaignId: reactionDto.CampaignID,
+				InfluencerId: reactionDto.InfluencerID, InfluencerUsername: reactionDto.InfluencerUsername}
+			if reactionDto.InfluencerID == 0{
+				err = saveToMonitoringMsInfluencer(event)
+			}
+			err = saveToMonitoringMsTargetGroup(event)
+			if err != nil {
+				fmt.Println("Monitoring bug!")
+				fmt.Println(err)
+			}
+		}()
+
+	}
+	return nil
 }
 
 func (service *PostReactionService) DeleteReaction(postID string, loggedUserID uint) error {
@@ -58,7 +86,27 @@ func (service *PostReactionService) CommentPost(commentDTO dto.CommentDTO, logge
 	}
 	comment := model.Comment{PostID: commentDTO.PostID, ProfileID: loggedUserID,
 		Content: commentDTO.Content, Time: time.Now()}
-	return service.PostReactionRepository.CommentPost(&comment)
+	err = service.PostReactionRepository.CommentPost(&comment)
+	if err != nil {
+		return err
+	}
+
+	if post.IsCampaign {
+		go func() {
+			event := &dto.EventDTO{EventType: "COMMENT", PostId: commentDTO.PostID,
+				ProfileId: loggedUserID, CampaignId: commentDTO.CampaignID,
+				InfluencerId: commentDTO.InfluencerID, InfluencerUsername: commentDTO.InfluencerUsername}
+			if commentDTO.InfluencerID == 0 {
+				err = saveToMonitoringMsInfluencer(event)
+			}
+			err = saveToMonitoringMsTargetGroup(event)
+			if err != nil {
+				fmt.Println("Monitoring bug!")
+				fmt.Println(err)
+			}
+		}()
+	}
+	return nil
 }
 
 func (service *PostReactionService) ReportPost(postID string, reason string) error {
@@ -372,4 +420,36 @@ func getProfileByUsername(username string) (*http.Response, error) {
 		util.GetCrossServiceProtocol()+"://"+profileHost+":"+profilePort+"/get/"+username,
 		nil, map[string]string{})
 	return resp, err
+}
+
+func saveToMonitoringMsInfluencer(eventDto *dto.EventDTO) error{
+	body, _ := json.Marshal(map[string]string{
+		"eventType": 		 eventDto.EventType,
+		"postId":  		 eventDto.PostId,
+		"profileId":     util.Uint2String(eventDto.ProfileId),
+		"campaignId":    util.Uint2String(eventDto.CampaignId),
+		"influencerId":  util.Uint2String(eventDto.InfluencerId),
+		"influencerUsername": eventDto.InfluencerUsername,
+	})
+	monitoringHost, monitoringPort := util.GetMonitoringHostAndPort()
+	_, err := util.CrossServiceRequest(http.MethodPost,
+		util.GetCrossServiceProtocol()+"://"+monitoringHost+":"+monitoringPort+"/influencer",
+		body, map[string]string{"Content-Type": "application/json;"})
+	return err
+}
+
+func saveToMonitoringMsTargetGroup(eventDto *dto.EventDTO) error{
+	body, _ := json.Marshal(map[string]string{
+		"eventType": 		 eventDto.EventType,
+		"postId":  		 eventDto.PostId,
+		"profileId":     util.Uint2String(eventDto.ProfileId),
+		"campaignId":    util.Uint2String(eventDto.CampaignId),
+		"influencerId":  util.Uint2String(eventDto.InfluencerId),
+		"influencerUsername": eventDto.InfluencerUsername,
+	})
+	monitoringHost, monitoringPort := util.GetMonitoringHostAndPort()
+	_, err := util.CrossServiceRequest(http.MethodPost,
+		util.GetCrossServiceProtocol()+"://"+monitoringHost+":"+monitoringPort+"/target-group",
+		body, map[string]string{"Content-Type": "application/json;"})
+	return err
 }

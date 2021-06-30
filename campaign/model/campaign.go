@@ -11,5 +11,5 @@ type Campaign struct {
 	AgentID            uint                 `json:"agentId" gorm:"not null"`
 	CampaignType       CampaignType         `json:"campaignType" gorm:"not null"`
 	Start              time.Time            `json:"start" gorm:"not null"`
-	CampaignParameters []CampaignParameters `json:"campaignParameters"`
+	CampaignParameters []CampaignParameters `json:"campaignParameters" gorm:"constraint:OnDelete:CASCADE"`
 }

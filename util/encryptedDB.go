@@ -16,7 +16,11 @@ type EncryptedString struct {
 }
 
 func (es *EncryptedString) Scan(value interface{}) error {
-	key := []byte(os.Getenv("DB_SEC_ENC"))
+	env := os.Getenv("DB_SEC_ENC")
+	if env == "" {
+		env = "iMaMaEsBaByRADOSiMaMaEsBaByRADOS"
+	}
+	key := []byte(env)
 	ciphertext := value.([]byte)
 	c, err := aes.NewCipher(key)
 	if err != nil {
@@ -45,7 +49,11 @@ func (es *EncryptedString) Scan(value interface{}) error {
 
 func (es EncryptedString) Value() (driver.Value, error) {
 	text := []byte(es.Data)
-	key := []byte(os.Getenv("DB_SEC_ENC"))
+	env := os.Getenv("DB_SEC_ENC")
+	if env == "" {
+		env = "iMaMaEsBaByRADOSiMaMaEsBaByRADOS"
+	}
+	key := []byte(env)
 	c, err := aes.NewCipher(key)
 	if err != nil {
 		fmt.Println(err)

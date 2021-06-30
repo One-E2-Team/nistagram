@@ -97,3 +97,12 @@ func GetGatewayHostAndPort() (string, string) {
 	var gatewayHost, gatewayPort = "localhost", "81"
 	return gatewayHost, gatewayPort
 }
+
+func GetMonitoringHostAndPort() (string, string) {
+	var monitoringHost, monitoringPort = "localhost", "8089" // dev.db environment
+	if DockerChecker() {
+		monitoringHost = "monitoring"
+		monitoringPort = "8080"
+	}
+	return monitoringHost, monitoringPort
+}

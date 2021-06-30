@@ -3,6 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/gorilla/mux"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"net/http"
 	"nistagram/post/handler"
 	"nistagram/post/repository"
@@ -10,10 +13,6 @@ import (
 	"nistagram/util"
 	"os"
 	"time"
-
-	"github.com/gorilla/mux"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func initDB() *mongo.Client {
@@ -67,6 +66,7 @@ func handleFunc(handler *handler.Handler) {
 	router.HandleFunc("/public/hashtag/{value}", handler.SearchPublicByHashTag).Methods("GET")   // frontend func
 	router.HandleFunc("/my",
 		util.RBAC(handler.GetMyPosts, "READ_NOT_ONLY_PUBLIC_POSTS", true)).Methods("GET") // frontend func
+	router.HandleFunc("/agent-my", util.AgentAuth(handler.GetMyPosts)).Methods("GET") // frontend func
 	router.HandleFunc("/homePage",
 		util.RBAC(handler.GetPostsForHomePage, "READ_NOT_ONLY_PUBLIC_POSTS", true)).Methods("GET") // frontend func
 	router.HandleFunc("/",
@@ -81,9 +81,13 @@ func handleFunc(handler *handler.Handler) {
 		util.MSAuth(handler.GetPost, []string{"postreaction"})).Methods("GET")
 	router.HandleFunc("/posts",
 		util.MSAuth(handler.GetPosts, []string{"postreaction"})).Methods("POST")
+	router.HandleFunc("/make-campaign/{id}/{agentID}",
+		util.MSAuth(handler.MakeCampaign, []string{"campaign"})).Methods("POST")
 	router.HandleFunc("/{id}",
 		util.RBAC(handler.DeletePost, "DELETE_POST", false)).Methods("DELETE") // frontend func
 	router.HandleFunc("/{id}", handler.UpdatePost).Methods("PUT")
+	router.HandleFunc("/media/{id}",
+		util.MSAuth(handler.GetMediaById, []string{"monitoring"})).Methods("GET")
 	fmt.Println("Starting server..")
 	host, port := util.GetPostHostAndPort()
 	var err error

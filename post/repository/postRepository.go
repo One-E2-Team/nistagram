@@ -192,12 +192,12 @@ func (repo *PostRepository) GetPostsForHomePage(followingProfiles []util.Followi
 	for cursor.Next(context.TODO()) {
 		var result model.Post
 		err = cursor.Decode(&result)
-		if util.IsFollowed(followingProfiles, result.PublisherId) {
+		if util.IsFollowed(followingProfiles, result.PublisherId) && !result.IsDeleted {
 			if result.PostType == model.GetPostType("story") {
-				if result.IsCloseFriendsOnly && !util.IsCloseFriend(followingProfiles, result.PublisherId){
-						continue
-					}
+				if result.IsCloseFriendsOnly && !util.IsCloseFriend(followingProfiles, result.PublisherId) {
+					continue
 				}
+
 				duration, err := time.ParseDuration("24h")
 				if err != nil {
 					return nil, err
@@ -209,6 +209,7 @@ func (repo *PostRepository) GetPostsForHomePage(followingProfiles []util.Followi
 				posts = append(posts, result)
 			}
 		}
+	}
 
 	return posts, nil
 }
@@ -243,9 +244,7 @@ func (repo *PostRepository) Delete(id primitive.ObjectID) error {
 }
 
 func (repo *PostRepository) Update(id primitive.ObjectID, post dto.PostDto) error {
-
 	collection := repo.getCollection()
-
 	filter := bson.D{{"_id", id}}
 	update := bson.D{
 		{"$set", bson.D{
@@ -292,6 +291,53 @@ func (repo *PostRepository) ChangePrivacy(id uint, isPrivate bool) error {
 	}
 
 	return repo.updateMany(filter, update)
+}
+
+func (repo *PostRepository) MakeCampaign(id primitive.ObjectID) error {
+	collection := repo.getCollection()
+	filter := bson.D{{"_id", id}}
+	update := bson.D{
+		{"$set", bson.D{
+			{"iscampaign", true},
+		}},
+	}
+
+	result, _ := collection.UpdateOne(context.TODO(), filter, update)
+	if result.MatchedCount == 0 {
+		return mongo.ErrNoDocuments
+	}
+	return nil
+}
+
+func (repo *PostRepository) GetMediaById(id string) (model.Media, error) {
+	var ret_media model.Media
+	mediaId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return ret_media, err
+	}
+	collection := repo.getCollection()
+
+	filter := bson.D{{"media", bson.M{"_id" : mediaId}}}
+
+	cursor, err := collection.Find(context.TODO(), filter)
+	if err != nil {
+		return ret_media, err
+	}
+
+	var post model.Post
+
+	for cursor.Next(context.TODO()) {
+		err = cursor.Decode(&post)
+	}
+
+
+	for _, media := range post.Medias{
+		if media.ID == mediaId{
+			ret_media = media
+		}
+	}
+
+	return ret_media, nil
 }
 
 func (repo *PostRepository) updateMany(filter bson.D, update bson.D) error {

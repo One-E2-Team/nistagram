@@ -20,6 +20,7 @@ services:
         container_name: static_srv_nginx
         build:
             context: .
+            target: final
             dockerfile: BuildStatic.dockerfile
         restart: always
         networks: 
@@ -30,6 +31,20 @@ services:
             - ./conf/certs/pem/static.cert.pem:/etc/nginx/ssl/static.cert.pem
             - ./conf/certs/key/static.key.pem:/etc/nginx/ssl/static.key.pem
             - ./conf/static.default.conf:/etc/nginx/conf.d/default.conf
+
+    agent-static:
+        container_name: agent_static_srv_nginx
+        build:
+            context: .
+            target: agent-final
+            dockerfile: BuildStatic.dockerfile
+        restart: always
+        ports: 
+            - 83:443
+        volumes: 
+            - ./conf/certs/pem/agent.cert.pem:/etc/nginx/ssl/agent.cert.pem
+            - ./conf/certs/key/agent.key.pem:/etc/nginx/ssl/agent.key.pem
+            - ./conf/agent-static.default.conf:/etc/nginx/conf.d/default.conf
 
     profile:
         container_name: profile_ms
@@ -192,8 +207,8 @@ services:
         ports:
             - 82:8080
         networks:
-            - net_apigateway
             - net_db_relational
+            - net_apigateway
         depends_on:
             - db_relational
 
@@ -225,6 +240,31 @@ services:
             - net_db_relational
         depends_on: 
             - db_relational
+
+    monitoring:
+        container_name: monitoring_ms
+        restart: always
+        environment:
+            DB_USERNAME: ${DB_MONITORING_USERNAME}
+            DB_PASSWORD: ${DB_MONITORING_PASSWORD}
+            DOCKER_ENV_SET_DEV: ""
+            MICROSERVICE_JWT_TOKEN_SECRET: ${MICROSERVICE_JWT_TOKEN_SECRET}
+            PUBLIC_JWT_TOKEN_SECRET: ${PUBLIC_JWT_TOKEN_SECRET}
+        build:
+            context: .
+            dockerfile: Build.dockerfile
+            args:
+                ARG_TARGET_MS_GO: monitoring
+        volumes:
+            - ./conf/certs/key/monitoring.key.pem:/nistagram/key.pem
+            - ./conf/certs/pem/monitoring.cert.pem:/nistagram/cert.pem
+        ports:
+            - 7007:8080
+        networks:
+            - net_apigateway
+            - net_mongo
+        depends_on:
+            - mongo1
             
     db_relational:
         container_name: db_mysql

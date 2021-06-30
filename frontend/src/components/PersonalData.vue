@@ -52,6 +52,9 @@
                 <v-btn small @click="agentRequest()" class="ma-2" color="primary" dark v-if="isMyProfile && !isAgent">
                   Agent request
                 </v-btn>
+                <v-btn small @click="getAPIToken()" class="ma-2" color="primary" dark v-if="isMyProfile && isAgent">
+                  API Token
+                </v-btn>
               </v-list-item-title>
               <v-list-item-subtitle class="text-h6 text-left">Name : {{profile.personalData.name}}</v-list-item-subtitle>
               <v-list-item-subtitle class="text-h6 text-left">Surname : {{profile.personalData.surname}}</v-list-item-subtitle>
@@ -111,8 +114,20 @@ export default {
         if (response.status == 200) {
           alert('Successfully created agent request!');
         }
-    })
+      })
     },
+    getAPIToken() {
+      axios({
+        method: "get",
+        url: comm.protocol + '://' + comm.server + '/api/auth/api-token',
+        headers: comm.getHeader(),
+      }).then(response => {
+        if (response.status == 200) {
+          console.log(response.data);
+          alert('Your API token: \n' + response.data.apiToken);
+        }
+      })
+    }
   },
   created(){
       this.getPersonalData();
