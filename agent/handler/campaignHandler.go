@@ -7,12 +7,12 @@ import (
 	"nistagram/agent/util"
 )
 
-type PostHandler struct {
-	PostService *service.PostService
+type CampaignHandler struct {
+	CampaignService *service.CampaignService
 }
 
-func (handler *PostHandler) GetMyPosts(w http.ResponseWriter, r *http.Request) {
-	resp, err := handler.PostService.GetMyPosts()
+func (handler *CampaignHandler) GetMyCampaigns(w http.ResponseWriter, r *http.Request) {
+	resp, err := handler.CampaignService.GetMyCampaigns(util.GetLoggedUserIDFromToken(r))
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
