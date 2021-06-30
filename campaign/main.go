@@ -93,6 +93,7 @@ func handlerFunc(handler *handler.CampaignHandler) {
 	router.HandleFunc("/interests/{campaignId}",
 		util.MSAuth(handler.GetCurrentlyValidInterests, []string{"monitoring"})).Methods("GET")
 	router.HandleFunc("/my-campaigns", util.AgentAuth(handler.GetMyCampaigns)).Methods("GET")
+	router.HandleFunc("/campaign/{id}/params/active",handler.GetLastActiveParametersForCampaign).Methods("GET")
 	host, port := util.GetCampaignHostAndPort()
 	var err error
 	if util.DockerChecker() {

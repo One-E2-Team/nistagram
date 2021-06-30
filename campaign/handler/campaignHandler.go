@@ -127,3 +127,22 @@ func (handler CampaignHandler) GetCampaignByIdForMonitoring(w http.ResponseWrite
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 }
+
+func (handler CampaignHandler) GetLastActiveParametersForCampaign(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	campaignId := util.String2Uint(params["id"])
+
+	switch campaignParams, err := handler.CampaignService.GetLastActiveParametersForCampaign(campaignId); err {
+		case gorm.ErrRecordNotFound:
+			w.WriteHeader(http.StatusNotFound)
+		case nil:
+			if err2 := json.NewEncoder(w).Encode(campaignParams); err2 != nil{
+				w.WriteHeader(http.StatusInternalServerError)
+			}else {
+				w.WriteHeader(http.StatusOK)
+			}
+		default:
+			w.WriteHeader(http.StatusInternalServerError)
+	}
+}
+

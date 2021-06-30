@@ -124,6 +124,11 @@ func (service *CampaignService) GetCurrentlyValidInterests(campaignId uint) ([]s
 	return ret, err
 }
 
+
+func (service *CampaignService) GetLastActiveParametersForCampaign(id uint) (model.CampaignParameters,error) {
+	return service.CampaignRepository.GetLastActiveParametersForCampaign(id)
+}
+
 func (service *CampaignService) GetCampaignByIdForMonitoring(campaignId uint) (dto.CampaignMonitoringDTO,error) {
 
 	var ret dto.CampaignMonitoringDTO
@@ -167,6 +172,7 @@ func (service *CampaignService) GetCampaignByIdForMonitoring(campaignId uint) (d
 
 	return ret, nil
 }
+
 
 
 
