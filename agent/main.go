@@ -157,6 +157,10 @@ func handlerFunc(authHandler *handler.AuthHandler, productHandler *handler.Produ
 		authHandler.AuthService.RBAC(postHandler.GetMyPosts, "READ_POSTS", true)).Methods("GET")
 	router.HandleFunc("/my-campaigns",
 		authHandler.AuthService.RBAC(campaignHandler.GetMyCampaigns, "READ_CAMPAIGNS", true)).Methods("GET")
+	router.HandleFunc("/campaign",
+		authHandler.AuthService.RBAC(campaignHandler.CreateCampaign, "CREATE_CAMPAIGN", false)).Methods("POST")
+	router.HandleFunc("/interests",
+		authHandler.AuthService.RBAC(campaignHandler.GetInterests, "READ_CAMPAIGNS", true)).Methods("GET")
 	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD")
 	_, ok1 := os.LookupEnv("DOCKER_ENV_SET_DEV")
 	var agentHost, agentPort = "localhost", "9000" // dev_db

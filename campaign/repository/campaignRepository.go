@@ -116,6 +116,12 @@ func (repo *CampaignRepository) GetMyCampaigns(agentID uint) ([]model.Campaign, 
 	return ret, nil
 }
 
+func (repo *CampaignRepository) GetAllInterests() ([]string, error) {
+	var interests []string
+	result := repo.Database.Table("interests").Select("name").Find(&interests, "name LIKE ?", "%%")
+	return interests, result.Error
+}
+
 func (repo *CampaignRepository) checkIfCampaignExists(campaignID uint) error {
 	if result := repo.Database.Find(&model.Campaign{},"id = ?", campaignID); result.Error != nil {
 		return result.Error

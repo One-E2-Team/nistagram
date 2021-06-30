@@ -91,6 +91,10 @@ func (service *CampaignService) GetMyCampaigns(agentID uint) ([]model.Campaign, 
 	return service.CampaignRepository.GetMyCampaigns(agentID)
 }
 
+func (service *CampaignService) GetAllInterests() ([]string, error) {
+	return service.CampaignRepository.GetAllInterests()
+}
+
 func getCampaignTypeFromRequest(start time.Time,end time.Time, timestampsLength int) model.CampaignType{
 	if start.Equal(end) && timestampsLength == 1 {
 		return model.ONE_TIME

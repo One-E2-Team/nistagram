@@ -143,6 +143,8 @@
 
 <script>
 import * as validator from '../plugins/validator.js'
+import axios from 'axios'
+import * as comm from '../configuration/communication.js'
 export default {
     props:['postId'],
     data() {
@@ -150,7 +152,6 @@ export default {
         token: '',
         rules:validator.rules,
         valid: true,
-
         timeMenu: false,
         dateMenuStart: false,
         dateMenuEnd: false,
@@ -165,7 +166,15 @@ export default {
     }},
     methods: {
       createDialog(){
-        //TODO: ucitaj sve interese i smesti ih u allInterests 
+        axios({
+            method: "get",
+            url: comm.protocol + "://" + comm.server +"/interests",
+            headers: comm.getHeader(),
+        }).then((response) => {
+            if(response.status == 200){
+                this.allInterests = response.data.collection;
+            }
+        });
         //TODO: ucitaj sve moguce influensere i smesti ih u allFollowers
       },
        confirm(){
