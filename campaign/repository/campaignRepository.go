@@ -15,9 +15,9 @@ type CampaignRepository struct {
 func (repo *CampaignRepository) CreateCampaign(campaign model.Campaign) (model.Campaign,error) {
 	result := repo.Database.Create(&campaign)
 	if result.RowsAffected == 0 {
-		return campaign, fmt.Errorf("User not created")
+		return campaign, fmt.Errorf("Campaign not created")
 	}
-	fmt.Println("User Created")
+	fmt.Println("Campaign Created")
 	return campaign, nil
 }
 
@@ -114,6 +114,12 @@ func (repo *CampaignRepository) GetMyCampaigns(agentID uint) ([]model.Campaign, 
 		return make([]model.Campaign,0), err
 	}
 	return ret, nil
+}
+
+func (repo *CampaignRepository) GetAllInterests() ([]string, error) {
+	var interests []string
+	result := repo.Database.Table("interests").Select("name").Find(&interests, "name LIKE ?", "%%")
+	return interests, result.Error
 }
 
 func (repo *CampaignRepository) checkIfCampaignExists(campaignID uint) error {

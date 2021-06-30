@@ -135,8 +135,16 @@ func initCampaignHandler(campaignService *service.CampaignService) *handler.Camp
 	return &handler.CampaignHandler{CampaignService: campaignService}
 }
 
+func initConnectionService() *service.ConnectionService {
+	return &service.ConnectionService{}
+}
+
+func initConnectionHandler(connectionService *service.ConnectionService) *handler.ConnectionHandler {
+	return &handler.ConnectionHandler{ConnectionService: connectionService}
+}
+
 func handlerFunc(authHandler *handler.AuthHandler, productHandler *handler.ProductHandler,
-	postHandler *handler.PostHandler, campaignHandler *handler.CampaignHandler) {
+	postHandler *handler.PostHandler, campaignHandler *handler.CampaignHandler, connectionHandler *handler.ConnectionHandler) {
 	fmt.Println("Agent application started...")
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/register", authHandler.Register).Methods("POST")
@@ -157,6 +165,14 @@ func handlerFunc(authHandler *handler.AuthHandler, productHandler *handler.Produ
 		authHandler.AuthService.RBAC(postHandler.GetMyPosts, "READ_POSTS", true)).Methods("GET")
 	router.HandleFunc("/my-campaigns",
 		authHandler.AuthService.RBAC(campaignHandler.GetMyCampaigns, "READ_CAMPAIGNS", true)).Methods("GET")
+	router.HandleFunc("/campaign",
+		authHandler.AuthService.RBAC(campaignHandler.CreateCampaign, "CREATE_CAMPAIGN", false)).Methods("POST")
+	router.HandleFunc("/interests",
+		authHandler.AuthService.RBAC(campaignHandler.GetInterests, "CREATE_CAMPAIGN", true)).Methods("GET")
+	router.HandleFunc("/followed-profiles",
+		authHandler.AuthService.RBAC(connectionHandler.GetMyFollowedProfiles, "CREATE_CAMPAIGN", true)).Methods("GET")
+	router.HandleFunc("/campaign/{id}",
+		authHandler.AuthService.RBAC(campaignHandler.EditCampaign, "EDIT_CAMPAIGN", false)).Methods("PUT")
 	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD")
 	_, ok1 := os.LookupEnv("DOCKER_ENV_SET_DEV")
 	var agentHost, agentPort = "localhost", "9000" // dev_db
@@ -191,5 +207,7 @@ func main() {
 	postHandler := initPostHandler(postService)
 	campaignService := initCampaignService()
 	campaignHandler := initCampaignHandler(campaignService)
-	handlerFunc(authHandler, productHandler, postHandler, campaignHandler)
+	connectionService := initConnectionService()
+	connectionHandler := initConnectionHandler(connectionService)
+	handlerFunc(authHandler, productHandler, postHandler, campaignHandler, connectionHandler)
 }

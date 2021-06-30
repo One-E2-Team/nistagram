@@ -112,7 +112,7 @@
                   </v-row>
                   <v-row justify="center">
                     <v-col cols="12" sm="8" >
-                      <v-combobox v-model="influensers" :items="allFollowers" chips
+                      <v-combobox v-model="influensers" :items="allFollowerUsernames" chips
                         clearable label="Influensers" multiple solo >
                         <template v-slot:selection="{ attrs, item, select, selected }">
                           <v-chip
@@ -143,6 +143,8 @@
 
 <script>
 import * as validator from '../plugins/validator.js'
+import axios from 'axios'
+import * as comm from '../configuration/communication.js'
 export default {
     props:['postId'],
     data() {
@@ -150,7 +152,6 @@ export default {
         token: '',
         rules:validator.rules,
         valid: true,
-
         timeMenu: false,
         dateMenuStart: false,
         dateMenuEnd: false,
@@ -161,12 +162,32 @@ export default {
         interests: [],
         allInterests: [],
         influensers: [],
-        allFollowers: [],
+        allFollowerUsernames: [],
+        allFollowerIds: [],
     }},
     methods: {
       createDialog(){
-        //TODO: ucitaj sve interese i smesti ih u allInterests 
-        //TODO: ucitaj sve moguce influensere i smesti ih u allFollowers
+        axios({
+            method: 'get',
+            url: comm.protocol + '://' + comm.server +'/interests',
+            headers: comm.getHeader(),
+        }).then((response) => {
+            if(response.status == 200){
+              this.allInterests = response.data.collection;
+            }
+        });
+        axios({
+            method: 'get',
+            url: comm.protocol + '://' + comm.server + '/followed-profiles',
+            headers: comm.getHeader(),
+        }).then((response) => {
+            if(response.status == 200){
+              for (let follower of response.data.collection) {
+                this.allFollowerUsernames.push(follower.username);
+                this.allFollowerIds.push(follower.profileID);
+              }
+            }
+        });
       },
        confirm(){
            if(!this.$refs.form.validate()){
@@ -183,8 +204,16 @@ export default {
               influencerProfileIds : this.getAllInfluencerProfileIds()
             }
             console.log(data)
-            //TODO: posalji zahtev za kreiranje kampanje
-
+            axios({
+              method: 'post',
+              url: comm.protocol + '://' + comm.server + '/campaign',
+              headers: comm.getHeader(),
+              data: JSON.stringify(data),
+            }).then((response) => {
+              if(response.status == 200){
+                alert('Successfully created campaign!');
+              }
+            });
        },
        addTime(){
          if (!this.isTimeExists(this.selectedTime))
@@ -222,8 +251,12 @@ export default {
         return ret;
       },
       getAllInfluencerProfileIds(){
-        //TODO: izvuci id-eve iz profila influensera
-        return []
+        let ret = [];
+        for (let selected of this.influensers) {
+          let index = this.allFollowerUsernames.indexOf(selected);
+          ret.push("" + this.allFollowerIds[index])
+        }
+        return ret
       }
       
     },

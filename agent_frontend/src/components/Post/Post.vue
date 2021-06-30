@@ -11,7 +11,7 @@
           <v-col>{{post.hashTags}} </v-col>
          </v-row>
           <v-row>
-            <v-col><make-campaign-modal /> </v-col>
+            <v-col><make-campaign-modal :postId="post.id"/> </v-col>
          </v-row>
        </v-container>
     </v-card-text>
