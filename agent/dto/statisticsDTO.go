@@ -1,8 +1,6 @@
 package dto
 
-import (
-	"time"
-)
+import "time"
 
 type StatisticsDTO struct {
 	CampaignId		uint				  `json:"campaignId"`
