@@ -137,9 +137,8 @@ func (service *AuthService) CreateAPIToken(apiToken string, loggedUserID uint) e
 		ApiToken: apiToken,
 	}
 	jsonReq, _ := json.Marshal(req)
-	nistagramHost, nistagramPort := util.GetNistagramHostAndPort()
-	resp, err := util.NistagramRequest(http.MethodPost, util.GetNistagramProtocol() + "://" +
-		nistagramHost + ":" + nistagramPort + "/agent-api/auth/login/apitoken",
+
+	resp, err := util.NistagramRequest(http.MethodPost,  "/agent-api/auth/login/apitoken",
 		jsonReq, map[string]string{"Content-Type": "application/json;"})
 	if err != nil {
 		return err
@@ -149,6 +148,7 @@ func (service *AuthService) CreateAPIToken(apiToken string, loggedUserID uint) e
 	if err != nil {
 		return err
 	}
+	fmt.Println(string(body))
 	util.SetJwt(string(body))
 	return nil
 }

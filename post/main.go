@@ -66,6 +66,7 @@ func handleFunc(handler *handler.Handler) {
 	router.HandleFunc("/public/hashtag/{value}", handler.SearchPublicByHashTag).Methods("GET")   // frontend func
 	router.HandleFunc("/my",
 		util.RBAC(handler.GetMyPosts, "READ_NOT_ONLY_PUBLIC_POSTS", true)).Methods("GET") // frontend func
+	router.HandleFunc("/agent-my", util.AgentAuth(handler.GetMyPosts)).Methods("GET") // frontend func
 	router.HandleFunc("/homePage",
 		util.RBAC(handler.GetPostsForHomePage, "READ_NOT_ONLY_PUBLIC_POSTS", true)).Methods("GET") // frontend func
 	router.HandleFunc("/",

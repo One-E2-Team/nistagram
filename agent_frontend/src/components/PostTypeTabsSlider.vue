@@ -4,7 +4,7 @@
       <template v-slot:extension>
         <v-tabs v-model="tabs" fixed-tabs>
           <v-tabs-slider></v-tabs-slider>
-           <v-tab v-for="(type, index) in postTypes" :key="index" :href="'#' + type" class="primary--text" @click="showPosts(type)">
+           <v-tab v-for="(type, index) in postTypes" :key="index" :href="'#' + type" class="primary--text">
             <v-icon>{{tabNames[index]}}</v-icon>
           </v-tab>
         </v-tabs>
@@ -16,8 +16,8 @@
         <v-card flat>
           <v-card-text>
             <v-row>
-                <v-col cols="12" sm="4" v-for="p in filteredPosts(type)" :key="p._id">
-                    <post v-bind:usage="'MultipleView'" v-bind:post="p"/>
+                <v-col cols="12" sm="4" v-for="p in filteredPosts(type)" :key="p.post.id">
+                    <post v-bind:usage="'MultipleView'" v-bind:post="p.post"/>
                 </v-col>
             </v-row>
           </v-card-text>
@@ -34,9 +34,10 @@
     props: ['posts'],
     data () {
       return {
-        postTypes: [1,2],
+        postTypes: [2,1],
         tabNames: ['Posts','Stories'],
-        tabs: 1,
+        tabs: 2,
+        myPosts: [],
         }
     },
     /*created(){
@@ -46,13 +47,19 @@
         }
     },*/
 
-    computed: {
-        filteredPosts: (type) => {
-            return this.posts.filter(function (item) {
-                return item.postType == type
-            })
-        }
+    methods: {
+      filteredPosts(type) {
+        return this.posts.filter(function (item) {
+          return item.post.postType == type;
+        });
+      },
     },
+
+    // watch: {
+    //   posts: function() {
+    //     this.myPosts = this.posts;
+    //   }
+    // },
 
     /*methods:{
         isPageAvailable(){

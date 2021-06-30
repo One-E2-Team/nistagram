@@ -1981,8 +1981,8 @@
           "disable_host_sanitize": false
         }
       ]
-	  },
-	  {
+    },
+    {
       "endpoint": "/redirect/{campaignId}/{influencerId}/{mediaId}",
       "method": "GET",
       "output_encoding": "no-op",
@@ -2006,6 +2006,30 @@
       ],
       "headers_to_pass": [
         "Authorization"
+      ]
+    },
+    {
+      "endpoint": "/agent-api/post/my",
+      "method": "GET",
+      "output_encoding": "json",
+      "extra_config": {},
+      "headers_to_pass": [
+        "Authorization"
+      ],
+      "backend": [
+        {
+          "url_pattern": "/agent-my",
+          "encoding": "json",
+          "sd": "static",
+          "method": "GET",
+          "extra_config": {},
+          "host": [
+            "https://post:8080"
+          ],
+          "disable_host_sanitize": false,
+          "is_collection": true,
+          "target": ""
+        }
       ]
     }
   ],

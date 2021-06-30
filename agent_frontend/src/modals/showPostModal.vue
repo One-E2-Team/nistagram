@@ -96,11 +96,10 @@
 import PostMedia from '../components/Post/PostMedia.vue'
 import PostReactionsModal from './PostReactionsModal.vue'
 import * as comm from '../configuration/communication.js'
-import axios from 'axios'
 export default {
   components: { PostMedia, PostReactionsModal },
   name: 'ShowPostModal',
-  props: ['width','height','post','reaction'],
+  props: ['width','height','post'],
   data(){
       return{
           isUserLogged: comm.isUserLogged(),
@@ -112,75 +111,6 @@ export default {
       }
   },
   methods:{
-      react(newReaction){
-          this.$emit('reactionChanged',newReaction)
-          this.newReaction = newReaction
-      },
-      preventActionIfUnauthorized() {
-      if(!comm.isUserLogged()){
-        alert('You must be logged to react on post');
-        this.comment = '';
-        if (this.isUserLogged) {
-          this.$router.go();
-        }
-        return true;
-      }
-      return false;
-    },
-      commentPost() {
-      if (this.preventActionIfUnauthorized()) {
-        return;
-      }
-      let dto = {'postId' : this.post.id, 'content' : this.comment}
-      axios({
-        method: 'post',
-        url: comm.protocol + '://' + comm.server + '/api/postreaction/comment',
-        data: JSON.stringify(dto),
-        headers: comm.getHeader(),
-      }).then(response => {
-        console.log(response.data);
-        alert('Successfully added comment!');
-        this.comment = '';
-      });
-    },
-    findTag(e){
-        let end = e.target.selectionStart -1;
-        if (this.comment[end] == '@')
-          return;
-        for(let i = end; i >= 0; i--){
-          if(this.comment[i] == ' ')
-            break;
-          if(this.comment[i] == '@'){
-              this.cursorStart = i + 1;
-              this.cursorEnd = end;
-              this.searchUsername(this.comment.slice(i+1, end + 1));
-              return;
-          }
-        }
-        this.searchedTaggedUsers = [];
-      },
-      searchUsername(username){
-        axios({
-          method: "get",
-          url: comm.protocol + '://' + comm.server + '/api/profile/search-for-tag/' + username,
-          headers: comm.getHeader()
-        }).then(response => {
-          if(response.status==200){
-            this.searchedTaggedUsers = response.data.collection;
-          }
-        })
-      },
-      setTag(item){
-        this.comment = this.comment.slice(0, this.cursorStart) +
-              item + this.comment.slice(this.cursorEnd + 1, this.comment.length);
-        this.searchedTaggedUsers = [];
-      }
   },
-
-  watch:{
-    reaction: function(){
-      this.newReaction = this.reaction
-    }
-  }
 }
 </script>

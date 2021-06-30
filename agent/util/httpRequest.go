@@ -4,17 +4,20 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+	"strings"
 )
 
 var agentJwt = ""
 
 func SetJwt(token string) {
-	agentJwt = token
+	agentJwt = strings.ReplaceAll(token, "\"", "")
 }
 
-func NistagramRequest(method string, path string, data []byte, headers map[string]string) (*http.Response, error) {
+func NistagramRequest(method string, urlPath string, data []byte, headers map[string]string) (*http.Response, error) {
 	client := &http.Client{}
-	req, err := http.NewRequest(method, path, bytes.NewBuffer(data))
+	nistagramHost, nistagramPort := GetNistagramHostAndPort()
+	path := GetNistagramProtocol() + "://" + nistagramHost + ":" + nistagramPort
+	req, err := http.NewRequest(method, path + urlPath, bytes.NewBuffer(data))
 	if err != nil {
 		fmt.Println(err)
 		return nil, err

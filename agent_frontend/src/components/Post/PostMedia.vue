@@ -27,7 +27,7 @@ export default {
     data(){
         return{
             protocol: comm.protocol,
-            server: comm.server
+            server: comm.static_server,
         }
     }
 }

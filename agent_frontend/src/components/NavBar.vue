@@ -11,7 +11,7 @@
           <v-spacer></v-spacer>
         </v-col>
         <v-col cols="12" sm="4">
-          <router-link :to="{ name: 'MyPosts'}">Posts</router-link> 
+          <router-link :to="{ name: 'MyPosts'}">Posts | </router-link> 
           <router-link :to="{ name: 'MyCampaigns'}">Campaigns</router-link> 
         </v-col>
         <v-col cols="12" sm="4">
