@@ -81,3 +81,20 @@ func (handler *Handler) VisitSite(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, website, http.StatusSeeOther)
 	w.Header().Set("Content-Type", "application/json")
 }
+
+func (handler *Handler) GetCampaignStatistics(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	campaignId := util.String2Uint(vars["campaignId"])
+
+	result, err := handler.MonitoringService.GetCampaignStatistics(campaignId)
+	if err != nil{
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(result)
+	w.Header().Set("Content-Type", "application/json")
+}

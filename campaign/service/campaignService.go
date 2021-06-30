@@ -120,5 +120,49 @@ func (service *CampaignService) GetCurrentlyValidInterests(campaignId uint) ([]s
 	return ret, err
 }
 
+func (service *CampaignService) GetCampaignByIdForMonitoring(campaignId uint) (dto.CampaignMonitoringDTO,error) {
+
+	var ret dto.CampaignMonitoringDTO
+	var retParams []dto.CampaignParametersMonitoringDTO
+
+	campaign, err := service.CampaignRepository.GetCampaignById(campaignId)
+	if err != nil{
+		return ret, err
+	}
+
+	for _, param := range campaign.CampaignParameters{
+		var paramDto dto.CampaignParametersMonitoringDTO
+		var interests []string
+		var timestamps []time.Time
+		var requests []dto.CampaignRequestDTO
+		for _, interest := range param.Interests{
+			interests = append(interests, interest.Name)
+		}
+		for _, ts := range param.Timestamps{
+			timestamps = append(timestamps, ts.Time)
+		}
+		for _, request := range param.CampaignRequests{
+			reqDto := dto.CampaignRequestDTO{InfluencerID: request.InfluencerID,
+				InfluencerUsername: "", RequestStatus: request.RequestStatus.ToString()}
+			requests = append(requests, reqDto)
+		}
+		paramDto.Interests = interests
+		paramDto.Timestamps = timestamps
+		paramDto.Start = param.Start
+		paramDto.End = param.End
+		paramDto.CampaignRequests = requests
+
+		retParams = append(retParams, paramDto)
+	}
+
+	ret.PostID = campaign.PostID
+	ret.AgentID = campaign.AgentID
+	ret.Start = campaign.Start
+	ret.CampaignType = campaign.CampaignType.ToString()
+	ret.CampaignParameters = retParams
+
+	return ret, nil
+}
+
 
 

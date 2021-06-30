@@ -168,3 +168,14 @@ func (repo *CampaignRepository) GetParametersByCampaignId(campaignId uint) (mode
 
 	return ret, err
 }
+
+func (repo *CampaignRepository) GetCampaignById(campaignId uint) (model.Campaign, error) {
+	var ret model.Campaign
+
+	err := repo.Database.Preload("CampaignParameters.Interests").
+		Preload("CampaignParameters.CampaignRequests").
+		Preload("CampaignParameters.Timestamps").
+		Find(&ret).Where("id = ?", campaignId).Error
+
+	return ret, err
+}

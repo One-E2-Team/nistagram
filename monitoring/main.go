@@ -3,9 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/gorilla/mux"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"net/http"
 	"nistagram/monitoring/handler"
 	"nistagram/monitoring/repository"
@@ -13,6 +10,10 @@ import (
 	"nistagram/util"
 	"os"
 	"time"
+
+	"github.com/gorilla/mux"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func initDB() *mongo.Client {
@@ -65,6 +66,8 @@ func handleFunc(handler *handler.Handler) {
 		util.MSAuth(handler.CreateEventInfluencer, []string{"postreaction"})).Methods("POST")
 	router.HandleFunc("/target-group",
 		util.MSAuth(handler.CreateEventTargetGroup, []string{"postreaction"})).Methods("POST")
+	router.HandleFunc("/redirect/{campaignId}/{influencerId}/{mediaId}", handler.VisitSite).Methods("GET")
+	router.HandleFunc("/statistics/{campaignId}", handler.GetCampaignStatistics).Methods("GET")
 	router.HandleFunc("/redirect/{campaignId}/{influencerId}/{mediaId}",
 		util.MSAuth(handler.VisitSite, []string{"postreaction"})).Methods("GET")
 

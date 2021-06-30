@@ -78,6 +78,36 @@ func (service *MonitoringService) VisitSite(campaignId uint, influencerId uint,l
 	return webSite, err
 }
 
+func (service *MonitoringService) GetCampaignStatistics(campaignId uint) (dto.StatisticsDTO, error){
+	var statistics dto.StatisticsDTO
+	campaign, err := getCampaignByCampaignId(campaignId)
+	if err != nil{
+		return statistics, err
+	}
+
+	statistics.CampaignId = campaignId
+	statistics.Campaign = campaign
+
+	var eventDtos []dto.ShowEventDTO
+
+	events, err := service.MonitoringRepository.GetEventsByCampaignId(campaignId)
+	if err != nil {
+		return statistics, err
+	}
+
+	//TODO: get influencers username
+
+	for _, e := range events{
+		eventDto := &dto.ShowEventDTO{EventType: e.EventType.ToString(), InfluencerId: e.InfluencerId,
+			Interests: e.Interests, WebSite: e.WebSite, Timestamp: e.Timestamp}
+		eventDtos = append(eventDtos, *eventDto)
+	}
+
+	statistics.Events = eventDtos
+
+	return statistics, err
+}
+
 func getPersonalDataFromProfileMs(profileId uint) ([]string, error){
 	profileHost, profilePort := util.GetProfileHostAndPort()
 	resp, err := util.CrossServiceRequest(http.MethodGet,
@@ -133,4 +163,20 @@ func getMediaByIdFromPostMs(mediaId uint) (string, error){
 	err = json.NewDecoder(resp.Body).Decode(&dto)
 
 	return dto.WebSite, err
+}
+
+func getCampaignByCampaignId(campaignId uint) (dto.CampaignMonitoringDTO, error){
+	campHost, campPort := util.GetCampaignHostAndPort()
+	resp, err := util.CrossServiceRequest(http.MethodGet,
+		util.GetCrossServiceProtocol()+"://"+campHost+":"+campPort+"/campaign/monitoring/"+ util.Uint2String(campaignId),
+		nil, map[string]string{})
+
+	var ret dto.CampaignMonitoringDTO
+	if err != nil{
+		return ret, err
+	}
+
+	err = json.NewDecoder(resp.Body).Decode(&ret)
+
+	return ret, err
 }
