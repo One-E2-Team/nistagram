@@ -79,6 +79,9 @@ func handleFunc(handler *handler.Handler) {
 	router.HandleFunc("/connection/following/my/all",
 		util.RBAC(handler.GetMyFollowedProfiles, "READ_CONNECTION_STATUS", true)).Methods("GET") // frontend func
 
+	router.HandleFunc("/connection/following/my/all-agent",
+		util.AgentAuth(handler.GetMyFollowedProfiles)).Methods("GET") // frontend func
+
 	router.HandleFunc("/connection/followers/all/{id}", handler.GetFollowerProfiles).Methods("GET") // frontend & backend func
 
 	router.HandleFunc("/connection/followers/my/all",

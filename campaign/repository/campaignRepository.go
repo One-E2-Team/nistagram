@@ -15,9 +15,9 @@ type CampaignRepository struct {
 func (repo *CampaignRepository) CreateCampaign(campaign model.Campaign) (model.Campaign,error) {
 	result := repo.Database.Create(&campaign)
 	if result.RowsAffected == 0 {
-		return campaign, fmt.Errorf("User not created")
+		return campaign, fmt.Errorf("Campaign not created")
 	}
-	fmt.Println("User Created")
+	fmt.Println("Campaign Created")
 	return campaign, nil
 }
 
