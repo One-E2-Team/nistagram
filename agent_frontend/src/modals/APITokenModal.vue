@@ -33,6 +33,8 @@
 
 <script>
 import * as validator from '../plugins/validator.js'
+import axios from 'axios'
+import * as comm from '../configuration/communication.js'
 export default {
     data() {return {
         token: '',
@@ -41,10 +43,18 @@ export default {
     }},
     methods: {
        confirm(){
-           if(this.$refs.form.validate()){
-               console.log("uspeo")
-           }
-           //TODO: uradi sta treba kad se unese token
+            if(this.$refs.form.validate()){
+                axios({
+                    method: 'post',
+                    url: comm.protocol + '://' + comm.server + '/api-token',
+                    headers: comm.getHeader(),
+                    data: JSON.stringify(this.token),
+                }).then((response) => {
+                    if(response.status == 200){
+                        alert('API token successfully added!');
+                    }
+                });
+            }
        }
     }
 }
