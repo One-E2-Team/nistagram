@@ -106,7 +106,7 @@ func getCampaignTypeFromRequest(start time.Time,end time.Time, timestampsLength 
 func makeCampaign(postID string, loggedUserID uint) error {
 	postHost, postPort := util.GetPostHostAndPort()
 	resp, err := util.CrossServiceRequest(http.MethodPost,
-		util.GetCrossServiceProtocol()+"://"+postHost+":"+postPort+"make-campaign/"+postID + "/" + util.Uint2String(loggedUserID),
+		util.GetCrossServiceProtocol()+"://"+postHost+":"+postPort+"/make-campaign/"+postID + "/" + util.Uint2String(loggedUserID),
 		nil, map[string]string{})
 	if err != nil {
 		return err
