@@ -11,7 +11,8 @@
           <v-col>{{post.hashTags}} </v-col>
          </v-row>
           <v-row>
-            <v-col><make-campaign-modal :postId="post.id"/> </v-col>
+            <v-col v-if="campaign == undefined"><make-campaign-modal :postId="post.id"/></v-col>
+            <v-col v-else><update-campaign-parameters-modal :campaignId="campaign.ID"/></v-col>
          </v-row>
        </v-container>
     </v-card-text>
@@ -21,18 +22,16 @@
 <script>
 import ShowPostModal from '../../modals/showPostModal.vue'
 import MakeCampaignModal from '../../modals/MakeCampaignModal.vue'
+import UpdateCampaignParametersModal from '../../modals/UpdateCampaignParametersModal.vue'
 export default {
-  components: { ShowPostModal, MakeCampaignModal},
+  components: { ShowPostModal, MakeCampaignModal, UpdateCampaignParametersModal},
   name: 'Post',
-  props: ['post'],
+  props: ['post', 'campaign'],
   data() {
     return {
       width: 300,
       height: 400,
     }
-  },
-  mounted() {
-    console.log(this.post);
   },
 }
 </script>

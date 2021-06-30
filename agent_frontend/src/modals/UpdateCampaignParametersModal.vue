@@ -3,7 +3,7 @@
     <v-col cols="auto">
       <v-dialog transition="dialog-top-transition" max-width="600">
         <template v-slot:activator="{ on, attrs }">
-            <v-btn v-bind="attrs" v-on="on" @click="createdDialog()"> Update</v-btn>
+            <v-btn v-bind="attrs" v-on="on" @click="createdDialog()"> Update campaign</v-btn>
         </template>
         <template v-slot:default="dialog">
           <v-card>
@@ -95,7 +95,7 @@
                   </v-row>
                   <v-row justify="center">
                     <v-col cols="12" sm="8" >
-                      <v-combobox v-model="influensers" :items="allFollowers" chips
+                      <v-combobox v-model="influensers" :items="allFollowerUsernames" chips
                         clearable label="Influensers" multiple solo >
                         <template v-slot:selection="{ attrs, item, select, selected }">
                           <v-chip
@@ -126,14 +126,15 @@
 
 <script>
 import * as validator from '../plugins/validator.js'
+import axios from 'axios'
+import * as comm from '../configuration/communication.js'
 export default {
-    props:['postId'],
+    props:['campaignId'],
     data() {
       return {
         token: '',
         rules:validator.rules,
         valid: true,
-
         timeMenu: false,
         dateMenuStart: false,
         dateMenuEnd: false,
@@ -143,12 +144,32 @@ export default {
         interests: [],
         allInterests: [],
         influensers: [],
-        allFollowers: [],
+        allFollowerUsernames: [],
+        allFollowerIds: [],
     }},
     methods: {
       createdDialog(){
-        //TODO: ucitaj sve interese i smesti ih u allInterests 
-        //TODO: ucitaj sve moguce influensere i smesti ih u allFollowers
+        axios({
+            method: 'get',
+            url: comm.protocol + '://' + comm.server +'/interests',
+            headers: comm.getHeader(),
+        }).then((response) => {
+            if(response.status == 200){
+              this.allInterests = response.data.collection;
+            }
+        });
+        axios({
+            method: 'get',
+            url: comm.protocol + '://' + comm.server + '/followed-profiles',
+            headers: comm.getHeader(),
+        }).then((response) => {
+            if(response.status == 200){
+              for (let follower of response.data.collection) {
+                this.allFollowerUsernames.push(follower.username);
+                this.allFollowerIds.push(follower.profileID);
+              }
+            }
+        });
         //TODO: ucitavanje najnovijih podataka kampanje
       },
        confirm(){
@@ -157,7 +178,6 @@ export default {
            }
             let endDate = new Date(this.end)
             let data = {
-              postId : this.postId,
               end: endDate.toISOString(),
               interests : this.interests,
               timestamps : this.getAllTimestampsAsDate(),
@@ -206,7 +226,6 @@ export default {
             //TODO: izvuci id-eve iz profila influensera
             return []
         }
-      
     },
 }
 </script>

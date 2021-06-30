@@ -1,8 +1,10 @@
 package service
 
 import (
+	"encoding/json"
 	"fmt"
 	"gorm.io/gorm"
+	"io"
 	"net/http"
 	"nistagram/campaign/dto"
 	"nistagram/campaign/model"
@@ -15,7 +17,7 @@ type CampaignService struct {
 	CampaignRepository *repository.CampaignRepository
 }
 
-func (service *CampaignService) CreateCampaign (userId uint, campaignRequest dto.CampaignDTO) (model.Campaign,error){
+func (service *CampaignService) CreateCampaign(userId uint, campaignRequest dto.CampaignDTO) (model.Campaign, error) {
 	err := makeCampaign(campaignRequest.PostID, userId)
 	if err != nil {
 		return model.Campaign{}, err
@@ -30,21 +32,21 @@ func (service *CampaignService) CreateCampaign (userId uint, campaignRequest dto
 		Timestamps:       getTimestampsFromRequest(campaignRequest.Timestamps),
 	}
 
-	campaign:=model.Campaign{
+	campaign := model.Campaign{
 		Model:              gorm.Model{},
 		PostID:             campaignRequest.PostID,
 		AgentID:            userId,
-		CampaignType:       getCampaignTypeFromRequest(campaignRequest.Start,campaignRequest.End,len(campaignRequest.Timestamps)),
+		CampaignType:       getCampaignTypeFromRequest(campaignRequest.Start, campaignRequest.End, len(campaignRequest.Timestamps)),
 		Start:              campaignRequest.Start,
 		CampaignParameters: []model.CampaignParameters{campaignParams},
 	}
 	return service.CampaignRepository.CreateCampaign(campaign)
 }
 
-func getTimestampsFromRequest(timestamps []time.Time) []model.Timestamp{
-	ret:= make([]model.Timestamp,0)
-	for _,value:= range timestamps{
-		ret = append(ret,model.Timestamp{
+func getTimestampsFromRequest(timestamps []time.Time) []model.Timestamp {
+	ret := make([]model.Timestamp, 0)
+	for _, value := range timestamps {
+		ret = append(ret, model.Timestamp{
 			Model:                gorm.Model{},
 			CampaignParametersID: 0,
 			Time:                 value,
@@ -53,10 +55,10 @@ func getTimestampsFromRequest(timestamps []time.Time) []model.Timestamp{
 	return ret
 }
 
-func getCampaignRequestsForProfileId(profileIds []string) []model.CampaignRequest{
-	ret := make([]model.CampaignRequest,0)
-	for _ , value := range profileIds{
-		ret = append(ret,model.CampaignRequest{
+func getCampaignRequestsForProfileId(profileIds []string) []model.CampaignRequest {
+	ret := make([]model.CampaignRequest, 0)
+	for _, value := range profileIds {
+		ret = append(ret, model.CampaignRequest{
 			Model:                gorm.Model{},
 			InfluencerID:         util.String2Uint(value),
 			RequestStatus:        model.SENT,
@@ -66,7 +68,7 @@ func getCampaignRequestsForProfileId(profileIds []string) []model.CampaignReques
 	return ret
 }
 
-func (service *CampaignService) getInterestsFromRequest(interests []string) []model.Interest{
+func (service *CampaignService) getInterestsFromRequest(interests []string) []model.Interest {
 	return service.CampaignRepository.GetInterests(interests)
 }
 
@@ -87,18 +89,49 @@ func (service *CampaignService) DeleteCampaign(id uint) error {
 	return service.CampaignRepository.DeleteCampaign(id)
 }
 
-func (service *CampaignService) GetMyCampaigns(agentID uint) ([]model.Campaign, error) {
-	return service.CampaignRepository.GetMyCampaigns(agentID)
+func (service *CampaignService) GetMyCampaigns(agentID uint) ([]dto.CampaignWithPostDTO, error) {
+	campaigns, err := service.CampaignRepository.GetMyCampaigns(agentID)
+	if err != nil {
+		return nil, err
+	}
+	postIDs := make([]string, 0)
+	for _, value := range campaigns {
+		postIDs = append(postIDs, value.PostID)
+	}
+
+	posts, err := getPostsByPostsIds(postIDs)
+	if err != nil {
+		return nil, err
+	}
+	ret := make([]dto.CampaignWithPostDTO, 0)
+	for i := 0; i < len(posts); i++ {
+		currentPost := posts[i]
+		postDTO := dto.PostDTO{
+			PostType:           currentPost.PostType,
+			Medias:             currentPost.Medias,
+			PublishDate:        currentPost.PublishDate,
+			Description:        currentPost.Description,
+			IsHighlighted:      currentPost.IsHighlighted,
+			IsCloseFriendsOnly: currentPost.IsCloseFriendsOnly,
+			Location:           currentPost.Location,
+			HashTags:           currentPost.HashTags,
+			TaggedUsers:        currentPost.TaggedUsers,
+			IsPrivate:          currentPost.IsPrivate,
+			IsDeleted:          currentPost.IsDeleted,
+		}
+		ret = append(ret, dto.CampaignWithPostDTO{Campaign: campaigns[i], Post: postDTO})
+	}
+	return ret, err
 }
 
 func (service *CampaignService) GetAllInterests() ([]string, error) {
 	return service.CampaignRepository.GetAllInterests()
 }
 
-func getCampaignTypeFromRequest(start time.Time,end time.Time, timestampsLength int) model.CampaignType{
+func getCampaignTypeFromRequest(start time.Time, end time.Time, timestampsLength int) model.CampaignType {
 	if start.Equal(end) && timestampsLength == 1 {
 		return model.ONE_TIME
-	}else {
+	} else {
 		return model.REPEATABLE
 	}
 }
@@ -106,7 +139,7 @@ func getCampaignTypeFromRequest(start time.Time,end time.Time, timestampsLength 
 func makeCampaign(postID string, loggedUserID uint) error {
 	postHost, postPort := util.GetPostHostAndPort()
 	resp, err := util.CrossServiceRequest(http.MethodPost,
-		util.GetCrossServiceProtocol()+"://"+postHost+":"+postPort+"/make-campaign/"+postID + "/" + util.Uint2String(loggedUserID),
+		util.GetCrossServiceProtocol()+"://"+postHost+":"+postPort+"/make-campaign/"+postID+"/"+util.Uint2String(loggedUserID),
 		nil, map[string]string{})
 	if err != nil {
 		return err
@@ -117,44 +150,43 @@ func makeCampaign(postID string, loggedUserID uint) error {
 	return nil
 }
 
-func (service *CampaignService) GetCurrentlyValidInterests(campaignId uint) ([]string,error) {
+func (service *CampaignService) GetCurrentlyValidInterests(campaignId uint) ([]string, error) {
 	var ret []string
 	parameters, err := service.CampaignRepository.GetParametersByCampaignId(campaignId)
 
-	for _, i := range parameters.Interests{
+	for _, i := range parameters.Interests {
 		ret = append(ret, i.Name)
 	}
 
 	return ret, err
 }
 
-
-func (service *CampaignService) GetLastActiveParametersForCampaign(id uint) (model.CampaignParameters,error) {
+func (service *CampaignService) GetLastActiveParametersForCampaign(id uint) (model.CampaignParameters, error) {
 	return service.CampaignRepository.GetLastActiveParametersForCampaign(id)
 }
 
-func (service *CampaignService) GetCampaignByIdForMonitoring(campaignId uint) (dto.CampaignMonitoringDTO,error) {
+func (service *CampaignService) GetCampaignByIdForMonitoring(campaignId uint) (dto.CampaignMonitoringDTO, error) {
 
 	var ret dto.CampaignMonitoringDTO
 	var retParams []dto.CampaignParametersMonitoringDTO
 
 	campaign, err := service.CampaignRepository.GetCampaignById(campaignId)
-	if err != nil{
+	if err != nil {
 		return ret, err
 	}
 
-	for _, param := range campaign.CampaignParameters{
+	for _, param := range campaign.CampaignParameters {
 		var paramDto dto.CampaignParametersMonitoringDTO
 		var interests []string
 		var timestamps []time.Time
 		var requests []dto.CampaignRequestDTO
-		for _, interest := range param.Interests{
+		for _, interest := range param.Interests {
 			interests = append(interests, interest.Name)
 		}
-		for _, ts := range param.Timestamps{
+		for _, ts := range param.Timestamps {
 			timestamps = append(timestamps, ts.Time)
 		}
-		for _, request := range param.CampaignRequests{
+		for _, request := range param.CampaignRequests {
 			reqDto := dto.CampaignRequestDTO{InfluencerID: request.InfluencerID,
 				InfluencerUsername: "", RequestStatus: request.RequestStatus.ToString()}
 			requests = append(requests, reqDto)
@@ -177,6 +209,36 @@ func (service *CampaignService) GetCampaignByIdForMonitoring(campaignId uint) (d
 	return ret, nil
 }
 
+func getPostsByPostsIds(postsIds []string) ([]dto.PostDTO, error) {
+	var ret []dto.PostDTO
+	type data struct {
+		Ids []string `json:"ids"`
+	}
+	bodyData := data{Ids: postsIds}
+	jsonBody, err := json.Marshal(bodyData)
+	if err != nil {
+		return nil, err
+	}
+	postHost, postPort := util.GetPostHostAndPort()
+	resp, err := util.CrossServiceRequest(http.MethodPost,
+		util.GetCrossServiceProtocol()+"://"+postHost+":"+postPort+"/posts",
+		jsonBody, map[string]string{})
 
+	if err != nil {
+		return nil, err
+	}
 
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
 
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(resp.Body)
+
+	if err = json.Unmarshal(body, &ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+}

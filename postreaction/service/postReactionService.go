@@ -329,6 +329,7 @@ func getPostsByPostsIds(postsIds []string) ([]dto.PostDTO, error) {
 
 	return ret, nil
 }
+
 func getPost(postID string) (*postModel.Post, error) {
 	postHost, postPort := util.GetPostHostAndPort()
 	resp, err := util.CrossServiceRequest(http.MethodGet,
