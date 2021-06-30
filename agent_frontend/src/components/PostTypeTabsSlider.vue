@@ -34,7 +34,7 @@
     props: ['posts'],
     data () {
       return {
-        postTypes: [2,1],
+        postTypes: ['2','1'],
         tabNames: ['Posts','Stories'],
         tabs: 2,
         myPosts: [],

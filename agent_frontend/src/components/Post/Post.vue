@@ -1,7 +1,6 @@
 <template>
   <v-card class="mx-auto" :width="width+50" elevation="24" outlined >    
-      <!-- <show-post-modal :width="width" :height="height" :post="post"/> -->
-      <!--else => show story modal -->
+      <show-post-modal :width="width" :height="height" :post="post"/>
       <post-media :width="width" :height="height" :post="post"/>
     <v-card-text class="text--primary">
        <v-container>
@@ -17,11 +16,9 @@
 </template>
 
 <script>
-// import ShowPostModal from '../../modals/showPostModal.vue'
-import PostMedia from './PostMedia.vue'
+import ShowPostModal from '../../modals/showPostModal.vue'
 export default {
-  // components: { ShowPostModal },
-  components: {PostMedia},
+  components: { ShowPostModal},
   name: 'Post',
   props: ['post'],
   data() {
