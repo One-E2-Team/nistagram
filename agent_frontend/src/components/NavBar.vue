@@ -18,12 +18,8 @@
           <router-link :to="{ name: 'MyPosts'}">Posts | </router-link> 
           <router-link :to="{ name: 'MyCampaigns'}">Campaigns</router-link> 
         </v-col>
-        <v-col cols="12" sm="4">
-          <v-btn class="mx-2" >
-            <v-icon large>
-              mdi-shield-key-outline
-            </v-icon>
-          </v-btn>
+        <v-col cols="12" sm="4" class="d-flex justify-end">
+          <APITokenModal />
           <v-btn @click="goToNewProduct()" class="mx-2">
             <v-icon large>
               mdi-plus-circle-outline
@@ -34,9 +30,6 @@
               mdi-cart-variant
             </v-icon>
           </v-btn>
-          <!--<v-col cols="12" sm="1" class="float-right">
-                <settings v-if="isUserLogged"/>
-          </v-col>-->
         </v-col>
         </v-app-bar>
       </v-row>
@@ -46,11 +39,11 @@
 
 <script>
 import * as comm from '../configuration/communication.js'
-//import Settings from '../components/Settings.vue'
+import APITokenModal from '../modals/APITokenModal.vue'
 import { bus } from '../main'
 export default {
     name: "NavBar",
-    components: {  },
+    components: {APITokenModal  },
     data(){
       return {
         isUserLogged: comm.getJWTToken() != null
