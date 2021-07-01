@@ -5,6 +5,7 @@ type RequestStatus int
 const (
 	SENT RequestStatus = iota
 	ACCEPTED
+	DECLINED
 )
 
 func (e RequestStatus) ToString() string {
@@ -13,6 +14,8 @@ func (e RequestStatus) ToString() string {
 		return "SENT"
 	case ACCEPTED:
 		return "ACCEPTED"
+	case DECLINED:
+		return "DECLINED"
 	default:
 		return "NONE"
 	}

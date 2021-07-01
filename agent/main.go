@@ -2,17 +2,20 @@ package main
 
 import (
 	"fmt"
-	"github.com/gorilla/handlers"
-	"github.com/gorilla/mux"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
+	"io/ioutil"
 	"net/http"
 	"nistagram/agent/handler"
 	"nistagram/agent/model"
 	"nistagram/agent/repository"
 	"nistagram/agent/service"
+	"nistagram/agent/util"
 	"os"
 	"time"
+
+	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 func initDB() *gorm.DB {
@@ -163,6 +166,7 @@ func handlerFunc(authHandler *handler.AuthHandler, productHandler *handler.Produ
 		authHandler.AuthService.RBAC(authHandler.CreateAPIToken, "CREATE_TOKEN", false)).Methods("POST")
 	router.HandleFunc("/my-posts",
 		authHandler.AuthService.RBAC(postHandler.GetMyPosts, "READ_POSTS", true)).Methods("GET")
+	router.HandleFunc("/report/campaign/{id}", campaignHandler.SaveCampaignReport).Methods("POST")
 	router.HandleFunc("/my-campaigns",
 		authHandler.AuthService.RBAC(campaignHandler.GetMyCampaigns, "READ_CAMPAIGNS", true)).Methods("GET")
 	router.HandleFunc("/campaign",
@@ -175,6 +179,7 @@ func handlerFunc(authHandler *handler.AuthHandler, productHandler *handler.Produ
 		authHandler.AuthService.RBAC(campaignHandler.GetActiveParams, "EDIT_CAMPAIGN", false)).Methods("GET")
 	router.HandleFunc("/campaign/{id}",
 		authHandler.AuthService.RBAC(campaignHandler.EditCampaign, "EDIT_CAMPAIGN", false)).Methods("PUT")
+
 	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD")
 	_, ok1 := os.LookupEnv("DOCKER_ENV_SET_DEV")
 	var agentHost, agentPort = "localhost", "9000" // dev_db
@@ -191,13 +196,14 @@ func handlerFunc(authHandler *handler.AuthHandler, productHandler *handler.Produ
 			handlers.AllowedHeaders([]string{"Authorization", "Content-Type"}),
 			handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"}))(router))
 	}
-	if err != nil{
+	if err != nil {
 		fmt.Println(err)
 		return
 	}
 }
 
 func main() {
+	//ProofOfConceptXMLDatabaseExistDB()
 	db := initDB()
 	authRepo := initAuthRepo(db)
 	authService := initAuthService(authRepo)
@@ -212,4 +218,44 @@ func main() {
 	connectionService := initConnectionService()
 	connectionHandler := initConnectionHandler(connectionService)
 	handlerFunc(authHandler, productHandler, postHandler, campaignHandler, connectionHandler)
+}
+
+func ProofOfConceptXMLDatabaseExistDB() {
+	resp, err := util.FuckingExistDBRequest(http.MethodPut, "/exist/rest/collection/document.xml", []byte("<root>\n  <fuel>-176916974.97817087</fuel>\n  <they as=\"radio\">801833596.2181821</they>\n  <taken partly=\"tip\">-1771145293.1620789</taken>\n  <afraid>involved</afraid>\n  <moon>\n    <window where=\"life\">340945322</window>\n    <list>percent</list>\n    <open wrong=\"club\">\n      <when radio=\"date\">growth</when>\n      <family>1174444784.414483</family>\n      <largest finger=\"answer\">throat</largest>\n      <strength do=\"him\">coast</strength>\n      <total>gate</total>\n      <tropical>although</tropical>\n    </open>\n    <minerals>1464602803.2550406</minerals>\n    <in>\n      <weight frog=\"powder\">science</weight>\n      <construction pull=\"shells\">-1501341086</construction>\n      <consider theory=\"science\">smoke</consider>\n      <actual perfect=\"nearby\">420013962</actual>\n      <help cold=\"student\">home</help>\n      <combine lack=\"flow\">1762325905.5516014</combine>\n    </in>\n    <single alone=\"actually\">569743812</single>\n  </moon>\n  <curve adjective=\"carbon\">1868724166.2018332</curve>\n</root>"), map[string]string{})
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(resp.StatusCode)
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			fmt.Println(err)
+		}
+		fmt.Println(string(body))
+	}
+	fmt.Println()
+	resp, err = util.FuckingExistDBRequest(http.MethodGet, "/exist/rest/collection/document.xml", []byte(""), map[string]string{})
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(resp.StatusCode)
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			fmt.Println(err)
+		}
+		fmt.Println(string(body))
+	}
+	fmt.Println()
+	var xParhAndOrQueryEtc = map[string]string{"_query": "//single[@alone='actually']"}
+	resp, err = util.FuckingExistDBRequest(http.MethodGet, "/exist/rest/collection/document.xml"+util.GenerateFuckingExistDBHTTPRequestParametersQuery(xParhAndOrQueryEtc), []byte(""), map[string]string{})
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(resp.StatusCode)
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			fmt.Println(err)
+		}
+		fmt.Println(string(body))
+	}
+	fmt.Println()
 }
