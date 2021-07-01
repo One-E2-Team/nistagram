@@ -167,6 +167,7 @@ func handlerFunc(authHandler *handler.AuthHandler, productHandler *handler.Produ
 	router.HandleFunc("/my-posts",
 		authHandler.AuthService.RBAC(postHandler.GetMyPosts, "READ_POSTS", true)).Methods("GET")
 	router.HandleFunc("/report/campaign/{id}", campaignHandler.SaveCampaignReport).Methods("POST")
+	router.HandleFunc("/report/pdf/{id}", campaignHandler.GeneratePdfForCampaign).Methods("GET")
 	router.HandleFunc("/my-campaigns",
 		authHandler.AuthService.RBAC(campaignHandler.GetMyCampaigns, "READ_CAMPAIGNS", true)).Methods("GET")
 	router.HandleFunc("/campaign",
@@ -203,7 +204,7 @@ func handlerFunc(authHandler *handler.AuthHandler, productHandler *handler.Produ
 }
 
 func main() {
-	ProofOfConceptXMLDatabaseExistDB()
+	//ProofOfConceptXMLDatabaseExistDB()
 	db := initDB()
 	authRepo := initAuthRepo(db)
 	authService := initAuthService(authRepo)
