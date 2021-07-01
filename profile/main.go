@@ -134,7 +134,7 @@ func handleFunc(handler *handler.Handler) {
 	router.HandleFunc("/get-by-id/{id}",
 		util.MSAuth(handler.GetProfileByID, []string{"connection", "post"})).Methods("GET")
 	router.HandleFunc("/get-by-ids",
-		util.MSAuth(handler.GetProfileUsernamesByIDs, []string{"postreaction", "monitoring"})).Methods("POST")
+		util.MSAuth(handler.GetProfileUsernamesByIDs, []string{"postreaction", "monitoring", "post"})).Methods("POST")
 	router.HandleFunc("/personal-data/{id}",
 		util.MSAuth(handler.GetPersonalDataByProfileId, []string{"monitoring"})).Methods("GET")
 	router.HandleFunc("/{id}",

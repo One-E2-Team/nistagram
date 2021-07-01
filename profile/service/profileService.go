@@ -3,6 +3,7 @@ package service
 import (
 	"encoding/json"
 	"fmt"
+	"gorm.io/gorm"
 	"net/http"
 	"nistagram/profile/dto"
 	"nistagram/profile/model"
@@ -352,7 +353,12 @@ func (service *ProfileService) GetProfileUsernamesByIDs(ids []string) ([]string,
 	for _, value := range ids {
 		profile, err := service.GetProfileByID(util.String2Uint(value))
 		if err != nil {
-			return nil, err
+			if err == gorm.ErrRecordNotFound {
+				ret = append(ret, "")
+				continue
+			} else {
+				return nil, err
+			}
 		}
 		ret = append(ret, profile.Username)
 	}

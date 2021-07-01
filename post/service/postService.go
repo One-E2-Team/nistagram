@@ -78,15 +78,22 @@ func (service *PostService) GetMyPosts(loggedUserID uint) ([]dto.ResponsePostDTO
 
 func (service *PostService) GetPostsForHomePage(followingProfiles []util.FollowingProfileDTO, loggedUserID uint) ([]dto.ResponsePostDTO, error) {
 	posts, err := service.PostRepository.GetPostsForHomePage(followingProfiles)
-	if err != nil{
-		return nil, err
-	}
-	campaignIDs, err := getCampaigns(loggedUserID, followingProfiles)
 	if err != nil {
 		return nil, err
 	}
-	for _, id := range campaignIDs {
-		primitiveID, err := primitive.ObjectIDFromHex(id)
+	ret := make([]dto.ResponsePostDTO, 0)
+	ret, err = getReactionsForPosts(posts, loggedUserID)
+	if err != nil {
+		return nil, err
+	}
+	sponsoredPostsDTO, err := getCampaigns(loggedUserID, followingProfiles)
+	if err != nil {
+		return nil, err
+	}
+	campaignPosts := make([]model.Post, 0)
+	influencerIDs := make([]uint, 0)
+	for _, sponsoredPostDTO := range sponsoredPostsDTO {
+		primitiveID, err := primitive.ObjectIDFromHex(sponsoredPostDTO.PostID)
 		if err != nil {
 			return nil, err
 		}
@@ -94,10 +101,24 @@ func (service *PostService) GetPostsForHomePage(followingProfiles []util.Followi
 		if err != nil {
 			return nil, err
 		}
-		posts = append(posts, post)
+		influencerIDs = append(influencerIDs, sponsoredPostDTO.InfluencerID)
+		campaignPosts = append(campaignPosts, post)
 	}
-	responseDTO, err := getReactionsForPosts(posts, loggedUserID)
-	return responseDTO, err
+	initialSponsoredPosts, err := getReactionsForPosts(campaignPosts, loggedUserID)
+	if err != nil {
+		return nil, err
+	}
+	influencerUsernames, err := getProfileUsernamesByIDs(influencerIDs)
+	for i, initial := range initialSponsoredPosts {
+		ret = append(ret, dto.ResponsePostDTO{
+			Post:               initial.Post,
+			Reaction:           initial.Reaction,
+			CampaignId:         sponsoredPostsDTO[i].CampaignID,
+			InfluencerId:       sponsoredPostsDTO[i].InfluencerID,
+			InfluencerUsername: influencerUsernames[i],
+		})
+	}
+	return ret, err
 }
 
 func (service *PostService) CreatePost(postType model.PostType, post dto.PostDto, mediaNames []string, profile dto.ProfileDto) error {
@@ -339,7 +360,7 @@ func getProfilesBlockedRelationships(loggedProfileId uint) ([]uint, error) {
 	return blockedRelationships, err
 }
 
-func getCampaigns(loggedUserID uint, followingProfiles []util.FollowingProfileDTO) ([]string, error){
+func getCampaigns(loggedUserID uint, followingProfiles []util.FollowingProfileDTO) ([]dto.SponsoredPostsDTO, error){
 	postBody, err := json.Marshal(followingProfiles)
 	if err != nil {
 		fmt.Println(err)
@@ -363,9 +384,48 @@ func getCampaigns(loggedUserID uint, followingProfiles []util.FollowingProfileDT
 	defer func(Body io.ReadCloser) {
 		_ = Body.Close()
 	}(resp.Body)
-	var ret []string
+	var ret []dto.SponsoredPostsDTO
 	if err = json.Unmarshal(body, &ret); err != nil {
 		return nil, err
 	}
+	return ret, nil
+}
+
+func getProfileUsernamesByIDs(profileIDs []uint) ([]string, error) {
+	type data struct {
+		Ids []string `json:"ids"`
+	}
+	req := make([]string, 0)
+	for _, value := range profileIDs {
+		req = append(req, util.Uint2String(value))
+	}
+	bodyData := data{Ids: req}
+	jsonBody, err := json.Marshal(bodyData)
+	if err != nil {
+		return nil, err
+	}
+	profileHost, profilePort := util.GetProfileHostAndPort()
+	resp, err := util.CrossServiceRequest(http.MethodPost,
+		util.GetCrossServiceProtocol()+"://"+profileHost+":"+profilePort+"/get-by-ids",
+		jsonBody, map[string]string{"Content-Type": "application/json;"})
+	if err != nil {
+		return nil, err
+	}
+
+	var ret []string
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(resp.Body)
+
+	if err = json.Unmarshal(body, &ret); err != nil {
+		return nil, err
+	}
+
 	return ret, nil
 }
