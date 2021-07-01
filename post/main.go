@@ -126,6 +126,7 @@ func closeConnection(client *mongo.Client) {
 }
 
 func main() {
+	util.TracerInit("post")
 	client := initDB()
 	defer closeConnection(client)
 	postRepo := initPostRepo(client)

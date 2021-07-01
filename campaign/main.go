@@ -124,6 +124,7 @@ func handlerFunc(handler *handler.CampaignHandler) {
 }
 
 func main() {
+	util.TracerInit("campaign")
 	db := initDB()
 	campaignRepo := initAuthRepo(db)
 	campaignService := initAuthService(campaignRepo)

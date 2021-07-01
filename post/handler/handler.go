@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
@@ -415,7 +416,7 @@ func (handler Handler) GetMediaById(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = json.NewEncoder(w).Encode(result)
-	if err != nil{
+	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -434,7 +435,7 @@ func safePostDto(postDto dto.PostDto) dto.PostDto {
 
 func getFollowingProfiles(loggedUserId uint) ([]util.FollowingProfileDTO, error) {
 	connHost, connPort := util.GetConnectionHostAndPort()
-	resp, err := util.CrossServiceRequest(http.MethodGet,
+	resp, err := util.CrossServiceRequest(context.Background(), http.MethodGet,
 		util.GetCrossServiceProtocol()+"://"+connHost+":"+connPort+"/connection/following/show/"+util.Uint2String(loggedUserId),
 		nil, map[string]string{})
 
@@ -445,7 +446,7 @@ func getFollowingProfiles(loggedUserId uint) ([]util.FollowingProfileDTO, error)
 	var followingProfiles []util.FollowingProfileDTO
 
 	err = json.NewDecoder(resp.Body).Decode(&followingProfiles)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 
@@ -454,7 +455,7 @@ func getFollowingProfiles(loggedUserId uint) ([]util.FollowingProfileDTO, error)
 
 func getProfileByProfileId(profileId uint) (*http.Response, error) {
 	profileHost, profilePort := util.GetProfileHostAndPort()
-	resp, err := util.CrossServiceRequest(http.MethodGet,
+	resp, err := util.CrossServiceRequest(context.Background(), http.MethodGet,
 		util.GetCrossServiceProtocol()+"://"+profileHost+":"+profilePort+"/get-by-id/"+util.Uint2String(profileId),
 		nil, map[string]string{})
 	return resp, err
