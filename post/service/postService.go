@@ -406,7 +406,7 @@ func getProfileUsernamesByIDs(profileIDs []uint) ([]string, error) {
 		return nil, err
 	}
 	profileHost, profilePort := util.GetProfileHostAndPort()
-	resp, err := util.CrossServiceRequest(http.MethodPost,
+	resp, err := util.CrossServiceRequest(context.Background(), http.MethodPost,
 		util.GetCrossServiceProtocol()+"://"+profileHost+":"+profilePort+"/get-by-ids",
 		jsonBody, map[string]string{"Content-Type": "application/json;"})
 	if err != nil {

@@ -10,7 +10,7 @@ require (
 	github.com/google/uuid v1.2.0
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
-	github.com/johnfercher/maroto v0.33.0 // indirect
+	github.com/johnfercher/maroto v0.33.0
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/neo4j/neo4j-go-driver/v4 v4.3.0
 	github.com/opentracing/opentracing-go v1.2.0
