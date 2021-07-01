@@ -194,3 +194,17 @@ func (repo *CampaignRepository) GetCampaignById(campaignId uint) (model.Campaign
 
 	return ret, err
 }
+
+func (repo *CampaignRepository) GetLastActiveParametersForCampaign(campaignId uint) (model.CampaignParameters, error) {
+	var ret model.CampaignParameters
+	result := repo.Database.Preload("Interests").Preload("CampaignRequests").Preload("Timestamps").
+		First(&ret).Where("campaign_id = ? AND end > ? AND deleted_at IS NULL ORDER BY start DESC LIMIT 1",campaignId,time.Now())
+
+	if result.Error != nil {
+		return model.CampaignParameters{},result.Error
+	}else if result.RowsAffected == 0 {
+		return model.CampaignParameters{}, gorm.ErrRecordNotFound
+	}
+
+	return ret, nil
+}

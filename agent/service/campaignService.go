@@ -98,7 +98,8 @@ func (service *CampaignService) SaveCampaignReport(campaignId uint) error {
 }
 
 func (service *CampaignService) GetMyCampaigns() (*http.Response, error) {
-	return util.NistagramRequest(http.MethodGet, "/agent-api/campaign/my-campaigns", nil, map[string]string{})
+	return util.NistagramRequest(http.MethodGet, "/agent-api/campaign/my-campaigns",
+		nil, map[string]string{})
 }
 
 func (service *CampaignService) CreateCampaign(requestBody []byte) (*http.Response, error) {
@@ -107,7 +108,13 @@ func (service *CampaignService) CreateCampaign(requestBody []byte) (*http.Respon
 }
 
 func (service *CampaignService) GetInterests() (*http.Response, error) {
-	return util.NistagramRequest(http.MethodGet, "/agent-api/campaign/interests", nil, map[string]string{})
+	return util.NistagramRequest(http.MethodGet, "/agent-api/campaign/interests",
+		nil, map[string]string{})
+}
+
+func (service *CampaignService) GetActiveParams(campaignID string) (*http.Response, error) {
+	return util.NistagramRequest(http.MethodGet, "/agent-api/campaign/"+campaignID+"/params/active",
+		nil, map[string]string{})
 }
 
 func (service *CampaignService) EditCampaign(postID string, requestBody []byte) (*http.Response, error) {

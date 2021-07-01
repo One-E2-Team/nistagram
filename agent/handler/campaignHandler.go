@@ -75,6 +75,19 @@ func (handler *CampaignHandler) GetInterests(w http.ResponseWriter, r *http.Requ
 	w.Header().Set("Content-Type", "application/json")
 }
 
+func (handler *CampaignHandler) GetActiveParams(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	resp, err := handler.CampaignService.GetActiveParams(params["id"])
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(util.GetResponseJSON(*resp))
+	w.Header().Set("Content-Type", "application/json")
+}
+
 func (handler *CampaignHandler) EditCampaign(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
