@@ -254,9 +254,24 @@ func (service *CampaignService) GetAvailableCampaignsForUser(loggedUserID uint, 
 }
 
 func (service *CampaignService) UpdateCampaignRequest(requestId string, status model.RequestStatus) error {
-
-	//TODO check if logged user have request in this campaign request
 	return service.CampaignRepository.UpdateCampaignRequest(requestId,status)
+}
+
+func (service *CampaignService) GetActiveCampaignsRequestsForProfileId(profileId int) error {
+	res, err := service.CampaignRepository.GetDistinctCampaignParamsIdForProfileId(profileId)
+	if err != nil {
+		return err
+	}
+	res, err = service.CampaignRepository.GetActiveCampaignIdsForCampaignParamsIds(res)
+	if err != nil {
+		return err
+	}
+	fmt.Println(res)
+	return nil
+}
+
+func (service *CampaignService) GetCampaignRequestInfluencerId(requestId uint) uint {
+	return service.CampaignRepository.GetCampaignRequestInfluencerId(requestId)
 }
 
 func getPostsByPostsIds(postsIds []string) ([]dto.PostDTO, error) {

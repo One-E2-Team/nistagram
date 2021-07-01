@@ -197,6 +197,11 @@ func (handler CampaignHandler) UpdateCampaignRequest(w http.ResponseWriter, r *h
 	}
 	var data ReqBody
 	requestId := params["id"]
+	loggedUserId := util.GetLoggedUserIDFromToken(r)
+	if loggedUserId == 0 || handler.CampaignService.GetCampaignRequestInfluencerId(util.String2Uint(requestId)) == loggedUserId {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
 
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 		fmt.Println(err)
@@ -224,5 +229,20 @@ func (handler CampaignHandler) UpdateCampaignRequest(w http.ResponseWriter, r *h
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
+}
+
+func (handler CampaignHandler) GetMySentCampaignsRequest(w http.ResponseWriter, r *http.Request) {
+
+	//TODO: get logged user id
+	id:=3
+
+	switch err := handler.CampaignService.GetActiveCampaignsRequestsForProfileId(id); err {
+	case gorm.ErrRecordNotFound:
+		w.WriteHeader(http.StatusNotFound)
+	case nil:
+		w.WriteHeader(http.StatusOK)
+	default:
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }
 
