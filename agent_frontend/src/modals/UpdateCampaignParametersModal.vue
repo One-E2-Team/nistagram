@@ -257,7 +257,13 @@ export default {
               this.influensers.push(this.allFollowerUsernames[index]);
             //}
           }
-          //TODO: show active timestamps :) UTC hell
+          for(let t of response.timestamps){
+            let d = new Date(t);
+            minutes = d.getMinutes() < 10 ? '0'+d.getMinutes() : d.getMinutes()
+            hours =  d.getHours() < 10 ? '0'+ d.getHours() :  d.getHours()
+            time = hours + ":" + minutes
+            this.timestamps.push(time)
+          }
         },
         closeDialog(dialog) {
           dialog.value = false;
