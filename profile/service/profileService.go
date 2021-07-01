@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -145,7 +146,7 @@ func (service *ProfileService) GetProfileByUsername(username string) (*model.Pro
 }
 
 func (service *ProfileService) ChangeProfileSettings(dto dto.ProfileSettingsDTO, loggedUserId uint) error {
-	profile, err := service.ProfileRepository.GetProfileByID(loggedUserId)
+	profile, err := service.ProfileRepository.GetProfileByID(context.Background(), loggedUserId)
 	if err != nil {
 		return err
 	}
@@ -164,7 +165,7 @@ func (service *ProfileService) ChangeProfileSettings(dto dto.ProfileSettingsDTO,
 }
 
 func (service *ProfileService) ChangePersonalData(dto dto.PersonalDataDTO, loggedUserId uint) (string, string, error) {
-	profile, err := service.ProfileRepository.GetProfileByID(loggedUserId)
+	profile, err := service.ProfileRepository.GetProfileByID(context.Background(), loggedUserId)
 	if err != nil {
 		return "", "", err
 	}
@@ -252,7 +253,7 @@ func (service *ProfileService) UpdateVerificationRequest(verifyDTO dto.VerifyDTO
 		if err != nil {
 			return err
 		}
-		profile, err := service.ProfileRepository.GetProfileByID(request.ProfileID)
+		profile, err := service.ProfileRepository.GetProfileByID(context.Background(), request.ProfileID)
 		if err != nil {
 			return err
 		}
@@ -267,7 +268,7 @@ func (service *ProfileService) UpdateVerificationRequest(verifyDTO dto.VerifyDTO
 
 func (service *ProfileService) GetMyProfileSettings(loggedUserId uint) (dto.ProfileSettingsDTO, error) {
 	ret := dto.ProfileSettingsDTO{}
-	profile, err := service.ProfileRepository.GetProfileByID(loggedUserId)
+	profile, err := service.ProfileRepository.GetProfileByID(context.Background(), loggedUserId)
 	if err != nil {
 		return ret, err
 	}
@@ -278,7 +279,7 @@ func (service *ProfileService) GetMyProfileSettings(loggedUserId uint) (dto.Prof
 }
 
 func (service *ProfileService) GetMyPersonalData(loggedUserId uint) (dto.PersonalDataDTO, error) {
-	profile, err := service.ProfileRepository.GetProfileByID(loggedUserId)
+	profile, err := service.ProfileRepository.GetProfileByID(context.Background(), loggedUserId)
 	if err != nil {
 		return dto.PersonalDataDTO{}, err
 	}
@@ -289,9 +290,14 @@ func (service *ProfileService) GetMyPersonalData(loggedUserId uint) (dto.Persona
 	return ret, nil
 }
 
-func (service *ProfileService) GetProfileByID(id uint) (*model.Profile, error) {
-	profile, err := service.ProfileRepository.GetProfileByID(id)
+func (service *ProfileService) GetProfileByID(ctx context.Context, id uint) (*model.Profile, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "GetProfilByID-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("sevicing get profile for id %v\n", id))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+	profile, err := service.ProfileRepository.GetProfileByID(nextCtx, id)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 	return profile, nil
@@ -337,7 +343,7 @@ func (service *ProfileService) GetAgentRequests() ([]dto.ResponseAgentRequestDTO
 	}
 	ret := make([]dto.ResponseAgentRequestDTO, 0)
 	for _, value := range requests {
-		profile, err := service.ProfileRepository.GetProfileByID(value.ProfileId)
+		profile, err := service.ProfileRepository.GetProfileByID(context.Background(), value.ProfileId)
 		if err != nil {
 			return nil, err
 		}
@@ -350,7 +356,7 @@ func (service *ProfileService) GetAgentRequests() ([]dto.ResponseAgentRequestDTO
 func (service *ProfileService) GetProfileUsernamesByIDs(ids []string) ([]string, error) {
 	ret := make([]string, 0)
 	for _, value := range ids {
-		profile, err := service.GetProfileByID(util.String2Uint(value))
+		profile, err := service.GetProfileByID(context.Background(), util.String2Uint(value))
 		if err != nil {
 			return nil, err
 		}
@@ -370,7 +376,7 @@ func (service *ProfileService) ProcessAgentRequest(requestDTO dto.ProcessAgentRe
 	if err != nil {
 		return err
 	}
-	profile, err := service.ProfileRepository.GetProfileByID(profileID)
+	profile, err := service.ProfileRepository.GetProfileByID(context.Background(), profileID)
 	if err != nil {
 		return err
 	}

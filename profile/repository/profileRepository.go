@@ -6,6 +6,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	"gorm.io/gorm"
 	"nistagram/profile/model"
+	"nistagram/util"
 )
 
 type ProfileRepository struct {
@@ -43,9 +44,12 @@ func (repo *ProfileRepository) FindProfileByUsername(username string) (*model.Pr
 	return profile, nil
 }
 
-func (repo *ProfileRepository) GetProfileByID(id uint) (*model.Profile, error) {
+func (repo *ProfileRepository) GetProfileByID(ctx context.Context, id uint) (*model.Profile, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "GetProfileByID-repository")
+	defer util.Tracer.FinishSpan(span)
 	profile := &model.Profile{}
 	if err := repo.RelationalDatabase.Preload("ProfileSettings").Preload("PersonalData").First(&profile, "ID = ?", id).Error; err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 	return profile, nil
@@ -101,7 +105,7 @@ func (repo *ProfileRepository) GetVerificationRequests() ([]model.VerificationRe
 func (repo *ProfileRepository) CreateVerificationRequest(verReq *model.VerificationRequest) error {
 	result := repo.RelationalDatabase.Create(verReq)
 	if result.RowsAffected == 0 {
-		return fmt.Errorf("Verification request not created")
+		return fmt.Errorf("verification request not created")
 	}
 	fmt.Println("Verification request created")
 	return nil
@@ -130,7 +134,7 @@ func (repo *ProfileRepository) DeleteVerificationRequest(request *model.Verifica
 }
 
 func (repo *ProfileRepository) DeleteProfile(profileId uint) error {
-	profile, err := repo.GetProfileByID(profileId)
+	profile, err := repo.GetProfileByID(context.Background(), profileId)
 	if err != nil {
 		return err
 	}

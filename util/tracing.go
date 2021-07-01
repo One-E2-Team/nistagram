@@ -44,7 +44,9 @@ func TracerInit(service string) {
 	if err != nil {
 		Tracer.tracerSkipper = true
 		fmt.Printf("ERROR: cannot init Jaeger: %v\n", err)
+		return
 	}
+	opentracing.SetGlobalTracer(Tracer.OpenTracer)
 }
 
 // Inject injects the outbound HTTP request with the given span's context to ensure
@@ -95,7 +97,14 @@ func (tracer *Trace) ContextWithSpan(ctx context.Context, span opentracing.Span)
 	return opentracing.ContextWithSpan(ctx, span)
 }
 
-func LogString(key string, value string) log.Field {
+func (tracer *Trace) LogFields(span opentracing.Span, key string, value string) {
+	if tracer.tracerSkipper {
+		return
+	}
+	span.LogFields(logString(key, value))
+}
+
+func logString(key string, value string) log.Field {
 	return log.String(key, value)
 }
 
@@ -111,4 +120,11 @@ func (tracer *Trace) CloseTracer() error {
 		return nil
 	}
 	return tracer.tracerCloser.Close()
+}
+
+func (tracer *Trace) FinishSpan(span opentracing.Span) {
+	if tracer.tracerSkipper{
+		return
+	}
+	span.Finish()
 }

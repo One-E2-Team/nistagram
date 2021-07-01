@@ -163,6 +163,7 @@ func handleFunc(handler *handler.Handler) {
 }
 
 func main() {
+	util.TracerInit("profile")
 	db, client := initDBs()
 	profileRepo := initProfileRepo(db, client)
 	profileService := initService(profileRepo)

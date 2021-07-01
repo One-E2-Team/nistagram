@@ -20,6 +20,7 @@ services:
     build:
       context: .
       dockerfile: BuildStatic.dockerfile
+      target: final
     restart: always
     networks:
       - net_apigateway
@@ -39,6 +40,11 @@ services:
       DOCKER_ENV_SET_DEV: ""
       MICROSERVICE_JWT_TOKEN_SECRET: ${MICROSERVICE_JWT_TOKEN_SECRET}
       PUBLIC_JWT_TOKEN_SECRET: ${PUBLIC_JWT_TOKEN_SECRET}
+      JAEGER_AGENT_HOST: tracing
+      JAEGER_AGENT_PORT: 6831     
+      JAEGER_SAMPLER_MANAGER_HOST_PORT: jaeger:5778
+      JAEGER_SAMPLER_TYPE: const
+      JAEGER_SAMPLER_PARAM: 1
     build:
       context: .
       args:
@@ -70,6 +76,11 @@ services:
       DB_SEC_ENC: ${DB_SEC_ENC}
       MICROSERVICE_JWT_TOKEN_SECRET: ${MICROSERVICE_JWT_TOKEN_SECRET}
       PUBLIC_JWT_TOKEN_SECRET: ${PUBLIC_JWT_TOKEN_SECRET}
+      JAEGER_AGENT_HOST: tracing
+      JAEGER_AGENT_PORT: 6831     
+      JAEGER_SAMPLER_MANAGER_HOST_PORT: jaeger:5778
+      JAEGER_SAMPLER_TYPE: const
+      JAEGER_SAMPLER_PARAM: 1
     build:
       context: .
       args:
@@ -97,6 +108,11 @@ services:
       DOCKER_ENV_SET_DEV: ""
       MICROSERVICE_JWT_TOKEN_SECRET: ${MICROSERVICE_JWT_TOKEN_SECRET}
       PUBLIC_JWT_TOKEN_SECRET: ${PUBLIC_JWT_TOKEN_SECRET}
+      JAEGER_AGENT_HOST: tracing
+      JAEGER_AGENT_PORT: 6831     
+      JAEGER_SAMPLER_MANAGER_HOST_PORT: jaeger:5778
+      JAEGER_SAMPLER_TYPE: const
+      JAEGER_SAMPLER_PARAM: 1
     build:
       context: .
       args:
@@ -123,6 +139,11 @@ services:
       DOCKER_ENV_SET_DEV: ""
       MICROSERVICE_JWT_TOKEN_SECRET: ${MICROSERVICE_JWT_TOKEN_SECRET}
       PUBLIC_JWT_TOKEN_SECRET: ${PUBLIC_JWT_TOKEN_SECRET}
+      JAEGER_AGENT_HOST: tracing
+      JAEGER_AGENT_PORT: 6831     
+      JAEGER_SAMPLER_MANAGER_HOST_PORT: jaeger:5778
+      JAEGER_SAMPLER_TYPE: const
+      JAEGER_SAMPLER_PARAM: 1
     build:
       context: .
       dockerfile: Build.dockerfile
@@ -150,6 +171,11 @@ services:
       DOCKER_ENV_SET_DEV: ""
       MICROSERVICE_JWT_TOKEN_SECRET: ${MICROSERVICE_JWT_TOKEN_SECRET}
       PUBLIC_JWT_TOKEN_SECRET: ${PUBLIC_JWT_TOKEN_SECRET}
+      JAEGER_AGENT_HOST: tracing
+      JAEGER_AGENT_PORT: 6831     
+      JAEGER_SAMPLER_MANAGER_HOST_PORT: jaeger:5778
+      JAEGER_SAMPLER_TYPE: const
+      JAEGER_SAMPLER_PARAM: 1
     build:
       context: .
       dockerfile: Build.dockerfile
@@ -208,6 +234,11 @@ services:
       DB_SEC_ENC: ${DB_SEC_ENC}
       MICROSERVICE_JWT_TOKEN_SECRET: ${MICROSERVICE_JWT_TOKEN_SECRET}
       PUBLIC_JWT_TOKEN_SECRET: ${PUBLIC_JWT_TOKEN_SECRET}
+      JAEGER_AGENT_HOST: tracing
+      JAEGER_AGENT_PORT: 6831     
+      JAEGER_SAMPLER_MANAGER_HOST_PORT: jaeger:5778
+      JAEGER_SAMPLER_TYPE: const
+      JAEGER_SAMPLER_PARAM: 1
     build:
       context: .
       args:
