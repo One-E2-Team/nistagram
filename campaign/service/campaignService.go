@@ -211,14 +211,14 @@ func (service *CampaignService) GetCampaignByIdForMonitoring(campaignId uint) (d
 	return ret, nil
 }
 
-func (service *CampaignService) GetAvailableCampaignsForUser(loggedUserID uint, followingProfiles []util.FollowingProfileDTO) ([]string, []uint, error) {
+func (service *CampaignService) GetAvailableCampaignsForUser(loggedUserID uint, followingProfiles []util.FollowingProfileDTO) ([]string, []uint, []uint, error) {
 	interests, err := getProfileInterests(loggedUserID)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	allActiveParams, err := service.CampaignRepository.GetAllActiveParameters()
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	campaignIDs := make([]uint, 0)
 	retInfluencerIDs := make([]uint, 0)
@@ -245,13 +245,16 @@ func (service *CampaignService) GetAvailableCampaignsForUser(loggedUserID uint, 
 		wg.Wait()
 	}
 	if len(campaignIDs) == 0 {
-		return make([]string, 0), make([]uint, 0), nil
+		return make([]string, 0), make([]uint, 0), make([]uint, 0), nil
 	}
 	postIDs, err := service.CampaignRepository.GetPostIDsFromCampaignIDs(campaignIDs)
-	fmt.Println("inf ids ", retInfluencerIDs)
-	fmt.Println("camp ids ", campaignIDs)
-	fmt.Println("post ids ", postIDs)
-	return postIDs, retInfluencerIDs, err
+	return postIDs, retInfluencerIDs, campaignIDs, err
+}
+
+func (service *CampaignService) UpdateCampaignRequest(requestId string, status model.RequestStatus) error {
+
+	//TODO check if logged user have request in this campaign request
+	return service.CampaignRepository.UpdateCampaignRequest(requestId, status)
 }
 
 func getPostsByPostsIds(postsIds []string) ([]dto.PostDTO, error) {
