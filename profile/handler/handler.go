@@ -2,6 +2,7 @@ package handler
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
@@ -438,12 +439,18 @@ func (handler *Handler) GetMyPersonalData(w http.ResponseWriter, r *http.Request
 }
 
 func (handler *Handler) GetProfileByID(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("GetProfileByID-handler", r)
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "handler", fmt.Sprintf("handling %s\n", r.URL.Path))
 	var id uint
 	vars := mux.Vars(r)
 	id = util.String2Uint(vars["id"])
-	profile, err := handler.ProfileService.GetProfileByID(id)
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
+	profile, err := handler.ProfileService.GetProfileByID(ctx, id)
+	fmt.Println(*profile)
 	if err != nil {
 		fmt.Println(err)
+		util.Tracer.LogError(span, err)
 		w.WriteHeader(http.StatusBadRequest)
 	} else {
 		w.WriteHeader(http.StatusOK)
@@ -451,6 +458,7 @@ func (handler *Handler) GetProfileByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(*profile)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return
 	}
 }

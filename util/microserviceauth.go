@@ -2,6 +2,7 @@ package util
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"net/http"
@@ -72,11 +73,20 @@ func ValidateMSToken(r *http.Request, ms []string) bool {
 	}
 }
 
-func CrossServiceRequest(method string, path string, data []byte, headers map[string]string) (*http.Response, error) {
+func CrossServiceRequest(ctx context.Context, method string, path string, data []byte, headers map[string]string) (*http.Response, error) {
+	span := Tracer.StartSpanFromContext(ctx, "CrossServiceRequest-util")
+	defer Tracer.FinishSpan(span)
+	Tracer.LogFields(span, "service", fmt.Sprintf("servicing cross service request on path %v", path))
 	client := &http.Client{}
 	req, err := http.NewRequest(method, path, bytes.NewBuffer(data))
 	if err != nil {
+		Tracer.LogError(span, err)
 		fmt.Println(err)
+		return nil, err
+	}
+	err = Tracer.Inject(span, req)
+	if err != nil {
+		Tracer.LogError(span, err)
 		return nil, err
 	}
 	req.Header.Set("Authorization", "Bearer "+msJwt)

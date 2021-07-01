@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"gorm.io/gorm"
@@ -139,7 +140,7 @@ func getCampaignTypeFromRequest(start time.Time, end time.Time, timestampsLength
 
 func makeCampaign(postID string, loggedUserID uint) error {
 	postHost, postPort := util.GetPostHostAndPort()
-	resp, err := util.CrossServiceRequest(http.MethodPost,
+	resp, err := util.CrossServiceRequest(context.Background(), http.MethodPost,
 		util.GetCrossServiceProtocol()+"://"+postHost+":"+postPort+"/make-campaign/"+postID+"/"+util.Uint2String(loggedUserID),
 		nil, map[string]string{})
 	if err != nil {
@@ -210,7 +211,7 @@ func (service *CampaignService) GetCampaignByIdForMonitoring(campaignId uint) (d
 	return ret, nil
 }
 
-func (service *CampaignService) GetAvailableCampaignsForUser(loggedUserID uint, followingProfiles []util.FollowingProfileDTO) ([]string, []uint, []uint, error){
+func (service *CampaignService) GetAvailableCampaignsForUser(loggedUserID uint, followingProfiles []util.FollowingProfileDTO) ([]string, []uint, []uint, error) {
 	interests, err := getProfileInterests(loggedUserID)
 	if err != nil {
 		return nil, nil, nil, err
@@ -253,7 +254,7 @@ func (service *CampaignService) GetAvailableCampaignsForUser(loggedUserID uint, 
 func (service *CampaignService) UpdateCampaignRequest(requestId string, status model.RequestStatus) error {
 
 	//TODO check if logged user have request in this campaign request
-	return service.CampaignRepository.UpdateCampaignRequest(requestId,status)
+	return service.CampaignRepository.UpdateCampaignRequest(requestId, status)
 }
 
 func getPostsByPostsIds(postsIds []string) ([]dto.PostDTO, error) {
@@ -267,7 +268,7 @@ func getPostsByPostsIds(postsIds []string) ([]dto.PostDTO, error) {
 		return nil, err
 	}
 	postHost, postPort := util.GetPostHostAndPort()
-	resp, err := util.CrossServiceRequest(http.MethodPost,
+	resp, err := util.CrossServiceRequest(context.Background(), http.MethodPost,
 		util.GetCrossServiceProtocol()+"://"+postHost+":"+postPort+"/posts",
 		jsonBody, map[string]string{})
 
@@ -292,8 +293,8 @@ func getPostsByPostsIds(postsIds []string) ([]dto.PostDTO, error) {
 
 func getProfileInterests(loggedUserID uint) ([]string, error) {
 	profileHost, profilePort := util.GetProfileHostAndPort()
-	resp, err := util.CrossServiceRequest(http.MethodGet,
-		util.GetCrossServiceProtocol()+"://"+profileHost+":"+profilePort+"/profile-interests/" + util.Uint2String(loggedUserID),
+	resp, err := util.CrossServiceRequest(context.Background(), http.MethodGet,
+		util.GetCrossServiceProtocol()+"://"+profileHost+":"+profilePort+"/profile-interests/"+util.Uint2String(loggedUserID),
 		nil, map[string]string{})
 
 	if err != nil {
@@ -315,7 +316,7 @@ func getProfileInterests(loggedUserID uint) ([]string, error) {
 	return ret, nil
 }
 
-func campaignParamsContainsInterest(params model.CampaignParameters, interests []string) bool{
+func campaignParamsContainsInterest(params model.CampaignParameters, interests []string) bool {
 	for _, param := range params.Interests {
 		for _, interest := range interests {
 			if param.Name == interest {

@@ -115,6 +115,7 @@ func handlerFunc(handler *handler.AuthHandler) {
 }
 
 func main() {
+	util.TracerInit("auth")
 	db := initDB()
 	authRepo := initAuthRepo(db)
 	authService := initAuthService(authRepo)

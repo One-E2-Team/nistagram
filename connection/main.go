@@ -172,6 +172,7 @@ func handleFunc(handler *handler.Handler) {
 }
 
 func main() {
+	util.TracerInit("connection")
 	db := initDB()
 	defer (*db).Close()
 	connectionRepo := initConnectionRepo(db)

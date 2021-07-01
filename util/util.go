@@ -1,6 +1,7 @@
 package util
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -79,29 +80,36 @@ type FollowingProfileDTO struct {
 	CloseFriend 	 bool     `json:"closeFriend"`
 }
 
-func GetProfile(id uint) *model.Profile {
+func GetProfile(ctx context.Context, id uint) *model.Profile {
+	span := Tracer.StartSpanFromContext(ctx, "GetProfile-util")
+	defer Tracer.FinishSpan(span)
+	Tracer.LogFields(span, "service", fmt.Sprintf("servicing id %v\n", id))
+	nextCtx := Tracer.ContextWithSpan(ctx, span)
 	var p model.Profile
 	profileHost, profilePort := GetProfileHostAndPort()
-	resp, err := CrossServiceRequest(http.MethodGet,
+	resp, err := CrossServiceRequest(nextCtx, http.MethodGet,
 		GetCrossServiceProtocol()+"://"+profileHost+":"+profilePort+"/get-by-id/"+Uint2String(id),
 		nil, map[string]string{})
 	if err != nil {
+		Tracer.LogError(span, err)
 		fmt.Println(err)
 		return nil
 	}
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-
+			Tracer.LogError(span, err)
 		}
 	}(resp.Body)
 	body, err1 := ioutil.ReadAll(resp.Body)
 	if err1 != nil {
+		Tracer.LogError(span, err1)
 		fmt.Println(err1)
 		return nil
 	}
 	err = json.Unmarshal(body, &p)
 	if err != nil {
+		Tracer.LogError(span, err)
 		fmt.Println(err)
 		return nil
 	}
@@ -110,7 +118,7 @@ func GetProfile(id uint) *model.Profile {
 
 func GetUserPrivileges(id uint) ([]string, bool) {
 	authHost, authPort := GetAuthHostAndPort()
-	resp, err := CrossServiceRequest(http.MethodGet,
+	resp, err := CrossServiceRequest(context.Background() ,http.MethodGet,
 		GetCrossServiceProtocol()+"://"+authHost+":"+authPort+"/privileges/"+Uint2String(id),
 		nil, map[string]string{})
 	if err != nil {

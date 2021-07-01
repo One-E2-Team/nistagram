@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -114,7 +115,7 @@ func (service *Service) GetAllMessageRequests(id uint) *[]dto.UserDTO {
 	for _, profileId := range *result {
 		var p model2.Profile
 		profileHost, profilePort := util.GetProfileHostAndPort()
-		resp, err := util.CrossServiceRequest(http.MethodGet,
+		resp, err := util.CrossServiceRequest(context.Background(), http.MethodGet,
 			util.GetCrossServiceProtocol()+"://"+profileHost+":"+profilePort+"/get-by-id/"+util.Uint2String(profileId),
 			nil, map[string]string{})
 		if err != nil {
