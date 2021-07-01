@@ -250,3 +250,12 @@ func (repo *CampaignRepository) GetPostIDsFromCampaignIDs(campaignIDs []uint) ([
 	}
 	return ret, nil
 }
+
+func (repo *CampaignRepository) UpdateCampaignRequest(id string, status model.RequestStatus) error {
+	if res := repo.Database.Model(&model.CampaignRequest{}).Where("id = ?", id).Update("request_status", status); res.Error != nil{
+		return res.Error
+	}else if res.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
+}

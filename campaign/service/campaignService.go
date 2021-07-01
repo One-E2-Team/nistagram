@@ -253,6 +253,12 @@ func (service *CampaignService) GetAvailableCampaignsForUser(loggedUserID uint, 
 	return postIDs, retInfluencerIDs, err
 }
 
+func (service *CampaignService) UpdateCampaignRequest(requestId string, status model.RequestStatus) error {
+
+	//TODO check if logged user have request in this campaign request
+	return service.CampaignRepository.UpdateCampaignRequest(requestId,status)
+}
+
 func getPostsByPostsIds(postsIds []string) ([]dto.PostDTO, error) {
 	var ret []dto.PostDTO
 	type data struct {
