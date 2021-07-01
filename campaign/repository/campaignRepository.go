@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"gorm.io/gorm"
 	"nistagram/campaign/model"
+	"nistagram/util"
+	"strings"
 	"time"
 )
 
@@ -206,5 +208,45 @@ func (repo *CampaignRepository) GetLastActiveParametersForCampaign(campaignId ui
 		return model.CampaignParameters{}, gorm.ErrRecordNotFound
 	}
 
+	return ret, nil
+}
+
+func (repo *CampaignRepository) GetAllActiveParameters() ([]model.CampaignParameters, error) {
+	var ret []model.CampaignParameters
+	result := repo.Database.Preload("Interests").Preload("CampaignRequests").Preload("Timestamps").
+		Where("end > ? AND deleted_at IS NULL AND start < ? ", time.Now(), time.Now()).Find(&ret)
+
+	if result.Error != nil {
+		return make([]model.CampaignParameters, 0), result.Error
+	}else if result.RowsAffected == 0 {
+		return make([]model.CampaignParameters, 0), gorm.ErrRecordNotFound
+	}
+
+	return ret, nil
+}
+
+func (repo *CampaignRepository) GetPostIDsFromCampaignIDs(campaignIDs []uint) ([]string, error) {
+	var ret []string
+	var builder strings.Builder
+	// https://stackoverflow.com/questions/39348610/select-query-with-in-clause-having-duplicate-values-in-in-clause
+	builder.WriteString("select c.post_id from campaigns c join (")
+	length := len(campaignIDs)
+	for i, campaignID := range campaignIDs {
+		builder.WriteString("select " + util.Uint2String(campaignID) + " ")
+		if i == 0 {
+			builder.WriteString("as id ")
+		}
+		if i != length - 1 {
+			builder.WriteString("union all ")
+		}
+	}
+	builder.WriteString(") matches using (id)")
+	fmt.Println("query: ", builder.String())
+	result := repo.Database.Raw(builder.String()).Scan(&ret)
+	if result.Error != nil {
+		return make([]string, 0), result.Error
+	}else if result.RowsAffected == 0 {
+		return make([]string, 0), gorm.ErrRecordNotFound
+	}
 	return ret, nil
 }

@@ -79,6 +79,7 @@ export default {
       return;
     }
     this.reaction = this.myReaction;
+    
   },
   methods: {
     designView() {

@@ -148,6 +148,8 @@ func handleFunc(handler *handler.Handler) {
 		util.RBAC(handler.ProcessAgentRequest, "EDIT_AGENT_REQUEST", false)).Methods("PUT") //frontend func
 	router.HandleFunc("/test", handler.Test).Methods("GET")
 	router.HandleFunc("/get-by-usernames", handler.GetProfileIdsByUsernames).Methods("POST")
+	router.HandleFunc("/profile-interests/{id}",
+		util.MSAuth(handler.GetProfileInterests, []string{"campaign"})).Methods("GET")
 	fmt.Println("Starting server..")
 	host, port := util.GetProfileHostAndPort()
 	var err error

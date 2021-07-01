@@ -181,8 +181,16 @@ func (repo *ProfileRepository) GetByInterests(interests []string) ([]model.Profi
 
 func (repo *ProfileRepository) GetProfileIdsByUsernames(usernames []string) ([]string, error) {
 	var ret []string
-
 	if err := repo.RelationalDatabase.Table("profiles").Raw("select p.id from profiles p where p.username in (?)", usernames).Scan(&ret).Error; err != nil {
+		return make([]string, 0), err
+	}
+	return ret, nil
+}
+
+func (repo *ProfileRepository) GetProfileInterests(id uint) ([]string, error) {
+	var ret []string
+	if err := repo.RelationalDatabase.Raw("select i.name from interests i where i.id in" +
+		"(select pi.interest_id from person_interests pi where pi.personal_data_id = ?)", id).Scan(&ret).Error; err != nil {
 		return make([]string, 0), err
 	}
 	return ret, nil

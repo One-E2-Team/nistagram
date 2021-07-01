@@ -41,8 +41,28 @@ func initDB() *mongo.Client {
 			time.Sleep(10 * time.Second)
 		} else {
 			fmt.Println("Connected to MongoDB")
+			initCollections(client)
 			return client
 		}
+	}
+}
+
+func initCollections(client *mongo.Client) {
+	const reactionDbName = "postReactionDB"
+	const reactionsCollectionName = "reactions"
+	const reportsCollectionName = "reports"
+	const commentsCollectionName = "comments"
+
+	createCollection(client,reactionDbName,reactionsCollectionName)
+	createCollection(client,reactionDbName,reportsCollectionName)
+	createCollection(client,reactionDbName,commentsCollectionName)
+}
+
+func createCollection(client *mongo.Client,dbName string, collectionName string) {
+	if err := client.Database(dbName).CreateCollection(context.TODO(), collectionName); err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println("Create " + collectionName + " collection success")
 	}
 }
 

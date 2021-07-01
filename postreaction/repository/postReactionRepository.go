@@ -9,6 +9,7 @@ import (
 	"nistagram/postreaction/model"
 )
 
+const reactionDbName = "postReactionDB"
 const reactionsCollectionName = "reactions"
 const reportsCollectionName = "reports"
 const commentsCollectionName = "comments"
@@ -198,5 +199,5 @@ func (repo *PostReactionRepository) GetAllComments(postID string) ([]model.Comme
 }
 
 func (repo *PostReactionRepository) getCollection(name string) *mongo.Collection {
-	return repo.Client.Database("postReactionDB").Collection(name)
+	return repo.Client.Database(reactionDbName).Collection(name)
 }
