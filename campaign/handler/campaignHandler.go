@@ -172,7 +172,7 @@ func (handler *CampaignHandler) GetAvailableCampaignsForUser(w http.ResponseWrit
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	postIDs, err := handler.CampaignService.GetAvailableCampaignsForUser(util.String2Uint(params["profileID"]), followingProfiles)
+	postIDs, _, err := handler.CampaignService.GetAvailableCampaignsForUser(util.String2Uint(params["profileID"]), followingProfiles)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)

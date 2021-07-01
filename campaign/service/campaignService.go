@@ -10,6 +10,7 @@ import (
 	"nistagram/campaign/model"
 	"nistagram/campaign/repository"
 	"nistagram/util"
+	"sync"
 	"time"
 )
 
@@ -209,25 +210,46 @@ func (service *CampaignService) GetCampaignByIdForMonitoring(campaignId uint) (d
 	return ret, nil
 }
 
-func (service *CampaignService) GetAvailableCampaignsForUser(loggedUserID uint, followingProfiles []util.FollowingProfileDTO) ([]string, error){
+func (service *CampaignService) GetAvailableCampaignsForUser(loggedUserID uint, followingProfiles []util.FollowingProfileDTO) ([]string, []uint, error){
 	interests, err := getProfileInterests(loggedUserID)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	allActiveParams, err := service.CampaignRepository.GetAllActiveParameters()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	campaignIDs := make([]uint, 0)
+	retInfluencerIDs := make([]uint, 0)
+	var wg sync.WaitGroup
 	for _, params := range allActiveParams {
-		if campaignParamsContainsInterest(params, interests) {
-			campaignIDs = append(campaignIDs, params.CampaignID)
-		}
+		wg.Add(2)
+		go func() {
+			defer wg.Done()
+			if campaignParamsContainsInterest(params, interests) {
+				campaignIDs = append(campaignIDs, params.CampaignID)
+				retInfluencerIDs = append(retInfluencerIDs, 0)
+			}
+		}()
+		go func() {
+			defer wg.Done()
+			test, influencerIDs := campaignParamsContainsFollowedProfiles(params, followingProfiles)
+			if test {
+				for _, influencerID := range influencerIDs {
+					campaignIDs = append(campaignIDs, params.CampaignID)
+					retInfluencerIDs = append(retInfluencerIDs, influencerID)
+				}
+			}
+		}()
+		wg.Wait()
 	}
 	if len(campaignIDs) == 0 {
-		return nil, err
+		return nil, nil, err
 	}
-	return service.CampaignRepository.GetPostIDsFromCampaignIDs(campaignIDs)
+	postIDs, err := service.CampaignRepository.GetPostIDsFromCampaignIDs(campaignIDs)
+	fmt.Println(retInfluencerIDs)
+	fmt.Println(campaignIDs)
+	return postIDs, retInfluencerIDs, err
 }
 
 func getPostsByPostsIds(postsIds []string) ([]dto.PostDTO, error) {
@@ -298,4 +320,18 @@ func campaignParamsContainsInterest(params model.CampaignParameters, interests [
 		}
 	}
 	return false
+}
+
+func campaignParamsContainsFollowedProfiles(params model.CampaignParameters, followingProfiles []util.FollowingProfileDTO) (bool, []uint) {
+	influencers := make([]uint, 0)
+	contains := false
+	for _, campaignRequest := range params.CampaignRequests {
+		for _, potentialInfluencer := range followingProfiles {
+			if /*campaignRequest.RequestStatus == model.ACCEPTED &&*/ campaignRequest.InfluencerID == potentialInfluencer.ProfileID {
+				contains = true
+				influencers = append(influencers, campaignRequest.InfluencerID)
+			}
+		}
+	}
+	return contains, influencers
 }
