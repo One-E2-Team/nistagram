@@ -2,6 +2,8 @@ package service
 
 import (
 	"encoding/json"
+	"encoding/xml"
+	"fmt"
 	"net/http"
 	"nistagram/agent/dto"
 	"nistagram/agent/model"
@@ -38,7 +40,6 @@ func (service *CampaignService) SaveCampaignReport(campaignId uint) error {
 	basicInfo.AgentID = stat.Campaign.AgentID
 	basicInfo.CampaignType = stat.Campaign.CampaignType
 	basicInfo.Start = stat.Campaign.Start
-	//TODO: at the end - basicInfo.End
 
 	//overall stats
 	for _, event := range stat.Events {
@@ -65,6 +66,7 @@ func (service *CampaignService) SaveCampaignReport(campaignId uint) error {
 		ps.Start = params.Start
 		ps.End = params.End
 		ps.Timestamps = params.Timestamps
+		basicInfo.End = params.End
 
 		var infNotAccepted []string
 		for _, req := range params.CampaignRequests {
@@ -93,6 +95,19 @@ func (service *CampaignService) SaveCampaignReport(campaignId uint) error {
 	report.BasicInformation = basicInfo
 	report.OverallStatistics = overallStat
 	report.ParametersStatistics = paramStat
+
+	output, err := xml.MarshalIndent(&report, "  ", "    ")
+	if err != nil {
+		return err
+	}
+
+	campIdString := util.Uint2String(report.BasicInformation.CampaignId)
+	resp, err = util.ExistDBRequest(http.MethodPut, "/exist/rest/collection/campaign" + campIdString + ".xml", output, map[string]string{})
+	if err != nil {
+		return err
+	}
+	fmt.Println(resp.StatusCode)
+	fmt.Println("XML document successfully written!")
 
 	return nil
 }
