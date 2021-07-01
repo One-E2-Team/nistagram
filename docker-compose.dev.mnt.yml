@@ -358,6 +358,19 @@ services:
         source: data3
         target: /data/db
 
+  exist: 
+    image: existdb/existdb:release
+    container_name: exist-db
+    restart: always
+    ports:
+      - 8666:8080
+    volumes:
+      - type: volume
+        source: data_exist
+        target: /exist-data
+    networks: 
+      - net_exist
+
   mongo-express:
     image: mongo-express
     restart: always
@@ -494,6 +507,7 @@ networks:
   net_influx:
   net_agent:
 #    net_:
+  net_exist:
 
 volumes:
   data_profile:
@@ -504,3 +518,4 @@ volumes:
   data_grafana:
   data_influx1:
   data_influx2:
+  data_exist:
