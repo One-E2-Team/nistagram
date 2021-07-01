@@ -244,11 +244,12 @@ func (service *CampaignService) GetAvailableCampaignsForUser(loggedUserID uint, 
 		wg.Wait()
 	}
 	if len(campaignIDs) == 0 {
-		return nil, nil, err
+		return make([]string, 0), make([]uint, 0), nil
 	}
 	postIDs, err := service.CampaignRepository.GetPostIDsFromCampaignIDs(campaignIDs)
-	fmt.Println(retInfluencerIDs)
-	fmt.Println(campaignIDs)
+	fmt.Println("inf ids ", retInfluencerIDs)
+	fmt.Println("camp ids ", campaignIDs)
+	fmt.Println("post ids ", postIDs)
 	return postIDs, retInfluencerIDs, err
 }
 
