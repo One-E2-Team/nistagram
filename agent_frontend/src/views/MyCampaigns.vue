@@ -4,6 +4,8 @@
 
 <script>
 import PostTypeTabsSlider from '../components/PostTypeTabsSlider.vue'
+import axios from 'axios'
+import * as comm from '../configuration/communication.js'
 export default {
   components: { PostTypeTabsSlider },
     data(){
@@ -12,7 +14,15 @@ export default {
         }
     },
     created(){
-        //TODO: get my campaigns
+        axios({
+            method: "get",
+            url: comm.protocol + "://" + comm.server +"/my-campaigns",
+            headers: comm.getHeader(),
+        }).then((response) => {
+            if(response.status == 200){
+                this.posts = response.data.collection;
+            }
+        });
     }
 }
 </script>

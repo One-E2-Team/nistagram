@@ -17,7 +17,7 @@
           <v-card-text>
             <v-row>
                 <v-col cols="12" sm="4" v-for="p in filteredPosts(type)" :key="p.post.id">
-                    <post v-bind:usage="'MultipleView'" v-bind:post="p.post"/>
+                    <post v-bind:post="p.post" :campaign="p.campaign"/>
                 </v-col>
             </v-row>
           </v-card-text>
@@ -31,14 +31,14 @@
   import Post from '../components/Post/Post.vue'
   export default {
     components:{Post},
-    props: ['posts'],
+    props: ['posts', ],
     data () {
       return {
         postTypes: ['2','1'],
         tabNames: ['Posts','Stories'],
         tabs: 2,
         myPosts: [],
-        }
+      }
     },
     /*created(){
         if(!this.isPageAvailable()) {

@@ -1,7 +1,7 @@
 <template>
   <v-row justify="space-around">
     <v-col cols="auto">
-      <v-dialog transition="dialog-bottom-transition" max-width="600">
+      <v-dialog transition="dialog-top-transition" max-width="600">
         <template v-slot:activator="{ on, attrs }">
             <v-btn>
                 <v-icon v-bind="attrs" v-on="on" large class="mx-2">mdi-shield-key-outline </v-icon>
@@ -52,6 +52,7 @@ export default {
                 }).then((response) => {
                     if(response.status == 200){
                         alert('API token successfully added!');
+                        this.token = '';
                     }
                 });
             }

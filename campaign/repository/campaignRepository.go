@@ -15,9 +15,9 @@ type CampaignRepository struct {
 func (repo *CampaignRepository) CreateCampaign(campaign model.Campaign) (model.Campaign,error) {
 	result := repo.Database.Create(&campaign)
 	if result.RowsAffected == 0 {
-		return campaign, fmt.Errorf("User not created")
+		return campaign, fmt.Errorf("Campaign not created")
 	}
-	fmt.Println("User Created")
+	fmt.Println("Campaign Created")
 	return campaign, nil
 }
 
@@ -116,6 +116,12 @@ func (repo *CampaignRepository) GetMyCampaigns(agentID uint) ([]model.Campaign, 
 	return ret, nil
 }
 
+func (repo *CampaignRepository) GetAllInterests() ([]string, error) {
+	var interests []string
+	result := repo.Database.Table("interests").Select("name").Find(&interests, "name LIKE ?", "%%")
+	return interests, result.Error
+}
+
 func (repo *CampaignRepository) checkIfCampaignExists(campaignID uint) error {
 	if result := repo.Database.Find(&model.Campaign{},"id = ?", campaignID); result.Error != nil {
 		return result.Error
@@ -187,4 +193,18 @@ func (repo *CampaignRepository) GetCampaignById(campaignId uint) (model.Campaign
 		Find(&ret).Where("id = ?", campaignId).Error
 
 	return ret, err
+}
+
+func (repo *CampaignRepository) GetLastActiveParametersForCampaign(campaignId uint) (model.CampaignParameters, error) {
+	var ret model.CampaignParameters
+	result := repo.Database.Preload("Interests").Preload("CampaignRequests").Preload("Timestamps").
+		First(&ret).Where("campaign_id = ? AND end > ? AND deleted_at IS NULL ORDER BY start DESC LIMIT 1",campaignId,time.Now())
+
+	if result.Error != nil {
+		return model.CampaignParameters{},result.Error
+	}else if result.RowsAffected == 0 {
+		return model.CampaignParameters{}, gorm.ErrRecordNotFound
+	}
+
+	return ret, nil
 }

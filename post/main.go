@@ -80,7 +80,7 @@ func handleFunc(handler *handler.Handler) {
 	router.HandleFunc("/post/{id}",
 		util.MSAuth(handler.GetPost, []string{"postreaction"})).Methods("GET")
 	router.HandleFunc("/posts",
-		util.MSAuth(handler.GetPosts, []string{"postreaction"})).Methods("POST")
+		util.MSAuth(handler.GetPosts, []string{"postreaction", "campaign"})).Methods("POST")
 	router.HandleFunc("/make-campaign/{id}/{agentID}",
 		util.MSAuth(handler.MakeCampaign, []string{"campaign"})).Methods("POST")
 	router.HandleFunc("/{id}",
