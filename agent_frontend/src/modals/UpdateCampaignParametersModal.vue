@@ -115,7 +115,7 @@
             </v-card-text>
             <v-card-actions class="justify-end">
                 <v-btn text @click="confirm()">Confirm</v-btn>
-                <v-btn text @click="closeDialog(dialog)">Close</v-btn>
+                <v-btn text @click="dialog.value = false">Close</v-btn>
             </v-card-actions>
           </v-card>
         </template>
@@ -148,6 +148,15 @@ export default {
     }},
     methods: {
       createdDialog(){
+        this.valid = true;
+        this.timeMenu = false;
+        this.dateMenuStart = false;
+        this.dateMenuEnd = false;
+        this.end = '';
+        this.timestamps = [];
+        this.selectedTime = '';
+        this.interests = [];
+        this.influensers = [];
         axios({
           method: 'get',
           url: comm.protocol + '://' + comm.server + '/followed-profiles',
@@ -258,24 +267,13 @@ export default {
             //}
           }
           for(let t of response.timestamps){
-            let d = new Date(t);
-            minutes = d.getMinutes() < 10 ? '0'+d.getMinutes() : d.getMinutes()
-            hours =  d.getHours() < 10 ? '0'+ d.getHours() :  d.getHours()
-            time = hours + ":" + minutes
+            let timestamp = t.timestamp;
+            let d = new Date(timestamp);
+            let minutes = d.getMinutes() < 10 ? '0'+d.getMinutes() : d.getMinutes()
+            let hours =  d.getHours() < 10 ? '0'+ d.getHours() :  d.getHours()
+            let time = hours + ":" + minutes
             this.timestamps.push(time)
           }
-        },
-        closeDialog(dialog) {
-          dialog.value = false;
-          this.valid = true;
-          this.timeMenu = false;
-          this.dateMenuStart = false;
-          this.dateMenuEnd = false;
-          this.end = '';
-          this.timestamps = [];
-          this.selectedTime = '';
-          this.interests = [];
-          this.influensers = [];
         },
     },
 }

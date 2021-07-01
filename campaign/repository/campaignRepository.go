@@ -208,3 +208,28 @@ func (repo *CampaignRepository) GetLastActiveParametersForCampaign(campaignId ui
 
 	return ret, nil
 }
+
+func (repo *CampaignRepository) GetAllActiveParameters() ([]model.CampaignParameters, error) {
+	var ret []model.CampaignParameters
+	result := repo.Database.Preload("Interests").Preload("CampaignRequests").Preload("Timestamps").
+		Where("end > ? AND deleted_at IS NULL AND start < ? ", time.Now(), time.Now()).Find(&ret)
+
+	if result.Error != nil {
+		return make([]model.CampaignParameters, 0), result.Error
+	}else if result.RowsAffected == 0 {
+		return make([]model.CampaignParameters, 0), gorm.ErrRecordNotFound
+	}
+
+	return ret, nil
+}
+
+func (repo *CampaignRepository) GetPostIDsFromCampaignIDs(campaignIDs []uint) ([]string, error) {
+	var ret []string
+	result := repo.Database.Raw("select c.post_id from campaigns c where c.id in (?) ", campaignIDs).Scan(&ret)
+	if result.Error != nil {
+		return make([]string, 0), result.Error
+	}else if result.RowsAffected == 0 {
+		return make([]string, 0), gorm.ErrRecordNotFound
+	}
+	return ret, nil
+}

@@ -209,6 +209,27 @@ func (service *CampaignService) GetCampaignByIdForMonitoring(campaignId uint) (d
 	return ret, nil
 }
 
+func (service *CampaignService) GetAvailableCampaignsForUser(loggedUserID uint, followingProfiles []util.FollowingProfileDTO) ([]string, error){
+	interests, err := getProfileInterests(loggedUserID)
+	if err != nil {
+		return nil, err
+	}
+	allActiveParams, err := service.CampaignRepository.GetAllActiveParameters()
+	if err != nil {
+		return nil, err
+	}
+	campaignIDs := make([]uint, 0)
+	for _, params := range allActiveParams {
+		if campaignParamsContainsInterest(params, interests) {
+			campaignIDs = append(campaignIDs, params.CampaignID)
+		}
+	}
+	if len(campaignIDs) == 0 {
+		return nil, err
+	}
+	return service.CampaignRepository.GetPostIDsFromCampaignIDs(campaignIDs)
+}
+
 func getPostsByPostsIds(postsIds []string) ([]dto.PostDTO, error) {
 	var ret []dto.PostDTO
 	type data struct {
@@ -241,4 +262,40 @@ func getPostsByPostsIds(postsIds []string) ([]dto.PostDTO, error) {
 		return nil, err
 	}
 	return ret, nil
+}
+
+func getProfileInterests(loggedUserID uint) ([]string, error) {
+	profileHost, profilePort := util.GetProfileHostAndPort()
+	resp, err := util.CrossServiceRequest(http.MethodGet,
+		util.GetCrossServiceProtocol()+"://"+profileHost+":"+profilePort+"/profile-interests/" + util.Uint2String(loggedUserID),
+		nil, map[string]string{})
+
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(resp.Body)
+	var ret []string
+	if err = json.Unmarshal(body, &ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+}
+
+func campaignParamsContainsInterest(params model.CampaignParameters, interests []string) bool{
+	for _, param := range params.Interests {
+		for _, interest := range interests {
+			if param.Name == interest {
+				return true
+			}
+		}
+	}
+	return false
 }

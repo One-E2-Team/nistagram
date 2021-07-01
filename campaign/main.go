@@ -107,6 +107,9 @@ func handlerFunc(handler *handler.CampaignHandler) {
 	router.HandleFunc("/interests",
 		util.AgentAuth(handler.GetAllInterests)).Methods("GET") //frontend func
 
+	router.HandleFunc("/available-for-profile/{profileID}",
+		util.MSAuth(handler.GetAvailableCampaignsForUser, []string{"post"})).Methods("POST")
+
 	host, port := util.GetCampaignHostAndPort()
 	var err error
 	if util.DockerChecker() {
