@@ -4,7 +4,11 @@
     <v-list-item v-if="showTitle">
       <v-list-item-content >
         <v-list-item-title  class="text-h6 d-flex justify-space-between">
-          <router-link :to="{ name: 'Profile', params: { username: post.publisherUsername }}">{{post.publisherUsername}}</router-link>
+          <router-link v-if="campaignData.influencerUsername == ''" :to="{ name: 'Profile', params: { username: post.publisherUsername }}">{{post.publisherUsername}}</router-link>
+          <router-link v-else :to="{ name: 'Profile', params: { username: campaignData.influencerUsername }}">{{campaignData.influencerUsername}}</router-link>
+          <v-row v-if="campaignData.campaignId != 0">
+            <v-col>Sponsored</v-col>
+         </v-row>
           <v-btn dark icon @click="showDialog = true" v-if="isUserLogged && !isMyPost()">
             <v-icon color="blue">mdi-dots-horizontal</v-icon>
           </v-btn>
@@ -57,7 +61,7 @@ import axios from 'axios'
 export default {
   components: { PostModal, PostMedia, ShowPostModal },
   name: 'Post',
-  props: ['post','usage', 'myReaction'],
+  props: ['post','usage', 'myReaction', 'campaignData'],
   data() {
     return {
       showDialog : false,
@@ -92,12 +96,12 @@ export default {
         this.width = 300;
         this.height = 400;
         this.showTitle = true;
-      } else if(this.usage == 'HomePage') {
+      } else if (this.usage == 'HomePage') {
         this.width = 600;
         this.height = 700;
         this.showTitle = true;
         this.showMoreDetailsOnClick = false;
-      } else if(this.usage == 'MyReactions'){
+      } else if (this.usage == 'MyReactions') {
         this.width = 300;
         this.height = 400;
         this.showTitle = true;
