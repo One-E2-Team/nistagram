@@ -1,56 +1,58 @@
 package model
 
 import (
+	"encoding/xml"
 	"strings"
 	"time"
 )
 
 type CampaignReport struct{
-	BasicInformation 		BasicInformation 			`json:"basicInformation"`
-	OverallStatistics		OverallStatistics			`json:"overallStatistics"`
-	ParametersStatistics	[]ParametersStatistics		`json:"parametersStatistics"`
+	XMLName        			xml.Name       				`json:"campaignReport" xml:"campaign_report"`
+	BasicInformation 		BasicInformation 			`json:"basicInformation" xml:"basic_information"`
+	OverallStatistics		OverallStatistics			`json:"overallStatistics" xml:"overall_statistics"`
+	ParametersStatistics	[]ParametersStatistics		`json:"parametersStatistics" xml:"parameters_statistics"`
 }
 
 type BasicInformation struct {
-	CampaignId		   uint				        `json:"campaignId"`
-	PostID             string               	`json:"postId"`
-	AgentID            uint                 	`json:"agentId"`
-	CampaignType       string               	`json:"campaignType"`
-	Start              time.Time            	`json:"start"`
-	End                time.Time            	`json:"end"`
+	CampaignId		   uint				        `json:"campaignId" xml:"campaign_id"`
+	PostID             string               	`json:"postId" xml:"post_id"`
+	AgentID            uint                 	`json:"agentId" xml:"agent_id"`
+	CampaignType       string               	`json:"campaignType" xml:"campaign_type"`
+	Start              time.Time            	`json:"start" xml:"start"`
+	End                time.Time            	`json:"end" xml:"end"`
 }
 
 type OverallStatistics struct {
-	Stats 				Stats 			`json:"stats"`
+	Stats 				Stats 			`json:"stats" xml:"stats"`
 }
 
 type ParametersStatistics struct {
-	Start            			 time.Time            `json:"start"`
-	End              			 time.Time            `json:"end"`
-	Timestamps  	 			 []time.Time	      `json:"timestamps"`
-	InfluencerStats	 			 []InfluencerStats	  `json:"influencerStats"`
-	InfluencerWhoDidNotAccept	 []string	  		  `json:"influencerWhoDidNotAccept"`
-	TargetGroupsStats	 		 []TargetGroupsStats  `json:"targetGroupsStats"`
+	Start            			 time.Time            `json:"start" xml:"start"`
+	End              			 time.Time            `json:"end" xml:"end"`
+	Timestamps  	 			 []time.Time	      `json:"timestamps" xml:"timestamps"`
+	InfluencerStats	 			 []InfluencerStats	  `json:"influencerStats" xml:"influencer_stats"`
+	InfluencerWhoDidNotAccept	 []string	  		  `json:"influencerWhoDidNotAccept" xml:"influencer_who_did_not_accept"`
+	TargetGroupsStats	 		 []TargetGroupsStats  `json:"targetGroupsStats" xml:"target_groups_stats"`
 }
 
 type InfluencerStats struct {
-	Username			string		    `json:"username"`
-	Stats 				Stats 			`json:"stats"`
+	Username			string		    `json:"username" xml:"username"`
+	Stats 				Stats 			`json:"stats" xml:"stats"`
 }
 
 type TargetGroupsStats struct {
-	Interest			string		    `json:"interest"`
-	Stats 				Stats 			`json:"stats"`
+	Interest			string		    `json:"interest" xml:"interest"`
+	Stats 				Stats 			`json:"stats" xml:"stats"`
 }
 
 type Stats struct{
-	Likes				uint 			`json:"likes"`
-	Dislikes 			uint			`json:"dislikes"`
-	LikeResets			uint			`json:"likeResets"`
-	DislikeResets		uint			`json:"dislikeResets"`
-	Comments			uint			`json:"comments"`
-	TotalSiteVisits		uint			`json:"totalSiteVisits"`
-	SpecificSiteVisits	[]SiteVisit		`json:"specificSiteVisits"`
+	Likes				uint 			`json:"likes" xml:"likes"`
+	Dislikes 			uint			`json:"dislikes" xml:"dislikes"`
+	LikeResets			uint			`json:"likeResets" xml:"likeResets"`
+	DislikeResets		uint			`json:"dislikeResets" xml:"dislike_resets"`
+	Comments			uint			`json:"comments" xml:"comments"`
+	TotalSiteVisits		uint			`json:"totalSiteVisits" xml:"total_site_visits"`
+	SpecificSiteVisits	[]SiteVisit		`json:"specificSiteVisits" xml:"specific_site_visits"`
 }
 
 func (stats *Stats) AddSpecificSite(site string){

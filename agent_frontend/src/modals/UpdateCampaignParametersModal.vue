@@ -115,7 +115,7 @@
             </v-card-text>
             <v-card-actions class="justify-end">
                 <v-btn text @click="confirm()">Confirm</v-btn>
-                <v-btn text @click="closeDialog(dialog)">Close</v-btn>
+                <v-btn text @click="dialog.value = false">Close</v-btn>
             </v-card-actions>
           </v-card>
         </template>
@@ -148,7 +148,16 @@ export default {
     }},
     methods: {
       createdDialog(){
-        axios({
+        this.valid = true;
+        this.timeMenu = false;
+        this.dateMenuStart = false;
+        this.dateMenuEnd = false;
+        this.end = '';
+        this.timestamps = [];
+        this.selectedTime = '';
+        this.interests = [];
+        this.influensers = [];
+        var loadFollowedProfiles = axios({
           method: 'get',
           url: comm.protocol + '://' + comm.server + '/followed-profiles',
           headers: comm.getHeader(),
@@ -160,7 +169,7 @@ export default {
             }
           }
         });
-        axios({
+        var loadInterests = axios({
           method: 'get',
           url: comm.protocol + '://' + comm.server +'/interests',
           headers: comm.getHeader(),
@@ -169,15 +178,7 @@ export default {
             this.allInterests = response.data.collection;
           }
         });
-        axios({
-          method: 'get',
-          url: comm.protocol + '://' + comm.server +'/campaign/' + this.campaignId + '/active-params',
-          headers: comm.getHeader(),
-        }).then((response) => {
-          if(response.status == 200){
-            this.populateActiveCampaignParams(response.data);
-          }
-        });
+        this.loadActiveParams(loadFollowedProfiles, loadInterests);
       },
       confirm(){
         if(!this.$refs.form.validate()){
@@ -245,8 +246,20 @@ export default {
           }
           return ret;
         },
+        async loadActiveParams(loadFollowedProfiles, loadInterests) {
+          await loadFollowedProfiles
+          await loadInterests
+          axios({
+            method: 'get',
+            url: comm.protocol + '://' + comm.server +'/campaign/' + this.campaignId + '/active-params',
+            headers: comm.getHeader(),
+          }).then((response) => {
+            if(response.status == 200){
+              this.populateActiveCampaignParams(response.data);
+            }
+          });
+        },
         populateActiveCampaignParams(response) {
-          //TODO: resolve async call for followed profiles
           this.end = response.end.split('T')[0];
           for (let interest of response.interests) {
             this.interests.push(interest.name);
@@ -258,24 +271,13 @@ export default {
             //}
           }
           for(let t of response.timestamps){
-            let d = new Date(t);
+            let timestamp = t.timestamp;
+            let d = new Date(timestamp);
             let minutes = d.getMinutes() < 10 ? '0'+d.getMinutes() : d.getMinutes()
             let hours =  d.getHours() < 10 ? '0'+ d.getHours() :  d.getHours()
             let time = hours + ":" + minutes
             this.timestamps.push(time)
           }
-        },
-        closeDialog(dialog) {
-          dialog.value = false;
-          this.valid = true;
-          this.timeMenu = false;
-          this.dateMenuStart = false;
-          this.dateMenuEnd = false;
-          this.end = '';
-          this.timestamps = [];
-          this.selectedTime = '';
-          this.interests = [];
-          this.influensers = [];
         },
     },
 }

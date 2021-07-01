@@ -10,6 +10,7 @@ import (
 	"nistagram/campaign/model"
 	"nistagram/campaign/repository"
 	"nistagram/util"
+	"sync"
 	"time"
 )
 
@@ -209,6 +210,49 @@ func (service *CampaignService) GetCampaignByIdForMonitoring(campaignId uint) (d
 	return ret, nil
 }
 
+func (service *CampaignService) GetAvailableCampaignsForUser(loggedUserID uint, followingProfiles []util.FollowingProfileDTO) ([]string, []uint, error){
+	interests, err := getProfileInterests(loggedUserID)
+	if err != nil {
+		return nil, nil, err
+	}
+	allActiveParams, err := service.CampaignRepository.GetAllActiveParameters()
+	if err != nil {
+		return nil, nil, err
+	}
+	campaignIDs := make([]uint, 0)
+	retInfluencerIDs := make([]uint, 0)
+	var wg sync.WaitGroup
+	for _, params := range allActiveParams {
+		wg.Add(2)
+		go func() {
+			defer wg.Done()
+			if campaignParamsContainsInterest(params, interests) {
+				campaignIDs = append(campaignIDs, params.CampaignID)
+				retInfluencerIDs = append(retInfluencerIDs, 0)
+			}
+		}()
+		go func() {
+			defer wg.Done()
+			test, influencerIDs := campaignParamsContainsFollowedProfiles(params, followingProfiles)
+			if test {
+				for _, influencerID := range influencerIDs {
+					campaignIDs = append(campaignIDs, params.CampaignID)
+					retInfluencerIDs = append(retInfluencerIDs, influencerID)
+				}
+			}
+		}()
+		wg.Wait()
+	}
+	if len(campaignIDs) == 0 {
+		return make([]string, 0), make([]uint, 0), nil
+	}
+	postIDs, err := service.CampaignRepository.GetPostIDsFromCampaignIDs(campaignIDs)
+	fmt.Println("inf ids ", retInfluencerIDs)
+	fmt.Println("camp ids ", campaignIDs)
+	fmt.Println("post ids ", postIDs)
+	return postIDs, retInfluencerIDs, err
+}
+
 func getPostsByPostsIds(postsIds []string) ([]dto.PostDTO, error) {
 	var ret []dto.PostDTO
 	type data struct {
@@ -241,4 +285,54 @@ func getPostsByPostsIds(postsIds []string) ([]dto.PostDTO, error) {
 		return nil, err
 	}
 	return ret, nil
+}
+
+func getProfileInterests(loggedUserID uint) ([]string, error) {
+	profileHost, profilePort := util.GetProfileHostAndPort()
+	resp, err := util.CrossServiceRequest(http.MethodGet,
+		util.GetCrossServiceProtocol()+"://"+profileHost+":"+profilePort+"/profile-interests/" + util.Uint2String(loggedUserID),
+		nil, map[string]string{})
+
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(resp.Body)
+	var ret []string
+	if err = json.Unmarshal(body, &ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+}
+
+func campaignParamsContainsInterest(params model.CampaignParameters, interests []string) bool{
+	for _, param := range params.Interests {
+		for _, interest := range interests {
+			if param.Name == interest {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func campaignParamsContainsFollowedProfiles(params model.CampaignParameters, followingProfiles []util.FollowingProfileDTO) (bool, []uint) {
+	influencers := make([]uint, 0)
+	contains := false
+	for _, campaignRequest := range params.CampaignRequests {
+		for _, potentialInfluencer := range followingProfiles {
+			if /*campaignRequest.RequestStatus == model.ACCEPTED &&*/ campaignRequest.InfluencerID == potentialInfluencer.ProfileID {
+				contains = true
+				influencers = append(influencers, campaignRequest.InfluencerID)
+			}
+		}
+	}
+	return contains, influencers
 }

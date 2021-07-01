@@ -2,6 +2,13 @@ package service
 
 import (
 	"encoding/json"
+	"encoding/xml"
+	"fmt"
+	"github.com/johnfercher/maroto/pkg/consts"
+	"github.com/johnfercher/maroto/pkg/pdf"
+	"github.com/johnfercher/maroto/pkg/props"
+	"github.com/johnfercher/maroto/pkg/color"
+	"io/ioutil"
 	"net/http"
 	"nistagram/agent/dto"
 	"nistagram/agent/model"
@@ -38,7 +45,6 @@ func (service *CampaignService) SaveCampaignReport(campaignId uint) error {
 	basicInfo.AgentID = stat.Campaign.AgentID
 	basicInfo.CampaignType = stat.Campaign.CampaignType
 	basicInfo.Start = stat.Campaign.Start
-	//TODO: at the end - basicInfo.End
 
 	//overall stats
 	for _, event := range stat.Events {
@@ -65,6 +71,7 @@ func (service *CampaignService) SaveCampaignReport(campaignId uint) error {
 		ps.Start = params.Start
 		ps.End = params.End
 		ps.Timestamps = params.Timestamps
+		basicInfo.End = params.End
 
 		var infNotAccepted []string
 		for _, req := range params.CampaignRequests {
@@ -94,6 +101,19 @@ func (service *CampaignService) SaveCampaignReport(campaignId uint) error {
 	report.OverallStatistics = overallStat
 	report.ParametersStatistics = paramStat
 
+	output, err := xml.MarshalIndent(&report, "  ", "    ")
+	if err != nil {
+		return err
+	}
+
+	campIdString := util.Uint2String(report.BasicInformation.CampaignId)
+	resp, err = util.ExistDBRequest(http.MethodPut, "/exist/rest/collection/campaign" + campIdString + ".xml", output, map[string]string{})
+	if err != nil {
+		return err
+	}
+	fmt.Println(resp.StatusCode)
+	fmt.Println("XML document successfully written!")
+
 	return nil
 }
 
@@ -120,4 +140,351 @@ func (service *CampaignService) GetActiveParams(campaignID string) (*http.Respon
 func (service *CampaignService) EditCampaign(postID string, requestBody []byte) (*http.Response, error) {
 	return util.NistagramRequest(http.MethodPut, "/agent-api/campaign/update/"+postID,
 		requestBody, map[string]string{"Content-Type": "application/json"})
+}
+
+func (service *CampaignService) GeneratePdfForCampaign(campaignId uint) error {
+	resp, err := util.ExistDBRequest(http.MethodGet, "/exist/rest/collection/document.xml", []byte(""), map[string]string{})
+	if err != nil {
+		return err
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	var report model.CampaignReport
+	err = xml.Unmarshal(body, &report)
+	if err != nil{
+		return err
+	}
+
+	m := pdf.NewMaroto(consts.Portrait, consts.Letter)
+
+	m.Row(20, func() {
+		m.Col(4, func() {
+			m.Text("CAMPAIGN REPORT - Overall statistics", props.Text{
+				Top:         12,
+				Size:        20,
+				Extrapolate: true,
+			})
+		})
+		m.ColSpace(4)
+	})
+
+	m.Line(5)
+
+	m.Row(10, func() {
+		m.Col(4, func() {
+			m.Text("Basic campaign information:", props.Text{
+				Size:        14,
+				Top:         22,
+				Extrapolate: true,
+				Style: consts.BoldItalic,
+			})
+		})
+		m.ColSpace(4)
+	})
+
+	m.Row(6, func() {
+		m.Col(4, func() {
+			m.Text(" - Campaign ID: " + util.Uint2String(report.BasicInformation.CampaignId), props.Text{
+				Size: 12,
+				Top:  22,
+			})
+		})
+		m.ColSpace(4)
+	})
+	m.Row(6, func() {
+		m.Col(4, func() {
+			m.Text(" - Campaign type: " + report.BasicInformation.CampaignType, props.Text{
+				Size: 12,
+				Top:  22,
+
+			})
+		})
+		m.ColSpace(4)
+	})
+	m.Row(6, func() {
+		m.Col(4, func() {
+			m.Text(" - Post ID: " + report.BasicInformation.PostID, props.Text{
+				Size: 12,
+				Top:  22,
+
+			})
+		})
+		m.ColSpace(4)
+	})
+	m.Row(6, func() {
+		m.Col(4, func() {
+			m.Text(" - Agent ID: " + util.Uint2String(report.BasicInformation.AgentID), props.Text{
+				Size: 12,
+				Top:  22,
+
+			})
+		})
+		m.ColSpace(4)
+	})
+	m.Row(6, func() {
+		m.Col(4, func() {
+			m.Text(" - Start date: " + report.BasicInformation.Start.Format("2006-01-02 15:04:05"), props.Text{
+				Size: 12,
+				Top:  22,
+
+			})
+		})
+		m.ColSpace(4)
+	})
+	m.Row(6, func() {
+		m.Col(4, func() {
+			m.Text(" - End date: " + report.BasicInformation.End.Format("2006-01-02 15:04:05"), props.Text{
+				Size: 12,
+				Top:  22,
+
+			})
+		})
+		m.ColSpace(4)
+	})
+
+	m.Row(10, func() {
+		m.Col(4, func() {
+			m.Text("Overall campaign statistics:", props.Text{
+				Size:        14,
+				Top:         22,
+				Extrapolate: true,
+				Style: consts.BoldItalic,
+			})
+		})
+		m.ColSpace(4)
+	})
+
+	header := []string{"Likes", "Dislikes", "Like resets", "Dislike resets", "Comments", "Site visits"}
+	contents := [][]string{
+		{util.Uint2String(report.OverallStatistics.Stats.Likes),
+			util.Uint2String(report.OverallStatistics.Stats.Dislikes),
+			util.Uint2String(report.OverallStatistics.Stats.LikeResets),
+			util.Uint2String(report.OverallStatistics.Stats.DislikeResets),
+			util.Uint2String(report.OverallStatistics.Stats.Comments),
+			util.Uint2String(report.OverallStatistics.Stats.TotalSiteVisits),
+		},
+	}
+
+	m.Row(10, func(){})
+
+	m.Row(30, func() {
+		m.TableList(header, contents, props.TableList{
+			HeaderProp: props.TableListContent{
+				Size:      13,
+			},
+			ContentProp: props.TableListContent{
+				Size:      13,
+			},
+			Align:                consts.Center,
+			AlternatedBackground: &color.Color{Red: 150, Green: 150, Blue: 150},
+			HeaderContentSpace:   1,
+			Line:                 false,
+		})
+	})
+
+	m.Row(10, func(){})
+
+	header = []string{"Website", "Visits"}
+	contents = [][]string{
+	}
+
+	for _, item := range report.OverallStatistics.Stats.SpecificSiteVisits{
+		var cont []string
+		cont = append(cont, item.WebSite)
+		cont = append(cont, util.Uint2String(item.Visits))
+		contents = append(contents, cont)
+	}
+
+	m.Row(10, func(){})
+
+	m.Row(50, func() {
+		m.TableList(header, contents, props.TableList{
+			HeaderProp: props.TableListContent{
+				Size:      13,
+			},
+			ContentProp: props.TableListContent{
+				Size:      13,
+			},
+			Align:                consts.Center,
+			AlternatedBackground: &color.Color{Red: 150, Green: 150, Blue: 150},
+			HeaderContentSpace:   1,
+			Line:                 false,
+		})
+	})
+
+	m.Row(15, func() {
+		m.Col(4, func() {
+			m.Text("Parameters statistics:", props.Text{
+				Size:        14,
+				Top:         22,
+				Extrapolate: true,
+				Style: consts.BoldItalic,
+			})
+		})
+		m.ColSpace(4)
+	})
+
+	for _, params := range report.ParametersStatistics {
+
+		m.Row(6, func() {
+			m.Col(4, func() {
+				m.Text(" - Period: " + params.Start.Format("2006-01-02 15:04:05") +
+				" - " + params.End.Format("2006-01-02 15:04:05"), props.Text{
+					Size: 12,
+					Top:  22,
+				})
+			})
+			m.ColSpace(4)
+		})
+
+		timestamps := ""
+		for _, ts := range params.Timestamps{
+			timestamps += " " + ts.Format("8:00") + ","
+		}
+
+		m.Row(6, func() {
+			m.Col(12, func() {
+				m.Text(" - Timestamps when the campaign has been launched: " + timestamps, props.Text{
+					Size: 12,
+					Top:  22,
+				})
+			})
+			m.ColSpace(4)
+		})
+
+		m.Row(15, func() {
+			m.Col(4, func() {
+				m.Text("- Influencers:", props.Text{
+					Size:        14,
+					Top:         22,
+					Extrapolate: true,
+					Style:       consts.Bold,
+				})
+			})
+			m.ColSpace(4)
+		})
+
+		m.Row(10, func() {})
+
+		header = []string{"Username", "Likes", "Dislikes", "Like resets", "Dislike resets", "Comments", "Site visits"}
+		contents = [][]string{
+		}
+
+		for _, item := range params.InfluencerStats{
+			var cont []string
+			cont = append(cont, item.Username)
+			cont = append(cont, util.Uint2String(item.Stats.Likes))
+			cont = append(cont, util.Uint2String(item.Stats.Dislikes))
+			cont = append(cont, util.Uint2String(item.Stats.LikeResets))
+			cont = append(cont, util.Uint2String(item.Stats.DislikeResets))
+			cont = append(cont, util.Uint2String(item.Stats.Comments))
+			cont = append(cont, util.Uint2String(item.Stats.TotalSiteVisits))
+			contents = append(contents, cont)
+		}
+
+		m.Row(50, func() {
+			m.TableList(header, contents, props.TableList{
+				HeaderProp: props.TableListContent{
+					Size: 12,
+				},
+				ContentProp: props.TableListContent{
+					Size: 12,
+				},
+				Align:                consts.Center,
+				AlternatedBackground: &color.Color{Red: 150, Green: 150, Blue: 150},
+				HeaderContentSpace:   1,
+				Line:                 false,
+			})
+		})
+
+		infNotAccepted := ""
+		for _, inf := range params.InfluencerWhoDidNotAccept{
+			infNotAccepted += " " + inf + ","
+		}
+
+		m.Row(15, func() {
+			m.Col(4, func() {
+				m.Text("- Influencers who did not accept a campaign request: " + infNotAccepted, props.Text{
+					Size:        14,
+					Top:         22,
+					Extrapolate: true,
+					Style:       consts.Bold,
+				})
+			})
+			m.ColSpace(4)
+		})
+
+		/*
+			m.Row(10, func(){})
+
+			m.Row(15, func() {
+				m.Col(4, func() {
+					m.Text("- Direct interation with agent profile: ", props.Text{
+						Size:        14,
+						Top:         22,
+						Extrapolate: true,
+						Style: consts.Bold,
+					})
+				})
+				m.ColSpace(4)
+			})*/
+
+		m.Row(10, func() {})
+
+		m.Row(15, func() {
+			m.Col(4, func() {
+				m.Text("- Target groups:", props.Text{
+					Size:        14,
+					Top:         22,
+					Extrapolate: true,
+					Style:       consts.Bold,
+				})
+			})
+			m.ColSpace(4)
+		})
+
+		m.Row(10, func() {})
+
+		header = []string{"Interest", "Likes", "Dislikes", "Like resets", "Dislike resets", "Comments", "Site visits"}
+		contents = [][]string{
+		}
+
+		for _, item := range params.TargetGroupsStats{
+			var cont []string
+			cont = append(cont, item.Interest)
+			cont = append(cont, util.Uint2String(item.Stats.Likes))
+			cont = append(cont, util.Uint2String(item.Stats.Dislikes))
+			cont = append(cont, util.Uint2String(item.Stats.LikeResets))
+			cont = append(cont, util.Uint2String(item.Stats.DislikeResets))
+			cont = append(cont, util.Uint2String(item.Stats.Comments))
+			cont = append(cont, util.Uint2String(item.Stats.TotalSiteVisits))
+			contents = append(contents, cont)
+		}
+
+		m.Row(50, func() {
+			m.TableList(header, contents, props.TableList{
+				HeaderProp: props.TableListContent{
+					Size: 12,
+				},
+				ContentProp: props.TableListContent{
+					Size: 12,
+				},
+				Align:                consts.Center,
+				AlternatedBackground: &color.Color{Red: 150, Green: 150, Blue: 150},
+				HeaderContentSpace:   1,
+				Line:                 false,
+			})
+		})
+	}
+
+	err = m.OutputFileAndClose("../../nistagramstaticdata/data/campaign" +
+		util.Uint2String(campaignId) + ".pdf")
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

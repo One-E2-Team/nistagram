@@ -400,6 +400,10 @@ func (service *ProfileService) GetPersonalDataByProfileId(id uint) (*model.Perso
 	return profile, nil
 }
 
+func (service *ProfileService) GetProfileInterests(id uint) ([]string, error) {
+	return service.ProfileRepository.GetProfileInterests(id)
+}
+
 func (service *ProfileService) deleteProfileInAuth(profileId uint) error {
 	authHost, authPort := util.GetAuthHostAndPort()
 	_, err := util.CrossServiceRequest(http.MethodDelete,

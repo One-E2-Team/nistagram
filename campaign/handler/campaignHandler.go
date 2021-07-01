@@ -162,3 +162,29 @@ func (handler CampaignHandler) GetLastActiveParametersForCampaign(w http.Respons
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
+
+func (handler *CampaignHandler) GetAvailableCampaignsForUser(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	var followingProfiles []util.FollowingProfileDTO
+
+	if err := json.NewDecoder(r.Body).Decode(&followingProfiles); err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	postIDs, _, err := handler.CampaignService.GetAvailableCampaignsForUser(util.String2Uint(params["profileID"]), followingProfiles)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	js, err := json.Marshal(postIDs)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(js)
+	w.Header().Set("Content-Type", "application/json")
+}

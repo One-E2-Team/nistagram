@@ -31,7 +31,7 @@ func NistagramRequest(method string, urlPath string, data []byte, headers map[st
 	return client.Do(req)
 }
 
-func FuckingExistDBRequest(method string, urlPath string, data []byte, headers map[string]string) (*http.Response, error) {
+func ExistDBRequest(method string, urlPath string, data []byte, headers map[string]string) (*http.Response, error) {
 	client := &http.Client{}
 	existHost, existPort := GetExistDBHostAndPort()
 	path := GetExistDBProtocol() + "://" + existHost + ":" + existPort

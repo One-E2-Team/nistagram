@@ -81,6 +81,21 @@ func (service *PostService) GetPostsForHomePage(followingProfiles []util.Followi
 	if err != nil{
 		return nil, err
 	}
+	campaignIDs, err := getCampaigns(loggedUserID, followingProfiles)
+	if err != nil {
+		return nil, err
+	}
+	for _, id := range campaignIDs {
+		primitiveID, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			return nil, err
+		}
+		post, err := service.PostRepository.Read(primitiveID)
+		if err != nil {
+			return nil, err
+		}
+		posts = append(posts, post)
+	}
 	responseDTO, err := getReactionsForPosts(posts, loggedUserID)
 	return responseDTO, err
 }
@@ -322,4 +337,35 @@ func getProfilesBlockedRelationships(loggedProfileId uint) ([]uint, error) {
 	}
 
 	return blockedRelationships, err
+}
+
+func getCampaigns(loggedUserID uint, followingProfiles []util.FollowingProfileDTO) ([]string, error){
+	postBody, err := json.Marshal(followingProfiles)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	campaignHost, campaignPort := util.GetCampaignHostAndPort()
+	resp, err := util.CrossServiceRequest(http.MethodPost,
+		util.GetCrossServiceProtocol()+"://"+campaignHost+":"+campaignPort+"/available-for-profile/" + util.Uint2String(loggedUserID),
+		postBody, map[string]string{"Content-Type": "application/json"})
+
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("BAD_REQUEST")
+	}
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(resp.Body)
+	var ret []string
+	if err = json.Unmarshal(body, &ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
 }
