@@ -115,7 +115,7 @@
             </v-card-text>
             <v-card-actions class="justify-end">
                 <v-btn text @click="confirm()">Confirm</v-btn>
-                <v-btn text @click="dialog.value = false">Close</v-btn>
+                <v-btn text @click="closeDialog(dialog)">Close</v-btn>
             </v-card-actions>
           </v-card>
         </template>
@@ -132,7 +132,6 @@ export default {
     props:['campaignId'],
     data() {
       return {
-        token: '',
         rules:validator.rules,
         valid: true,
         timeMenu: false,
@@ -150,46 +149,62 @@ export default {
     methods: {
       createdDialog(){
         axios({
-            method: 'get',
-            url: comm.protocol + '://' + comm.server +'/interests',
-            headers: comm.getHeader(),
+          method: 'get',
+          url: comm.protocol + '://' + comm.server + '/followed-profiles',
+          headers: comm.getHeader(),
         }).then((response) => {
-            if(response.status == 200){
-              this.allInterests = response.data.collection;
+          if (response.status == 200){
+            for (let follower of response.data.collection) {
+              this.allFollowerUsernames.push(follower.username);
+              this.allFollowerIds.push(follower.profileID);
             }
+          }
         });
         axios({
-            method: 'get',
-            url: comm.protocol + '://' + comm.server + '/followed-profiles',
-            headers: comm.getHeader(),
+          method: 'get',
+          url: comm.protocol + '://' + comm.server +'/interests',
+          headers: comm.getHeader(),
         }).then((response) => {
-            if(response.status == 200){
-              for (let follower of response.data.collection) {
-                this.allFollowerUsernames.push(follower.username);
-                this.allFollowerIds.push(follower.profileID);
-              }
-            }
+          if (response.status == 200){
+            this.allInterests = response.data.collection;
+          }
         });
-        //TODO: ucitavanje najnovijih podataka kampanje
+        axios({
+          method: 'get',
+          url: comm.protocol + '://' + comm.server +'/campaign/' + this.campaignId + '/active-params',
+          headers: comm.getHeader(),
+        }).then((response) => {
+          if(response.status == 200){
+            this.populateActiveCampaignParams(response.data);
+          }
+        });
       },
-       confirm(){
-           if(!this.$refs.form.validate()){
-               return
-           }
-            let endDate = new Date(this.end)
-            let data = {
-              end: endDate.toISOString(),
-              interests : this.interests,
-              timestamps : this.getAllTimestampsAsDate(),
-              influencerProfileIds : this.getAllInfluencerProfileIds()
-            }
-            console.log(data)
-            //TODO: posalji zahtev za kreiranje kampanje
-
-       },
+      confirm(){
+        if(!this.$refs.form.validate()){
+            return
+        }
+        let endDate = new Date(this.end)
+        let data = {
+          end: endDate.toISOString(),
+          interests: this.interests,
+          timestamps: this.getAllTimestampsAsDate(),
+          influencerProfileIds: this.getAllInfluencerProfileIds()
+        }
+        console.log(data)
+        axios({
+          method: 'put',
+          url: comm.protocol + '://' + comm.server + '/campaign/' + this.campaignId,
+          headers: comm.getHeader(),
+          data: JSON.stringify(data),
+        }).then((response) => {
+          if(response.status == 200){
+            alert('Successfully updated campaign!');
+          }
+        });
+      },
        addTime(){
-         if (!this.isTimeExists(this.selectedTime))
-            this.timestamps.push(this.selectedTime)
+        if (!this.isTimeExists(this.selectedTime))
+          this.timestamps.push(this.selectedTime)
        },
        removeTime (item) {
           this.timestamps.splice(this.timestamps.indexOf(item), 1)
@@ -223,9 +238,39 @@ export default {
             return ret;
         },
         getAllInfluencerProfileIds(){
-            //TODO: izvuci id-eve iz profila influensera
-            return []
-        }
+          let ret = [];
+          for (let selected of this.influensers) {
+            let index = this.allFollowerUsernames.indexOf(selected);
+            ret.push("" + this.allFollowerIds[index])
+          }
+          return ret;
+        },
+        populateActiveCampaignParams(response) {
+          //TODO: resolve async call for followed profiles
+          this.end = response.end.split('T')[0];
+          for (let interest of response.interests) {
+            this.interests.push(interest.name);
+          }
+          for (let campaignReq of response.campaignRequests) {
+            // (campaignReq.request_status == 1) {
+              let index = this.allFollowerIds.indexOf(campaignReq.influencerId);
+              this.influensers.push(this.allFollowerUsernames[index]);
+            //}
+          }
+          //TODO: show active timestamps :) UTC hell
+        },
+        closeDialog(dialog) {
+          dialog.value = false;
+          this.valid = true;
+          this.timeMenu = false;
+          this.dateMenuStart = false;
+          this.dateMenuEnd = false;
+          this.end = '';
+          this.timestamps = [];
+          this.selectedTime = '';
+          this.interests = [];
+          this.influensers = [];
+        },
     },
 }
 </script>

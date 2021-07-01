@@ -149,7 +149,6 @@ export default {
     props:['postId'],
     data() {
       return {
-        token: '',
         rules:validator.rules,
         valid: true,
         timeMenu: false,
@@ -254,9 +253,9 @@ export default {
         let ret = [];
         for (let selected of this.influensers) {
           let index = this.allFollowerUsernames.indexOf(selected);
-          ret.push("" + this.allFollowerIds[index])
+          ret.push("" + this.allFollowerIds[index]);
         }
-        return ret
+        return ret;
       }
       
     },
