@@ -98,8 +98,11 @@ func handlerFunc(handler *handler.CampaignHandler) {
 	router.HandleFunc("/interests/{campaignId}",
 		util.MSAuth(handler.GetCurrentlyValidInterests, []string{"monitoring"})).Methods("GET")
 
-	router.HandleFunc("/campaign/request/{id}",util.RBAC(handler.UpdateCampaignRequest, "EDIT_CAMPAIGN_REQUEST" ,false) ).Methods("PUT")
-	router.HandleFunc("/campaign/request/my", handler.GetMySentCampaignsRequest).Methods("GET")
+	router.HandleFunc("/campaign/request/{id}",
+		util.RBAC(handler.UpdateCampaignRequest, "EDIT_CAMPAIGN_REQUEST" ,false)).Methods("PUT")
+
+	router.HandleFunc("/campaign/request/my",
+		util.RBAC(handler.GetMySentCampaignsRequest, "READ_CAMPAIGN_REQUEST", true)).Methods("GET")
 
 	router.HandleFunc("/campaign/{id}/params/active",
 		util.AgentAuth(handler.GetLastActiveParametersForCampaign)).Methods("GET") //frontend func

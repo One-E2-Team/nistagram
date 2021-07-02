@@ -33,20 +33,15 @@
                 </v-menu>
                 </template>   
           </v-col>
-          <v-col cols="12" sm="2" class="float-right">
-              <v-spacer />
-          </v-col>
           <v-col cols="12" sm="1" class="float-right">
+              <v-spacer/>
+          </v-col>
+          <v-col cols="12" sm="2" class="float-right">
             <v-row>
-              <v-col>
-                <message-requests-modal v-if="isUserLogged"/>
-              </v-col>
-              <v-col>
-                <follow-requests v-if="isUserLogged"/>
-              </v-col>
-              <v-col>
-                <connection-recommendation-modal v-if="isUserLogged"/>
-              </v-col>
+              <v-col><campaign-requests-notification v-if="isUserLogged"/></v-col>
+              <v-col><message-requests-modal v-if="isUserLogged"/></v-col>
+              <v-col><follow-requests v-if="isUserLogged"/></v-col>
+              <v-col><connection-recommendation-modal v-if="isUserLogged"/></v-col>
             </v-row>
           </v-col>
           <v-col cols="12" sm="1" class="float-right">
@@ -63,13 +58,15 @@ import Settings from '../components/Settings.vue'
 import FollowRequests from '../components/FollowRequests.vue'
 import MessageRequestsModal from '../modals/MessageRequestsModal.vue'
 import ConnectionRecommendationModal from '../modals/ConnectionRecommendationModal.vue'
+import CampaignRequestsNotification from '../modals/CampaignRequestsNotification.vue'
 export default {
     name: "NavBar",
     components: {
       FollowRequests,
       MessageRequestsModal,
       ConnectionRecommendationModal,
-      Settings
+      Settings,
+      CampaignRequestsNotification
     },
     data(){
       return {

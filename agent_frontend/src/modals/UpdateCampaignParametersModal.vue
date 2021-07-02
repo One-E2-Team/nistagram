@@ -270,10 +270,8 @@ export default {
             this.interests.push(interest.name);
           }
           for (let campaignReq of response.campaignRequests) {
-            // (campaignReq.request_status == 1) {
-              let index = this.allFollowerIds.indexOf(campaignReq.influencerId);
-              this.influensers.push(this.allFollowerUsernames[index]);
-            //}
+            let index = this.allFollowerIds.indexOf(campaignReq.influencerId);
+            this.influensers.push(this.allFollowerUsernames[index]);
           }
           for(let t of response.timestamps){
             let timestamp = t.timestamp;

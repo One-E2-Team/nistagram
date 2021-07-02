@@ -220,29 +220,35 @@ func (service *CampaignService) GetAvailableCampaignsForUser(loggedUserID uint, 
 	if err != nil {
 		return nil, nil, nil, err
 	}
+	potentialInfluencers := make([]uint, 0)
+	for _, followingProfile := range followingProfiles {
+		potentialInfluencers = append(potentialInfluencers, followingProfile.ProfileID)
+	}
 	campaignIDs := make([]uint, 0)
 	retInfluencerIDs := make([]uint, 0)
 	var wg sync.WaitGroup
 	for _, params := range allActiveParams {
-		wg.Add(2)
-		go func() {
-			defer wg.Done()
-			if campaignParamsContainsInterest(params, interests) {
-				campaignIDs = append(campaignIDs, params.CampaignID)
-				retInfluencerIDs = append(retInfluencerIDs, 0)
-			}
-		}()
-		go func() {
-			defer wg.Done()
-			test, influencerIDs := campaignParamsContainsFollowedProfiles(params, followingProfiles)
-			if test {
-				for _, influencerID := range influencerIDs {
+		if campaignIsAvailableNow(params) {
+			wg.Add(2)
+			go func() {
+				defer wg.Done()
+				if campaignParamsContainsInterest(params, interests) {
 					campaignIDs = append(campaignIDs, params.CampaignID)
-					retInfluencerIDs = append(retInfluencerIDs, influencerID)
+					retInfluencerIDs = append(retInfluencerIDs, 0)
 				}
-			}
-		}()
-		wg.Wait()
+			}()
+			go func() {
+				defer wg.Done()
+				test, influencerIDs := campaignParamsContainsInfluencerIDs(params, potentialInfluencers)
+				if test {
+					for _, influencerID := range influencerIDs {
+						campaignIDs = append(campaignIDs, params.CampaignID)
+						retInfluencerIDs = append(retInfluencerIDs, influencerID)
+					}
+				}
+			}()
+			wg.Wait()
+		}
 	}
 	if len(campaignIDs) == 0 {
 		return make([]string, 0), make([]uint, 0), make([]uint, 0), nil
@@ -251,24 +257,47 @@ func (service *CampaignService) GetAvailableCampaignsForUser(loggedUserID uint, 
 	return postIDs, retInfluencerIDs, campaignIDs, err
 }
 
-func (service *CampaignService) UpdateCampaignRequest(loggedUserId uint,requestId string, status model.RequestStatus) error {
+func (service *CampaignService) UpdateCampaignRequest(loggedUserId uint, requestId string, status model.RequestStatus) error {
 	if service.CampaignRepository.GetCampaignRequestInfluencerId(util.String2Uint(requestId)) != loggedUserId {
 		return fmt.Errorf("not allowed")
 	}
 	return service.CampaignRepository.UpdateCampaignRequest(requestId, status)
 }
 
-func (service *CampaignService) GetActiveCampaignsRequestsForProfileId(profileId int) error {
-	res, err := service.CampaignRepository.GetDistinctCampaignParamsIdForProfileId(profileId)
+func (service *CampaignService) GetActiveCampaignsRequestsForProfileId(profileId uint) ([]dto.CampaignRequestForInfluencerDTO, error) {
+	allActiveParams, err := service.CampaignRepository.GetAllActiveParameters()
 	if err != nil {
-		return err
+		return nil, err
 	}
-	res, err = service.CampaignRepository.GetActiveCampaignIdsForCampaignParamsIds(res)
+	ret := make([]dto.CampaignRequestForInfluencerDTO, 0)
+	campaignIDs := make([]uint, 0)
+	for _, params := range allActiveParams {
+		test, requestID := campaignParamsContainsRequestForProfileID(params, profileId)
+		if test {
+			timestamps := make([]time.Time, 0)
+			for _, timestamp := range params.Timestamps {
+				timestamps = append(timestamps, timestamp.Time)
+			}
+			campaignIDs = append(campaignIDs, params.CampaignID)
+			ret = append(ret, dto.CampaignRequestForInfluencerDTO{CampaignId: params.CampaignID, RequestId: requestID,
+				Post: dto.PostDTO{}, Timestamps: timestamps, Start: params.Start, End: params.End})
+		}
+	}
+	postIDs, err := service.CampaignRepository.GetPostIDsFromCampaignIDs(campaignIDs)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	fmt.Println(res)
-	return nil
+	posts, err := getPostsByPostsIds(postIDs)
+	if err != nil {
+		return nil, err
+	}
+	if len(posts) != len(ret) {
+		return nil, fmt.Errorf("BAD LIST SIZES")
+	}
+	for i, post := range posts {
+		ret[i].Post = post
+	}
+	return ret, nil
 }
 
 func (service *CampaignService) GetCampaignRequestInfluencerId(requestId uint) uint {
@@ -334,6 +363,20 @@ func getProfileInterests(loggedUserID uint) ([]string, error) {
 	return ret, nil
 }
 
+func campaignIsAvailableNow(params model.CampaignParameters) bool {
+	for _, timestamp := range params.Timestamps {
+		timestampTime := timestamp.Time.UTC()
+		now := time.Now().UTC()
+		nowDate := time.Date(1, 1, 1, now.Hour(), now.Minute(), 0, 0, time.UTC)
+		timestampTimeDate := time.Date(1, 1, 1, timestampTime.Hour(), timestampTime.Minute(), 0, 0, time.UTC)
+		if (timestampTimeDate.Equal(now) || timestampTimeDate.Before(nowDate)) &&
+			(timestampTimeDate.Add(1*time.Hour).Equal(now) || timestampTimeDate.Add(1*time.Hour).After(nowDate)) {
+			return true
+		}
+	}
+	return false
+}
+
 func campaignParamsContainsInterest(params model.CampaignParameters, interests []string) bool {
 	for _, param := range params.Interests {
 		for _, interest := range interests {
@@ -345,16 +388,25 @@ func campaignParamsContainsInterest(params model.CampaignParameters, interests [
 	return false
 }
 
-func campaignParamsContainsFollowedProfiles(params model.CampaignParameters, followingProfiles []util.FollowingProfileDTO) (bool, []uint) {
+func campaignParamsContainsInfluencerIDs(params model.CampaignParameters, influencerIDs []uint) (bool, []uint) {
 	influencers := make([]uint, 0)
 	contains := false
 	for _, campaignRequest := range params.CampaignRequests {
-		for _, potentialInfluencer := range followingProfiles {
-			if /*campaignRequest.RequestStatus == model.ACCEPTED &&*/ campaignRequest.InfluencerID == potentialInfluencer.ProfileID {
+		for _, potentialInfluencer := range influencerIDs {
+			if campaignRequest.RequestStatus == model.ACCEPTED && campaignRequest.InfluencerID == potentialInfluencer {
 				contains = true
 				influencers = append(influencers, campaignRequest.InfluencerID)
 			}
 		}
 	}
 	return contains, influencers
+}
+
+func campaignParamsContainsRequestForProfileID(params model.CampaignParameters, profileID uint) (bool, uint) {
+	for _, campaignRequest := range params.CampaignRequests {
+		if campaignRequest.InfluencerID == profileID && campaignRequest.RequestStatus == model.SENT {
+			return true, campaignRequest.ID
+		}
+	}
+	return false, 0
 }
