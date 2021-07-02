@@ -156,6 +156,7 @@ func handlerFunc(authHandler *handler.AuthHandler, productHandler *handler.Produ
 	router.HandleFunc("/product",
 		authHandler.AuthService.RBAC(productHandler.CreateProduct, "CREATE_PRODUCT", false)).Methods("POST")
 	router.HandleFunc("/product", productHandler.GetAllProducts).Methods("GET")
+	router.HandleFunc("/product/{id}", productHandler.GetProductById).Methods("GET")
 	router.HandleFunc("/product/{id}",
 		authHandler.AuthService.RBAC(productHandler.DeleteProduct, "DELETE_PRODUCT", false)).Methods("DELETE")
 	router.HandleFunc("/product",
@@ -168,6 +169,7 @@ func handlerFunc(authHandler *handler.AuthHandler, productHandler *handler.Produ
 		authHandler.AuthService.RBAC(postHandler.GetMyPosts, "READ_POSTS", true)).Methods("GET")
 	router.HandleFunc("/report/campaign/{id}", campaignHandler.SaveCampaignReport).Methods("POST")
 	router.HandleFunc("/report/pdf/{id}", campaignHandler.GeneratePdfForCampaign).Methods("GET")
+	router.HandleFunc("/report/pdf", campaignHandler.GeneratePdfForSortedCampaigns).Methods("GET")
 	router.HandleFunc("/my-campaigns",
 		authHandler.AuthService.RBAC(campaignHandler.GetMyCampaigns, "READ_CAMPAIGNS", true)).Methods("GET")
 	router.HandleFunc("/campaign",
@@ -180,6 +182,8 @@ func handlerFunc(authHandler *handler.AuthHandler, productHandler *handler.Produ
 		authHandler.AuthService.RBAC(campaignHandler.GetActiveParams, "EDIT_CAMPAIGN", false)).Methods("GET")
 	router.HandleFunc("/campaign/{id}",
 		authHandler.AuthService.RBAC(campaignHandler.EditCampaign, "EDIT_CAMPAIGN", false)).Methods("PUT")
+	router.HandleFunc("/campaign/{id}",
+		authHandler.AuthService.RBAC(campaignHandler.DeleteCampaign, "DELETE_CAMPAIGN", false)).Methods("DELETE")
 
 	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD")
 	_, ok1 := os.LookupEnv("DOCKER_ENV_SET_DEV")

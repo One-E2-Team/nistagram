@@ -33,10 +33,10 @@
         "logger": {}
       }
     },
-    "github_com/letgoapp/krakend-influx":{
-      "address":"http://influx:8086",
-      "ttl":"25s",
-      "buffer_size":0,
+    "github_com/letgoapp/krakend-influx": {
+      "address": "http://influx:8086",
+      "ttl": "25s",
+      "buffer_size": 0,
       "db": "krakend",
       "username": "letgo",
       "password": "pas5w0rd"
@@ -2010,8 +2010,8 @@
           "disable_host_sanitize": false
         }
       ]
-    },
-    {
+	},
+	{
       "endpoint": "/redirect/{campaignId}/{influencerId}/{mediaId}",
       "method": "GET",
       "output_encoding": "no-op",
@@ -2191,6 +2191,28 @@
           "encoding": "json",
           "sd": "static",
           "method": "GET",
+          "extra_config": {},
+          "host": [
+            "https://campaign:8080"
+          ],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/agent-api/campaign/{id}",
+      "method": "DELETE",
+      "output_encoding": "json",
+      "extra_config": {},
+      "headers_to_pass": [
+        "Authorization"
+      ],
+      "backend": [
+        {
+          "url_pattern": "/campaign/{id}",
+          "encoding": "json",
+          "sd": "static",
+          "method": "DELETE",
           "extra_config": {},
           "host": [
             "https://campaign:8080"

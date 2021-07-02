@@ -56,6 +56,12 @@ const routes = [{
     component: () =>
       import ('../views/MyCampaigns.vue')
   },
+  {
+    path: '/product/:id',
+    name: 'Product',
+    component: () =>
+      import ('./../components/Product.vue')
+  },
 ]
 const router = new VueRouter({
   routes

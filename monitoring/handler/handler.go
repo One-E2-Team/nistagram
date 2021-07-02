@@ -66,7 +66,7 @@ func (handler *Handler) VisitSite(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	campaignId := util.String2Uint(vars["campaignId"])
 	influencerId := util.String2Uint(vars["influencerId"])
-	mediaId := util.String2Uint(vars["mediaId"])
+	mediaId := vars["mediaId"]
 
 	loggedUserId := util.GetLoggedUserIDFromToken(r)
 
@@ -77,9 +77,8 @@ func (handler *Handler) VisitSite(w http.ResponseWriter, r *http.Request) {
 		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
 		return
 	}
-
-	http.Redirect(w, r, website, http.StatusSeeOther)
-	w.Header().Set("Content-Type", "application/json")
+	
+	http.Redirect(w, r, website, http.StatusTemporaryRedirect)
 }
 
 func (handler *Handler) GetCampaignStatistics(w http.ResponseWriter, r *http.Request) {

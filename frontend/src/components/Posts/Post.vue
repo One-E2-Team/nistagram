@@ -2,13 +2,13 @@
   <v-card class="mx-auto" :width="width+50" elevation="24" outlined >
     <post-modal v-if="showTitle" :visible="showDialog" @close="showDialog=false" v-bind:post="post"/>
     <v-list-item v-if="showTitle">
-      <v-list-item-content >
+      <v-list-item-content>
         <v-list-item-title  class="text-h6 d-flex justify-space-between">
-          <router-link v-if="campaignData.influencerUsername == ''" :to="{ name: 'Profile', params: { username: post.publisherUsername }}">{{post.publisherUsername}}</router-link>
-          <router-link v-else :to="{ name: 'Profile', params: { username: campaignData.influencerUsername }}">{{campaignData.influencerUsername}}</router-link>
-          <v-row v-if="campaignData.campaignId != 0">
+          <router-link v-if="campaignData == undefined || campaignData.influencerUsername == ''" :to="{ name: 'Profile', params: { username: post.publisherUsername }}">{{post.publisherUsername}}</router-link>
+          <router-link v-else-if="campaignData.influencerUsername != ''" :to="{ name: 'Profile', params: { username: campaignData.influencerUsername }}">{{campaignData.influencerUsername}}</router-link>
+          <v-row v-if="campaignData != undefined && campaignData.campaignId != 0">
             <v-col>Sponsored</v-col>
-         </v-row>
+          </v-row>
           <v-btn dark icon @click="showDialog = true" v-if="isUserLogged && !isMyPost()">
             <v-icon color="blue">mdi-dots-horizontal</v-icon>
           </v-btn>

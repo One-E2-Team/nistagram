@@ -93,7 +93,7 @@ func handlerFunc(handler *handler.CampaignHandler) {
 	router.HandleFunc("/campaign/{id}",
 		util.AgentAuth(handler.UpdateCampaignParameters)).Methods("PUT") //frontend func
 
-	router.HandleFunc("/campaign/{id}", handler.DeleteCampaign).Methods("DELETE")
+	router.HandleFunc("/campaign/{id}", util.AgentAuth(handler.DeleteCampaign)).Methods("DELETE")
 	router.HandleFunc("/campaign/monitoring/{id}", handler.GetCampaignByIdForMonitoring).Methods("GET")
 	router.HandleFunc("/interests/{campaignId}",
 		util.MSAuth(handler.GetCurrentlyValidInterests, []string{"monitoring"})).Methods("GET")
