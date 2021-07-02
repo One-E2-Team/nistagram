@@ -168,6 +168,7 @@ func handlerFunc(authHandler *handler.AuthHandler, productHandler *handler.Produ
 		authHandler.AuthService.RBAC(postHandler.GetMyPosts, "READ_POSTS", true)).Methods("GET")
 	router.HandleFunc("/report/campaign/{id}", campaignHandler.SaveCampaignReport).Methods("POST")
 	router.HandleFunc("/report/pdf/{id}", campaignHandler.GeneratePdfForCampaign).Methods("GET")
+	router.HandleFunc("/report/pdf", campaignHandler.GeneratePdfForSortedCampaigns).Methods("GET")
 	router.HandleFunc("/my-campaigns",
 		authHandler.AuthService.RBAC(campaignHandler.GetMyCampaigns, "READ_CAMPAIGNS", true)).Methods("GET")
 	router.HandleFunc("/campaign",

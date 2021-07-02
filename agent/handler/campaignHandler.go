@@ -125,3 +125,18 @@ func (handler *CampaignHandler) GeneratePdfForCampaign(w http.ResponseWriter, r 
 	_, _ = w.Write([]byte("{\"message\":\"ok\"}"))
 	w.Header().Set("Content-Type", "application/json")
 }
+
+func (handler *CampaignHandler) GeneratePdfForSortedCampaigns(w http.ResponseWriter, r *http.Request) {
+
+	err := handler.CampaignService.GeneratePdfForSortedCampaigns()
+	if err != nil {
+		fmt.Println(err)
+		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte("{\"message\":\"ok\"}"))
+	w.Header().Set("Content-Type", "application/json")
+}
