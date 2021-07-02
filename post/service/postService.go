@@ -125,7 +125,11 @@ func (service *PostService) GetPostsForHomePage(followingProfiles []util.Followi
 func (service *PostService) CreatePost(postType model.PostType, post dto.PostDto, mediaNames []string, profile dto.ProfileDto) error {
 	var medias []model.Media
 	for i := 0; i < len(mediaNames); i++ {
-		m := model.Media{FilePath: mediaNames[i], WebSite: ""}
+		m := model.Media{
+			ID:       primitive.NewObjectID(),
+			FilePath: mediaNames[i],
+			WebSite:  "",
+		}
 		medias = append(medias, m)
 	}
 
