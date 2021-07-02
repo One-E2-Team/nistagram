@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 	"net/http"
 	"nistagram/campaign/dto"
+	"nistagram/campaign/model"
 	"nistagram/campaign/service"
 	"nistagram/util"
 )
@@ -172,13 +173,26 @@ func (handler *CampaignHandler) GetAvailableCampaignsForUser(w http.ResponseWrit
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	postIDs, _, err := handler.CampaignService.GetAvailableCampaignsForUser(util.String2Uint(params["profileID"]), followingProfiles)
+	postIDs, influencerIDs, campaignIDs, err := handler.CampaignService.GetAvailableCampaignsForUser(util.String2Uint(params["profileID"]), followingProfiles)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	js, err := json.Marshal(postIDs)
+	if len(postIDs) != len(influencerIDs) || len(postIDs) != len(campaignIDs) || len(influencerIDs) != len(campaignIDs){
+		fmt.Println("BAD LIST SIZES")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	ret := make([]dto.SponsoredPostsDTO, 0)
+	for i, postID := range postIDs {
+		ret = append(ret, dto.SponsoredPostsDTO{
+			PostID:       postID,
+			InfluencerID: influencerIDs[i],
+			CampaignID:   campaignIDs[i],
+		})
+	}
+	js, err := json.Marshal(ret)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -188,3 +202,40 @@ func (handler *CampaignHandler) GetAvailableCampaignsForUser(w http.ResponseWrit
 	_, _ = w.Write(js)
 	w.Header().Set("Content-Type", "application/json")
 }
+
+func (handler CampaignHandler) UpdateCampaignRequest(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	type ReqBody struct {
+		Accepted bool `json:"accepted"`
+	}
+	var data ReqBody
+	requestId := params["id"]
+
+	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	var status model.RequestStatus
+	switch data.Accepted {
+	case true:
+		status = model.ACCEPTED
+	case false:
+		status = model.DECLINED
+	default:
+		fmt.Println("Not valid request body")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	switch err := handler.CampaignService.UpdateCampaignRequest(requestId,status); err {
+	case gorm.ErrRecordNotFound:
+		w.WriteHeader(http.StatusNotFound)
+	case nil:
+		w.WriteHeader(http.StatusOK)
+	default:
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+}
+

@@ -200,14 +200,12 @@ func (repo *CampaignRepository) GetCampaignById(campaignId uint) (model.Campaign
 func (repo *CampaignRepository) GetLastActiveParametersForCampaign(campaignId uint) (model.CampaignParameters, error) {
 	var ret model.CampaignParameters
 	result := repo.Database.Preload("Interests").Preload("CampaignRequests").Preload("Timestamps").
-		First(&ret).Where("campaign_id = ? AND end > ? AND deleted_at IS NULL ORDER BY start DESC LIMIT 1",campaignId,time.Now())
-
+		Raw("select * from campaign_parameters p where p.campaign_id = ? AND p.end > NOW() AND deleted_at IS NULL AND p.start < NOW()", campaignId).First(&ret)
 	if result.Error != nil {
 		return model.CampaignParameters{},result.Error
 	}else if result.RowsAffected == 0 {
 		return model.CampaignParameters{}, gorm.ErrRecordNotFound
 	}
-
 	return ret, nil
 }
 
@@ -249,4 +247,13 @@ func (repo *CampaignRepository) GetPostIDsFromCampaignIDs(campaignIDs []uint) ([
 		return make([]string, 0), gorm.ErrRecordNotFound
 	}
 	return ret, nil
+}
+
+func (repo *CampaignRepository) UpdateCampaignRequest(id string, status model.RequestStatus) error {
+	if res := repo.Database.Model(&model.CampaignRequest{}).Where("id = ?", id).Update("request_status", status); res.Error != nil{
+		return res.Error
+	}else if res.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
 }

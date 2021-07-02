@@ -1,8 +1,10 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"gorm.io/gorm"
 	"net/http"
 	"nistagram/profile/dto"
 	"nistagram/profile/model"
@@ -36,7 +38,7 @@ func (service *ProfileService) Register(dto dto.RegistrationDto) error {
 	})
 	//responseBody := bytes.NewBuffer(postBody)
 	err = registerInAuth(postBody)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 	go func() {
@@ -51,12 +53,12 @@ func (service *ProfileService) Register(dto dto.RegistrationDto) error {
 
 func (service *ProfileService) RegisterAgent(dto dto.RegistrationDto) error {
 	err := service.Register(dto)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
 	profile, err := service.GetProfileByUsername(dto.Username)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
@@ -68,7 +70,7 @@ func (service *ProfileService) RegisterAgent(dto dto.RegistrationDto) error {
 
 func registerInAuth(postBody []byte) error {
 	authHost, authPort := util.GetAuthHostAndPort()
-	_, err := util.CrossServiceRequest(http.MethodPost,
+	_, err := util.CrossServiceRequest(context.Background(), http.MethodPost,
 		util.GetCrossServiceProtocol()+"://"+authHost+":"+authPort+"/register", postBody,
 		map[string]string{"Content-Type": "application/json;"})
 	if err != nil {
@@ -80,7 +82,7 @@ func registerInAuth(postBody []byte) error {
 
 func registerInConnection(profileId uint, postBody []byte) error {
 	connHost, connPort := util.GetConnectionHostAndPort()
-	_, err := util.CrossServiceRequest(http.MethodPost,
+	_, err := util.CrossServiceRequest(context.Background(), http.MethodPost,
 		util.GetCrossServiceProtocol()+"://"+connHost+":"+connPort+"/profile/"+util.Uint2String(profileId), postBody,
 		map[string]string{"Content-Type": "application/json;"})
 	if err != nil {
@@ -118,7 +120,7 @@ func (service *ProfileService) SearchForTag(loggedUserId uint, username string) 
 
 func getFollowingProfiles(loggedUserId uint) ([]util.FollowingProfileDTO, error) {
 	connHost, connPort := util.GetConnectionHostAndPort()
-	resp, err := util.CrossServiceRequest(http.MethodGet,
+	resp, err := util.CrossServiceRequest(context.Background(), http.MethodGet,
 		util.GetCrossServiceProtocol()+"://"+connHost+":"+connPort+"/connection/following/show/"+util.Uint2String(loggedUserId),
 		nil, map[string]string{})
 
@@ -129,7 +131,7 @@ func getFollowingProfiles(loggedUserId uint) ([]util.FollowingProfileDTO, error)
 	var followingProfiles []util.FollowingProfileDTO
 
 	err = json.NewDecoder(resp.Body).Decode(&followingProfiles)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 
@@ -145,7 +147,7 @@ func (service *ProfileService) GetProfileByUsername(username string) (*model.Pro
 }
 
 func (service *ProfileService) ChangeProfileSettings(dto dto.ProfileSettingsDTO, loggedUserId uint) error {
-	profile, err := service.ProfileRepository.GetProfileByID(loggedUserId)
+	profile, err := service.ProfileRepository.GetProfileByID(context.Background(), loggedUserId)
 	if err != nil {
 		return err
 	}
@@ -164,7 +166,7 @@ func (service *ProfileService) ChangeProfileSettings(dto dto.ProfileSettingsDTO,
 }
 
 func (service *ProfileService) ChangePersonalData(dto dto.PersonalDataDTO, loggedUserId uint) (string, string, error) {
-	profile, err := service.ProfileRepository.GetProfileByID(loggedUserId)
+	profile, err := service.ProfileRepository.GetProfileByID(context.Background(), loggedUserId)
 	if err != nil {
 		return "", "", err
 	}
@@ -201,7 +203,7 @@ func (service *ProfileService) ChangePersonalData(dto dto.PersonalDataDTO, logge
 			"username":  profile.Username,
 		})
 		authHost, authPort := util.GetAuthHostAndPort()
-		_, err = util.CrossServiceRequest(http.MethodPost,
+		_, err = util.CrossServiceRequest(context.Background(), http.MethodPost,
 			util.GetCrossServiceProtocol()+"://"+authHost+":"+authPort+"/update-user", postBody,
 			map[string]string{"Content-Type": "application/json;"})
 		if err != nil {
@@ -252,7 +254,7 @@ func (service *ProfileService) UpdateVerificationRequest(verifyDTO dto.VerifyDTO
 		if err != nil {
 			return err
 		}
-		profile, err := service.ProfileRepository.GetProfileByID(request.ProfileID)
+		profile, err := service.ProfileRepository.GetProfileByID(context.Background(), request.ProfileID)
 		if err != nil {
 			return err
 		}
@@ -267,7 +269,7 @@ func (service *ProfileService) UpdateVerificationRequest(verifyDTO dto.VerifyDTO
 
 func (service *ProfileService) GetMyProfileSettings(loggedUserId uint) (dto.ProfileSettingsDTO, error) {
 	ret := dto.ProfileSettingsDTO{}
-	profile, err := service.ProfileRepository.GetProfileByID(loggedUserId)
+	profile, err := service.ProfileRepository.GetProfileByID(context.Background(), loggedUserId)
 	if err != nil {
 		return ret, err
 	}
@@ -278,7 +280,7 @@ func (service *ProfileService) GetMyProfileSettings(loggedUserId uint) (dto.Prof
 }
 
 func (service *ProfileService) GetMyPersonalData(loggedUserId uint) (dto.PersonalDataDTO, error) {
-	profile, err := service.ProfileRepository.GetProfileByID(loggedUserId)
+	profile, err := service.ProfileRepository.GetProfileByID(context.Background(), loggedUserId)
 	if err != nil {
 		return dto.PersonalDataDTO{}, err
 	}
@@ -289,9 +291,14 @@ func (service *ProfileService) GetMyPersonalData(loggedUserId uint) (dto.Persona
 	return ret, nil
 }
 
-func (service *ProfileService) GetProfileByID(id uint) (*model.Profile, error) {
-	profile, err := service.ProfileRepository.GetProfileByID(id)
+func (service *ProfileService) GetProfileByID(ctx context.Context, id uint) (*model.Profile, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "GetProfilByID-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("sevicing get profile for id %v\n", id))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+	profile, err := service.ProfileRepository.GetProfileByID(nextCtx, id)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 	return profile, nil
@@ -337,7 +344,7 @@ func (service *ProfileService) GetAgentRequests() ([]dto.ResponseAgentRequestDTO
 	}
 	ret := make([]dto.ResponseAgentRequestDTO, 0)
 	for _, value := range requests {
-		profile, err := service.ProfileRepository.GetProfileByID(value.ProfileId)
+		profile, err := service.ProfileRepository.GetProfileByID(context.Background(), value.ProfileId)
 		if err != nil {
 			return nil, err
 		}
@@ -350,9 +357,14 @@ func (service *ProfileService) GetAgentRequests() ([]dto.ResponseAgentRequestDTO
 func (service *ProfileService) GetProfileUsernamesByIDs(ids []string) ([]string, error) {
 	ret := make([]string, 0)
 	for _, value := range ids {
-		profile, err := service.GetProfileByID(util.String2Uint(value))
+		profile, err := service.GetProfileByID(context.Background(), util.String2Uint(value))
 		if err != nil {
-			return nil, err
+			if err == gorm.ErrRecordNotFound {
+				ret = append(ret, "")
+				continue
+			} else {
+				return nil, err
+			}
 		}
 		ret = append(ret, profile.Username)
 	}
@@ -370,7 +382,7 @@ func (service *ProfileService) ProcessAgentRequest(requestDTO dto.ProcessAgentRe
 	if err != nil {
 		return err
 	}
-	profile, err := service.ProfileRepository.GetProfileByID(profileID)
+	profile, err := service.ProfileRepository.GetProfileByID(context.Background(), profileID)
 	if err != nil {
 		return err
 	}
@@ -400,7 +412,7 @@ func (service *ProfileService) GetProfileInterests(id uint) ([]string, error) {
 
 func (service *ProfileService) deleteProfileInAuth(profileId uint) error {
 	authHost, authPort := util.GetAuthHostAndPort()
-	_, err := util.CrossServiceRequest(http.MethodDelete,
+	_, err := util.CrossServiceRequest(context.Background(), http.MethodDelete,
 		util.GetCrossServiceProtocol()+"://"+authHost+":"+authPort+"/ban/"+util.Uint2String(profileId), nil,
 		map[string]string{})
 	if err != nil {
@@ -411,7 +423,7 @@ func (service *ProfileService) deleteProfileInAuth(profileId uint) error {
 
 func (service *ProfileService) deleteProfileInConnection(profileId uint) error {
 	connHost, connPort := util.GetConnectionHostAndPort()
-	_, err := util.CrossServiceRequest(http.MethodDelete,
+	_, err := util.CrossServiceRequest(context.Background(), http.MethodDelete,
 		util.GetCrossServiceProtocol()+"://"+connHost+":"+connPort+"/profile/"+util.Uint2String(profileId), nil,
 		map[string]string{})
 	if err != nil {
@@ -422,7 +434,7 @@ func (service *ProfileService) deleteProfileInConnection(profileId uint) error {
 
 func (service *ProfileService) deleteProfilesPosts(profileId uint) error {
 	postHost, postPort := util.GetPostHostAndPort()
-	_, err := util.CrossServiceRequest(http.MethodDelete,
+	_, err := util.CrossServiceRequest(context.Background(), http.MethodDelete,
 		util.GetCrossServiceProtocol()+"://"+postHost+":"+postPort+"/user/"+util.Uint2String(profileId), nil,
 		map[string]string{})
 	if err != nil {
@@ -442,7 +454,7 @@ func (service *ProfileService) changePrivacyInPostService(isPrivate bool, logged
 	}
 	input := Privacy{IsPrivate: isPrivate}
 	jsonPrivacy, _ := json.Marshal(input)
-	_, err := util.CrossServiceRequest(http.MethodPut,
+	_, err := util.CrossServiceRequest(context.Background(), http.MethodPut,
 		util.GetCrossServiceProtocol()+"://"+postHost+":"+postPort+"/user/"+util.Uint2String(loggedUserId)+"/privacy",
 		jsonPrivacy, map[string]string{"Content-Type": "application/json;"})
 	if err != nil {
@@ -458,7 +470,7 @@ func (service *ProfileService) changeUsernameInPostService(loggedUserId uint, us
 	}
 	input := UsernameDto{Username: username}
 	jsonUsername, _ := json.Marshal(input)
-	_, err := util.CrossServiceRequest(http.MethodPut,
+	_, err := util.CrossServiceRequest(context.Background(), http.MethodPut,
 		util.GetCrossServiceProtocol()+"://"+postHost+":"+postPort+"/user/"+util.Uint2String(loggedUserId)+"/username",
 		jsonUsername, map[string]string{"Content-Type": "application/json;"})
 	if err != nil {
@@ -473,7 +485,7 @@ func (service *ProfileService) GetProfileIdsByUsernames(usernames []string) ([]s
 
 func makeAgent(profileID uint) error {
 	authHost, authPort := util.GetAuthHostAndPort()
-	resp, err := util.CrossServiceRequest(http.MethodPut,
+	resp, err := util.CrossServiceRequest(context.Background(), http.MethodPut,
 		util.GetCrossServiceProtocol()+"://"+authHost+":"+authPort+"/make-agent/"+util.Uint2String(profileID),
 		nil, map[string]string{})
 	if err != nil {

@@ -98,6 +98,8 @@ func handlerFunc(handler *handler.CampaignHandler) {
 	router.HandleFunc("/interests/{campaignId}",
 		util.MSAuth(handler.GetCurrentlyValidInterests, []string{"monitoring"})).Methods("GET")
 
+	router.HandleFunc("/campaign/request/{id}", handler.UpdateCampaignRequest).Methods("PUT")
+
 	router.HandleFunc("/campaign/{id}/params/active",
 		util.AgentAuth(handler.GetLastActiveParametersForCampaign)).Methods("GET") //frontend func
 
@@ -124,6 +126,7 @@ func handlerFunc(handler *handler.CampaignHandler) {
 }
 
 func main() {
+	util.TracerInit("campaign")
 	db := initDB()
 	campaignRepo := initAuthRepo(db)
 	campaignService := initAuthService(campaignRepo)

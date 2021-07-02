@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -21,11 +22,11 @@ type PostService struct {
 
 func (service *PostService) GetPublic(loggedUserID uint) ([]dto.ResponsePostDTO, error) {
 	blockedRelationships, err := getProfilesBlockedRelationships(loggedUserID)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	posts, err := service.PostRepository.GetPublic(blockedRelationships)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	responseDTO, err := getReactionsForPosts(posts, loggedUserID)
@@ -34,7 +35,7 @@ func (service *PostService) GetPublic(loggedUserID uint) ([]dto.ResponsePostDTO,
 
 func (service *PostService) GetProfilesPosts(followingProfiles []util.FollowingProfileDTO, targetUsername string, loggedUserID uint) ([]dto.ResponsePostDTO, error) {
 	posts, err := service.PostRepository.GetProfilesPosts(followingProfiles, targetUsername)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	responseDTO, err := getReactionsForPosts(posts, loggedUserID)
@@ -43,11 +44,11 @@ func (service *PostService) GetProfilesPosts(followingProfiles []util.FollowingP
 
 func (service *PostService) GetPublicPostByLocation(location string, loggedUserID uint) ([]dto.ResponsePostDTO, error) {
 	blockedRelationships, err := getProfilesBlockedRelationships(loggedUserID)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	posts, err := service.PostRepository.GetPublicPostByLocation(location, blockedRelationships)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	responseDTO, err := getReactionsForPosts(posts, loggedUserID)
@@ -56,11 +57,11 @@ func (service *PostService) GetPublicPostByLocation(location string, loggedUserI
 
 func (service *PostService) GetPublicPostByHashTag(hashTag string, loggedUserID uint) ([]dto.ResponsePostDTO, error) {
 	blockedRelationships, err := getProfilesBlockedRelationships(loggedUserID)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	posts, err := service.PostRepository.GetPublicPostByHashTag(hashTag, blockedRelationships)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	responseDTO, err := getReactionsForPosts(posts, loggedUserID)
@@ -69,7 +70,7 @@ func (service *PostService) GetPublicPostByHashTag(hashTag string, loggedUserID 
 
 func (service *PostService) GetMyPosts(loggedUserID uint) ([]dto.ResponsePostDTO, error) {
 	posts, err := service.PostRepository.GetMyPosts(loggedUserID)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	responseDTO, err := getReactionsForPosts(posts, loggedUserID)
@@ -78,15 +79,22 @@ func (service *PostService) GetMyPosts(loggedUserID uint) ([]dto.ResponsePostDTO
 
 func (service *PostService) GetPostsForHomePage(followingProfiles []util.FollowingProfileDTO, loggedUserID uint) ([]dto.ResponsePostDTO, error) {
 	posts, err := service.PostRepository.GetPostsForHomePage(followingProfiles)
-	if err != nil{
-		return nil, err
-	}
-	campaignIDs, err := getCampaigns(loggedUserID, followingProfiles)
 	if err != nil {
 		return nil, err
 	}
-	for _, id := range campaignIDs {
-		primitiveID, err := primitive.ObjectIDFromHex(id)
+	ret := make([]dto.ResponsePostDTO, 0)
+	ret, err = getReactionsForPosts(posts, loggedUserID)
+	if err != nil {
+		return nil, err
+	}
+	sponsoredPostsDTO, err := getCampaigns(loggedUserID, followingProfiles)
+	if err != nil {
+		return nil, err
+	}
+	campaignPosts := make([]model.Post, 0)
+	influencerIDs := make([]uint, 0)
+	for _, sponsoredPostDTO := range sponsoredPostsDTO {
+		primitiveID, err := primitive.ObjectIDFromHex(sponsoredPostDTO.PostID)
 		if err != nil {
 			return nil, err
 		}
@@ -94,10 +102,24 @@ func (service *PostService) GetPostsForHomePage(followingProfiles []util.Followi
 		if err != nil {
 			return nil, err
 		}
-		posts = append(posts, post)
+		influencerIDs = append(influencerIDs, sponsoredPostDTO.InfluencerID)
+		campaignPosts = append(campaignPosts, post)
 	}
-	responseDTO, err := getReactionsForPosts(posts, loggedUserID)
-	return responseDTO, err
+	initialSponsoredPosts, err := getReactionsForPosts(campaignPosts, loggedUserID)
+	if err != nil {
+		return nil, err
+	}
+	influencerUsernames, err := getProfileUsernamesByIDs(influencerIDs)
+	for i, initial := range initialSponsoredPosts {
+		ret = append(ret, dto.ResponsePostDTO{
+			Post:               initial.Post,
+			Reaction:           initial.Reaction,
+			CampaignId:         sponsoredPostsDTO[i].CampaignID,
+			InfluencerId:       sponsoredPostsDTO[i].InfluencerID,
+			InfluencerUsername: influencerUsernames[i],
+		})
+	}
+	return ret, err
 }
 
 func (service *PostService) CreatePost(postType model.PostType, post dto.PostDto, mediaNames []string, profile dto.ProfileDto) error {
@@ -129,7 +151,7 @@ func (service *PostService) ReadPost(id primitive.ObjectID) (model.Post, error) 
 
 func (service *PostService) DeletePost(id primitive.ObjectID) error {
 	err := service.PostRepository.Delete(id)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
@@ -146,9 +168,9 @@ func (service *PostService) DeleteUserPosts(profileId uint) error {
 	if err != nil {
 		return err
 	}
-	for i := 0; i < len(posts); i++{
+	for i := 0; i < len(posts); i++ {
 		err = service.DeletePost(posts[i].ID)
-		if err != nil{
+		if err != nil {
 			return err
 		}
 	}
@@ -178,14 +200,14 @@ func (service *PostService) MakeCampaign(postID string, agentID uint) error {
 	return service.PostRepository.MakeCampaign(id)
 }
 
-func (service *PostService) GetMediaById(mediaId string) (model.Media,error) {
+func (service *PostService) GetMediaById(mediaId string) (model.Media, error) {
 	return service.PostRepository.GetMediaById(mediaId)
 }
 
 func deletePostsReports(postId primitive.ObjectID) error {
 	postReactionHost, postReactionPort := util.GetPostReactionHostAndPort()
-	_, err := util.CrossServiceRequest(http.MethodDelete,
-		util.GetCrossServiceProtocol()+"://"+postReactionHost+":"+postReactionPort+"/report/"+ util.GetStringIDFromMongoID(postId),
+	_, err := util.CrossServiceRequest(context.Background(), http.MethodDelete,
+		util.GetCrossServiceProtocol()+"://"+postReactionHost+":"+postReactionPort+"/report/"+util.GetStringIDFromMongoID(postId),
 		nil, map[string]string{})
 	return err
 }
@@ -213,7 +235,7 @@ func canUsersBeTagged(description string, publisherId uint) error {
 	descriptionParts := strings.Split(description, " ")
 	for i := 0; i < len(descriptionParts); i++ {
 		if strings.Contains(descriptionParts[i], "@") {
-			taggedUsername := descriptionParts[i][1 : len(descriptionParts[i])]
+			taggedUsername := descriptionParts[i][1:len(descriptionParts[i])]
 			var taggedProfile dto.ProfileDto
 			if resp, err := getProfileByUsername(taggedUsername); err != nil {
 				return err
@@ -241,7 +263,7 @@ func canUsersBeTagged(description string, publisherId uint) error {
 
 func getUserFollowers(loggedUserId uint) (*http.Response, error) {
 	connHost, connPort := util.GetConnectionHostAndPort()
-	resp, err := util.CrossServiceRequest(http.MethodGet,
+	resp, err := util.CrossServiceRequest(context.Background(), http.MethodGet,
 		util.GetCrossServiceProtocol()+"://"+connHost+":"+connPort+"/connection/following/show/"+util.Uint2String(loggedUserId),
 		nil, map[string]string{})
 	return resp, err
@@ -249,7 +271,7 @@ func getUserFollowers(loggedUserId uint) (*http.Response, error) {
 
 func getProfileByUsername(username string) (*http.Response, error) {
 	profileHost, profilePort := util.GetProfileHostAndPort()
-	resp, err := util.CrossServiceRequest(http.MethodGet,
+	resp, err := util.CrossServiceRequest(context.Background(), http.MethodGet,
 		util.GetCrossServiceProtocol()+"://"+profileHost+":"+profilePort+"/get/"+username,
 		nil, map[string]string{})
 	return resp, err
@@ -275,7 +297,7 @@ func getReactionsForPosts(posts []model.Post, profileID uint) ([]dto.ResponsePos
 	postBody, _ := json.Marshal(map[string][]string{
 		"ids": postIDs,
 	})
-	resp, err := util.CrossServiceRequest(http.MethodPost,
+	resp, err := util.CrossServiceRequest(context.Background(), http.MethodPost,
 		util.GetCrossServiceProtocol()+"://"+postReactionHost+":"+postReactionPort+"/get-reaction-types/"+util.Uint2String(profileID),
 		postBody, map[string]string{"Content-Type": "application/json;"})
 
@@ -315,7 +337,7 @@ func getReactionsForPosts(posts []model.Post, profileID uint) ([]dto.ResponsePos
 
 func getProfilesBlockedRelationships(loggedProfileId uint) ([]uint, error) {
 	connectionHost, connectionPort := util.GetConnectionHostAndPort()
-	resp, err := util.CrossServiceRequest(http.MethodGet,
+	resp, err := util.CrossServiceRequest(context.Background(), http.MethodGet,
 		util.GetCrossServiceProtocol()+"://"+connectionHost+":"+connectionPort+"/connection/block/relationships/"+util.Uint2String(loggedProfileId),
 		nil, map[string]string{})
 
@@ -339,15 +361,15 @@ func getProfilesBlockedRelationships(loggedProfileId uint) ([]uint, error) {
 	return blockedRelationships, err
 }
 
-func getCampaigns(loggedUserID uint, followingProfiles []util.FollowingProfileDTO) ([]string, error){
+func getCampaigns(loggedUserID uint, followingProfiles []util.FollowingProfileDTO) ([]dto.SponsoredPostsDTO, error) {
 	postBody, err := json.Marshal(followingProfiles)
 	if err != nil {
 		fmt.Println(err)
 		return nil, err
 	}
 	campaignHost, campaignPort := util.GetCampaignHostAndPort()
-	resp, err := util.CrossServiceRequest(http.MethodPost,
-		util.GetCrossServiceProtocol()+"://"+campaignHost+":"+campaignPort+"/available-for-profile/" + util.Uint2String(loggedUserID),
+	resp, err := util.CrossServiceRequest(context.Background(), http.MethodPost,
+		util.GetCrossServiceProtocol()+"://"+campaignHost+":"+campaignPort+"/available-for-profile/"+util.Uint2String(loggedUserID),
 		postBody, map[string]string{"Content-Type": "application/json"})
 
 	if err != nil {
@@ -363,9 +385,48 @@ func getCampaigns(loggedUserID uint, followingProfiles []util.FollowingProfileDT
 	defer func(Body io.ReadCloser) {
 		_ = Body.Close()
 	}(resp.Body)
-	var ret []string
+	var ret []dto.SponsoredPostsDTO
 	if err = json.Unmarshal(body, &ret); err != nil {
 		return nil, err
 	}
+	return ret, nil
+}
+
+func getProfileUsernamesByIDs(profileIDs []uint) ([]string, error) {
+	type data struct {
+		Ids []string `json:"ids"`
+	}
+	req := make([]string, 0)
+	for _, value := range profileIDs {
+		req = append(req, util.Uint2String(value))
+	}
+	bodyData := data{Ids: req}
+	jsonBody, err := json.Marshal(bodyData)
+	if err != nil {
+		return nil, err
+	}
+	profileHost, profilePort := util.GetProfileHostAndPort()
+	resp, err := util.CrossServiceRequest(context.Background(), http.MethodPost,
+		util.GetCrossServiceProtocol()+"://"+profileHost+":"+profilePort+"/get-by-ids",
+		jsonBody, map[string]string{"Content-Type": "application/json;"})
+	if err != nil {
+		return nil, err
+	}
+
+	var ret []string
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(resp.Body)
+
+	if err = json.Unmarshal(body, &ret); err != nil {
+		return nil, err
+	}
+
 	return ret, nil
 }

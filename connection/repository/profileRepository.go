@@ -1,10 +1,12 @@
 package repository
 
 import (
+	"context"
 	"fmt"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j/dbtype"
 	"nistagram/connection/model"
+	"nistagram/util"
 )
 
 func (repo *Repository) CreateOrUpdateProfile(profile model.ProfileVertex) *model.ProfileVertex {
@@ -35,7 +37,10 @@ func (repo *Repository) CreateOrUpdateProfile(profile model.ProfileVertex) *mode
 	return &ret
 }
 
-func (repo *Repository) FindConnectionDegreeForRecommendation(id uint) (*map[uint]*[]uint, bool) {
+func (repo *Repository) FindConnectionDegreeForRecommendation(ctx context.Context, id uint) (*map[uint]*[]uint, bool) {
+	span := util.Tracer.StartSpanFromContext(ctx, "FindConnectionDegreeForRecommendation-repository")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "repository", fmt.Sprintf("repository call for id %v\n", id))
 	session := (*repo.DatabaseDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close()
 	profile := model.ProfileVertex{ProfileID: id}
@@ -46,6 +51,7 @@ func (repo *Repository) FindConnectionDegreeForRecommendation(id uint) (*map[uin
 				"RETURN length(path) as Degree, b",
 			profile.ToMap())
 		if err != nil {
+			util.Tracer.LogError(span, err)
 			fmt.Println(err.Error())
 			return nil, err
 		}
@@ -64,14 +70,17 @@ func (repo *Repository) FindConnectionDegreeForRecommendation(id uint) (*map[uin
 		return &ret, nil
 	})
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err.Error())
 		return nil, false
 	}
 	if ret == nil {
+		util.Tracer.LogError(span, fmt.Errorf("repository anon func returned nill"))
 		return nil, false
 	}
 	data, ok := ret.(*map[uint]*[]uint)
 	if !ok {
+		util.Tracer.LogError(span, fmt.Errorf("casting error"))
 		return nil, false
 	}
 	return data, true

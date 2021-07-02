@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -71,13 +72,13 @@ func (service *Service) GetProfilesInFollowRelationship(conn model.ConnectionEdg
 	}
 	ret := make([]dto.UserDTO, 0)
 	for _, val := range *profiles {
-		p := util.GetProfile(val)
+		p := util.GetProfile(context.Background(), val)
 		if p == nil {
 			continue
 		}
 		ret = append(ret, dto.UserDTO{
-			ProfileID:	val,
-			Username:	p.Username,
+			ProfileID: val,
+			Username:  p.Username,
 		})
 	}
 	return &ret
@@ -103,7 +104,7 @@ func (service *Service) FollowRequest(followerId, profileId uint) (*model.Connec
 	if connection.Approved {
 		return nil, false
 	}
-	profile2 := util.GetProfile(profileId)
+	profile2 := util.GetProfile(context.Background(), profileId)
 	if profile2 == nil {
 		return nil, false
 	}
@@ -137,8 +138,8 @@ func (service *Service) ApproveConnection(followerId, profileId uint) (*model.Co
 	if okSelect && connection == nil {
 		return connection, false
 	}
-	profile1 := util.GetProfile(followerId)
-	profile2 := util.GetProfile(profileId)
+	profile1 := util.GetProfile(context.Background(), followerId)
+	profile2 := util.GetProfile(context.Background(), profileId)
 	if profile1 == nil || profile2 == nil {
 		return nil, false
 	}
@@ -178,7 +179,7 @@ func (service *Service) GetAllFollowRequests(id uint) *[]dto.UserDTO {
 	for _, profileId := range *result {
 		var p model2.Profile
 		profileHost, profilePort := util.GetProfileHostAndPort()
-		resp, err := util.CrossServiceRequest(http.MethodGet,
+		resp, err := util.CrossServiceRequest(context.Background(), http.MethodGet,
 			util.GetCrossServiceProtocol()+"://"+profileHost+":"+profilePort+"/get-by-id/"+util.Uint2String(profileId),
 			nil, map[string]string{})
 		if err != nil {
