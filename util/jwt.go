@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -56,22 +57,34 @@ func GetLoggedUserIDFromToken(r *http.Request) uint {
 	tokenString, err := getToken(r.Header)
 	if err != nil {
 		fmt.Println(err)
-		return 0
+		tokenString, err = getTokenFromParams(r.URL.String())
+		if err != nil {
+			fmt.Println(err)
+			return 0
+		}
 	}
-	token, err := jwt.ParseWithClaims(tokenString, &TokenClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(TokenSecret), nil
-	})
+	return GetLoggedUserIDFromPureToken(tokenString)
+}
+
+func getTokenFromParams(s string) (string, error) {
+	err := fmt.Errorf("generic error, no token in URL")
+	paramsPart := strings.Split(s, "?")
+	if len(paramsPart) < 2 {
+		return "", err
+	}
+	tokenTilEnd := strings.Split(paramsPart[1],"token=")
+	if len(paramsPart) < 2 {
+		return "", err
+	}
+	tokenEscaped := strings.Split(tokenTilEnd[1], "&")
+	token, err := url.QueryUnescape(tokenEscaped[0])
 	if err != nil {
 		fmt.Println(err)
-		return 0
+		return "", err
 	}
-	if claims, ok := token.Claims.(*TokenClaims); ok && token.Valid {
-		return claims.LoggedUserId
-	} else {
-		fmt.Println(err)
-		return 0
-	}
+	return token, nil
 }
+
 
 func GetLoggedUserIDFromPureToken(tok string) uint {
 	if TokenSecret == "" {

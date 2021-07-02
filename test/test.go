@@ -7,7 +7,7 @@ import (
 	"github.com/gorilla/websocket"
 	"io"
 	"log"
-	"net/http"
+	"net/url"
 	"nistagram/notification/dto"
 	"os"
 )
@@ -15,13 +15,17 @@ import (
 
 func main() {
 	reader := bufio.NewReader(os.Stdin)
+	target, _ := reader.ReadString('\n')
 	jwt, _ := reader.ReadString('\n')
 	jwt = jwt[:len(jwt)-1]
 	//jwt:= "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2dnZWRVc2VySWQiOjEsImV4cCI6MTYyNTM0MTEwMywiaWF0IjoxNjI1MjU0NzAzLCJpc3MiOiJhdXRoX3NlcnZpY2UifQ.lTONxXzDgnhnib8ulsf6RIJ4p9alaMzjefXoS9XjGyY"
-	header := http.Request{
-		Header: map[string][]string{"Authorization": []string{"Bearer " + jwt}},
+	notificationHost, notificationPort := "localhost", "8090"
+	wsMethod := "ws"
+	if "docker" == target[:len(target)-1] {
+		wsMethod = "wss"
+		notificationPort = "7008"
 	}
-	c, resp, err := websocket.DefaultDialer.Dial("ws://localhost:8090/messaging", header.Header)
+	c, resp, err := websocket.DefaultDialer.Dial(wsMethod + "://" + notificationHost + ":" + notificationPort + "/messaging?token=" + url.QueryEscape(jwt), nil)
 	if resp != nil {
 		log.Printf("handshake failed with status %d", resp.StatusCode)
 		body, _ := io.ReadAll(resp.Body)
