@@ -69,7 +69,7 @@ func (repo *CampaignRepository) DeleteCampaign(campaignID uint) error{
 		return result.Error
 	}else if result.RowsAffected == 0 {
 		//if there is no params delete campaign
-		if err := repo.forceDeleteCampaing(campaignID,tx); err != nil{
+		if err := repo.forceDeleteCampaign(campaignID,tx); err != nil{
 			return err
 		}
 		tx.Commit()
@@ -142,14 +142,14 @@ func (repo *CampaignRepository) GetInterests(interests []string) []model.Interes
 	return ret
 }
 
-func (repo *CampaignRepository) forceDeleteCampaing(id uint, tx *gorm.DB) error {
+func (repo *CampaignRepository) forceDeleteCampaign(id uint, tx *gorm.DB) error {
 	if err := deleteCampaignParameters(id,tx); err != nil {
 		return err
 	}
 	return tx.Unscoped().Delete(&model.Campaign{},"id = ?",id).Error
 }
 
-func  deleteCampaignParameters(campaignId uint, tx *gorm.DB) error {
+func deleteCampaignParameters(campaignId uint, tx *gorm.DB) error {
 	var ret []model.CampaignParameters
 	if err := tx.Table("campaign_parameters").Find(&ret,"campaign_id = ? ", campaignId).Error ; err != nil {
 		return err
@@ -164,17 +164,15 @@ func  deleteCampaignParameters(campaignId uint, tx *gorm.DB) error {
 	return tx.Unscoped().Delete(&model.CampaignParameters{},"campaign_id = ?",campaignId).Error
 }
 
-func  beforeDeleteCampaignParameters(campaignParametersId []uint,tx *gorm.DB) error {
+func beforeDeleteCampaignParameters(campaignParametersId []uint,tx *gorm.DB) error {
 	if err:= tx.Unscoped().Delete(&model.CampaignRequest{},"campaign_parameters_id IN ?",campaignParametersId).Error; err != nil{
 		return err
 	}
 	if err:= tx.Unscoped().Delete(&model.Timestamp{},"campaign_parameters_id IN ?",campaignParametersId).Error; err != nil{
 		return err
 	}
-
 	return nil
 }
-
 
 func (repo *CampaignRepository) GetParametersByCampaignId(campaignId uint) (model.CampaignParameters, error) {
 	var ret model.CampaignParameters
@@ -224,11 +222,14 @@ func (repo *CampaignRepository) GetAllActiveParameters() ([]model.CampaignParame
 }
 
 func (repo *CampaignRepository) GetPostIDsFromCampaignIDs(campaignIDs []uint) ([]string, error) {
+	length := len(campaignIDs)
+	if length == 0 {
+		return make([]string, 0), nil
+	}
 	var ret []string
 	var builder strings.Builder
 	// https://stackoverflow.com/questions/39348610/select-query-with-in-clause-having-duplicate-values-in-in-clause
 	builder.WriteString("select c.post_id from campaigns c join (")
-	length := len(campaignIDs)
 	for i, campaignID := range campaignIDs {
 		builder.WriteString("select " + util.Uint2String(campaignID) + " ")
 		if i == 0 {
@@ -258,33 +259,10 @@ func (repo *CampaignRepository) UpdateCampaignRequest(id string, status model.Re
 	return nil
 }
 
-func (repo *CampaignRepository) GetDistinctCampaignParamsIdForProfileId(id int) ([]int,error) {
-	var ret []int
-	if result := repo.Database.Raw("select distinct campaign_parameters_id " +
-		"FROM campaign_requests " +
-		"WHERE influencer_id = ? " +
-		"AND request_status = ?", id,model.SENT).Scan(&ret); result.Error != nil{
-		return make([]int,0),result.Error
-	}
-	return ret,nil
-}
-
-func (repo *CampaignRepository) GetActiveCampaignIdsForCampaignParamsIds(campaignParamsIds []int) ([]int,error) {
-	var ret []int
-	result := repo.Database.Raw("select distinct campaign_id " +
-		"FROM campaign_parameters " +
-		"WHERE id IN (?) AND " +
-		"end > ? AND deleted_at IS NULL AND start < ? ", campaignParamsIds, time.Now(), time.Now()).Scan(&ret)
-	if result.Error != nil {
-		return make([]int,0) , nil
-	}
-	return ret,nil
-}
-
 func (repo *CampaignRepository) GetCampaignRequestInfluencerId(requestId uint) uint {
 	var ret uint
-	res := repo.Database.Raw("select influencer_id from campaign_requests" +
-		"where id = ? ", requestId).Scan(&ret)
+	res := repo.Database.Raw("select influencer_id from campaign_requests " +
+		"where id = ? and request_status = 0", requestId).Scan(&ret)
 	if res.RowsAffected == 0 {
 		return 0
 	}
