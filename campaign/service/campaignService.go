@@ -251,10 +251,28 @@ func (service *CampaignService) GetAvailableCampaignsForUser(loggedUserID uint, 
 	return postIDs, retInfluencerIDs, campaignIDs, err
 }
 
-func (service *CampaignService) UpdateCampaignRequest(requestId string, status model.RequestStatus) error {
-
-	//TODO check if logged user have request in this campaign request
+func (service *CampaignService) UpdateCampaignRequest(loggedUserId uint,requestId string, status model.RequestStatus) error {
+	if service.CampaignRepository.GetCampaignRequestInfluencerId(util.String2Uint(requestId)) != loggedUserId {
+		return fmt.Errorf("not allowed")
+	}
 	return service.CampaignRepository.UpdateCampaignRequest(requestId, status)
+}
+
+func (service *CampaignService) GetActiveCampaignsRequestsForProfileId(profileId int) error {
+	res, err := service.CampaignRepository.GetDistinctCampaignParamsIdForProfileId(profileId)
+	if err != nil {
+		return err
+	}
+	res, err = service.CampaignRepository.GetActiveCampaignIdsForCampaignParamsIds(res)
+	if err != nil {
+		return err
+	}
+	fmt.Println(res)
+	return nil
+}
+
+func (service *CampaignService) GetCampaignRequestInfluencerId(requestId uint) uint {
+	return service.CampaignRepository.GetCampaignRequestInfluencerId(requestId)
 }
 
 func getPostsByPostsIds(postsIds []string) ([]dto.PostDTO, error) {

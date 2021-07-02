@@ -257,3 +257,36 @@ func (repo *CampaignRepository) UpdateCampaignRequest(id string, status model.Re
 	}
 	return nil
 }
+
+func (repo *CampaignRepository) GetDistinctCampaignParamsIdForProfileId(id int) ([]int,error) {
+	var ret []int
+	if result := repo.Database.Raw("select distinct campaign_parameters_id " +
+		"FROM campaign_requests " +
+		"WHERE influencer_id = ? " +
+		"AND request_status = ?", id,model.SENT).Scan(&ret); result.Error != nil{
+		return make([]int,0),result.Error
+	}
+	return ret,nil
+}
+
+func (repo *CampaignRepository) GetActiveCampaignIdsForCampaignParamsIds(campaignParamsIds []int) ([]int,error) {
+	var ret []int
+	result := repo.Database.Raw("select distinct campaign_id " +
+		"FROM campaign_parameters " +
+		"WHERE id IN (?) AND " +
+		"end > ? AND deleted_at IS NULL AND start < ? ", campaignParamsIds, time.Now(), time.Now()).Scan(&ret)
+	if result.Error != nil {
+		return make([]int,0) , nil
+	}
+	return ret,nil
+}
+
+func (repo *CampaignRepository) GetCampaignRequestInfluencerId(requestId uint) uint {
+	var ret uint
+	res := repo.Database.Raw("select influencer_id from campaign_requests" +
+		"where id = ? ", requestId).Scan(&ret)
+	if res.RowsAffected == 0 {
+		return 0
+	}
+	return ret
+}
