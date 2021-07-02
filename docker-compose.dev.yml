@@ -16,6 +16,8 @@ services:
             - ./conf/certs/key/localhost.key.pem:/certs/key/localhost.key.pem
         ports: 
             - 81:80
+        depends_on: 
+            - notification
 
     static:
         container_name: static_srv_nginx

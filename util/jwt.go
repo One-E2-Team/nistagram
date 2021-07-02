@@ -72,3 +72,22 @@ func GetLoggedUserIDFromToken(r *http.Request) uint {
 		return 0
 	}
 }
+
+func GetLoggedUserIDFromPureToken(tok string) uint {
+	if TokenSecret == "" {
+		initPublicToken()
+	}
+	token, err := jwt.ParseWithClaims(tok, &TokenClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(TokenSecret), nil
+	})
+	if err != nil {
+		fmt.Println(err)
+		return 0
+	}
+	if claims, ok := token.Claims.(*TokenClaims); ok && token.Valid {
+		return claims.LoggedUserId
+	} else {
+		fmt.Println(err)
+		return 0
+	}
+}
