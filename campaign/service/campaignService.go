@@ -251,8 +251,10 @@ func (service *CampaignService) GetAvailableCampaignsForUser(loggedUserID uint, 
 	return postIDs, retInfluencerIDs, campaignIDs, err
 }
 
-func (service *CampaignService) UpdateCampaignRequest(requestId string, status model.RequestStatus) error {
-	//TODO check if logged user have request in this campaign request
+func (service *CampaignService) UpdateCampaignRequest(loggedUserId uint,requestId string, status model.RequestStatus) error {
+	if service.CampaignRepository.GetCampaignRequestInfluencerId(util.String2Uint(requestId)) != loggedUserId {
+		return fmt.Errorf("not allowed")
+	}
 	return service.CampaignRepository.UpdateCampaignRequest(requestId, status)
 }
 
