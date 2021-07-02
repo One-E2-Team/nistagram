@@ -20,7 +20,11 @@ func (repo *Repository) CreateMessage(message *model.Message) error {
 
 func (repo *Repository) Seen(messageId string) error {
 	collection := repo.getCollection()
-	filter := bson.D{{"_id", primitive.ObjectIDFromHex(messageId)}}
+	idPrimitive, err := primitive.ObjectIDFromHex(messageId)
+	if err != nil{
+		return err
+	}
+	filter := bson.D{{"_id", idPrimitive}}
 
 	cursor, err := collection.Find(context.TODO(), filter)
 	if err != nil {
