@@ -284,6 +284,14 @@ services:
       DOCKER_ENV_SET_DEV: ""
       MICROSERVICE_JWT_TOKEN_SECRET: ${MICROSERVICE_JWT_TOKEN_SECRET}
       PUBLIC_JWT_TOKEN_SECRET: ${PUBLIC_JWT_TOKEN_SECRET}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      DB_SEC_ENC: ${DB_SEC_ENC}
+      JAEGER_AGENT_HOST: tracing
+      JAEGER_AGENT_PORT: 6831
+      JAEGER_SAMPLER_MANAGER_HOST_PORT: jaeger:5778
+      JAEGER_SAMPLER_TYPE: const
+      JAEGER_SAMPLER_PARAM: 1
     build:
       context: .
       dockerfile: Build.dockerfile
@@ -294,6 +302,39 @@ services:
       - ./conf/certs/pem/monitoring.cert.pem:/nistagram/cert.pem
     ports:
       - 7007:8080
+    networks:
+      - net_apigateway
+      - net_mongo
+    depends_on:
+      - mongo1
+
+  notification:
+    container_name: notification_ms
+    restart: always
+    environment:
+      DB_USERNAME: ${DB_NOTIFICATION_USERNAME}
+      DB_PASSWORD: ${DB_NOTIFICATION_PASSWORD}
+      DOCKER_ENV_SET_DEV: ""
+      MICROSERVICE_JWT_TOKEN_SECRET: ${MICROSERVICE_JWT_TOKEN_SECRET}
+      PUBLIC_JWT_TOKEN_SECRET: ${PUBLIC_JWT_TOKEN_SECRET}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      DB_SEC_ENC: ${DB_SEC_ENC}
+      JAEGER_AGENT_HOST: tracing
+      JAEGER_AGENT_PORT: 6831
+      JAEGER_SAMPLER_MANAGER_HOST_PORT: jaeger:5778
+      JAEGER_SAMPLER_TYPE: const
+      JAEGER_SAMPLER_PARAM: 1
+    build:
+      context: .
+      dockerfile: Build.dockerfile
+      args:
+        ARG_TARGET_MS_GO: notification
+    volumes:
+      - ./conf/certs/key/notification.key.pem:/nistagram/key.pem
+      - ./conf/certs/pem/notification.cert.pem:/nistagram/cert.pem
+    ports:
+      - 7008:8080
     networks:
       - net_apigateway
       - net_mongo

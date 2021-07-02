@@ -106,3 +106,12 @@ func GetMonitoringHostAndPort() (string, string) {
 	}
 	return monitoringHost, monitoringPort
 }
+
+func GetNotificationHostAndPort() (string, string) {
+	var notificationHost, notificationPort = "localhost", "8090" // dev.db environment
+	if DockerChecker() {
+		notificationHost = "notification"
+		notificationPort = "8080"
+	}
+	return notificationHost, notificationPort
+}

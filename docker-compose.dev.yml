@@ -269,7 +269,32 @@ services:
             - net_mongo
         depends_on:
             - mongo1
-            
+
+    notification:
+        container_name: notification_ms
+        restart: always
+        environment:
+            DB_USERNAME: ${DB_NOTIFICATION_USERNAME}
+            DB_PASSWORD: ${DB_NOTIFICATION_PASSWORD}
+            DOCKER_ENV_SET_DEV: ""
+            MICROSERVICE_JWT_TOKEN_SECRET: ${MICROSERVICE_JWT_TOKEN_SECRET}
+            PUBLIC_JWT_TOKEN_SECRET: ${PUBLIC_JWT_TOKEN_SECRET}
+        build:
+            context: .
+            dockerfile: Build.dockerfile
+            args:
+                ARG_TARGET_MS_GO: notification
+        volumes:
+            - ./conf/certs/key/notification.key.pem:/nistagram/key.pem
+            - ./conf/certs/pem/notification.cert.pem:/nistagram/cert.pem
+        ports:
+            - 7008:8080
+        networks:
+            - net_apigateway
+            - net_mongo
+        depends_on:
+            - mongo1
+
     db_relational:
         container_name: db_mysql
         image: mysql
