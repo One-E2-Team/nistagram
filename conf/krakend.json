@@ -2009,7 +2009,8 @@
           ],
           "disable_host_sanitize": false
         }
-	}
+      ]
+	},
 	{
       "endpoint": "/redirect/{campaignId}/{influencerId}/{mediaId}",
       "method": "GET",
