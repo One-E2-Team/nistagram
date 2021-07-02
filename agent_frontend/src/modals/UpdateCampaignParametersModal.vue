@@ -115,7 +115,7 @@
             </v-card-text>
             <v-card-actions class="justify-end">
                 <v-btn text @click="confirm()">Confirm</v-btn>
-                <v-btn text @click="dialog.value = false">Close</v-btn>
+                <v-btn text @click="dialog.value = false" :id="'closeButton' + campaignId">Close</v-btn>
             </v-card-actions>
           </v-card>
         </template>
@@ -258,6 +258,7 @@ export default {
               if (response.data != '') {
                 this.populateActiveCampaignParams(response.data);
               } else {
+                document.getElementById('closeButton' + this.campaignId).click();
                 alert('Campaign didn\'t start or ended!');
               }
             }

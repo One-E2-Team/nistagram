@@ -51,37 +51,20 @@
           </div>
           <v-container class="fill-height">
             <v-row>
-              <v-col v-for="p in products" :key="p.id" cols="12" sm="4">
+              <v-col cols="12" sm="6">
                 <v-card class="mx-auto my-12" width="330" >
-                    <template v-if="hasRole('AGENT')">
-                    <v-menu offset-y>
-                      <template v-slot:activator="{ on, attrs }">
-                        <v-btn icon v-bind="attrs" v-on="on">
-                          <v-icon>mdi-dots-vertical</v-icon>
-                        </v-btn>
-                      </template>
-                      <v-list>
-                        <v-list-item>
-                          <v-list-item-title @click="sendItem(p)"><router-link :to="{ name: 'EditProduct'}">Edit</router-link></v-list-item-title>
-                        </v-list-item>
-                        <v-list-item>
-                          <v-list-item-title @click="deleteProduct(p.id)"><router-link  :to="{ name: 'HomePage'}">Delete</router-link></v-list-item-title>
-                        </v-list-item>
-                      </v-list>
-                  </v-menu>
-                  </template>   
                   <template slot="progress">
                     <v-progress-linear color="deep-purple" height="10" indeterminate ></v-progress-linear>
                   </template>
-                    <v-img contain width="330" height="440" :src="protocol + '://' + server + '/data/' + p.picturePath"></v-img>
-                  <v-card-title>{{p.name}}</v-card-title>
+                    <v-img contain width="330" height="440" :src="protocol + '://' + server + '/data/' + product.picturePath"></v-img>
+                  <v-card-title>{{product.name}}</v-card-title>
 
                   <v-card-text>
                     <div class="my-4 text-subtitle-1">
-                      {{p.pricePerItem}} RSD
+                      {{product.pricePerItem}} RSD
                     </div>
 
-                    <div>{{p.description}}</div>
+                    <div>{{product.description}}</div>
                   </v-card-text>
 
                   <v-divider class="mx-4"></v-divider>
@@ -91,11 +74,11 @@
                   <v-card-text>
                     <v-chip-group column >
                       <v-chip>
-                        <input v-model="productAmount[p.id]" type="number" min="1" value="1" style="width: 50px">
+                        <input v-model="productAmount[product.id]" type="number" min="1" value="1" style="width: 50px">
                       </v-chip>
                       <v-chip>
                         <v-card-actions>
-                          <v-btn color="deep-purple lighten-2" text @click="addToCart(p)" >
+                          <v-btn color="deep-purple lighten-2" text @click="addToCart(product)" >
                             Add to cart
                           </v-btn>
                         </v-card-actions>
@@ -119,7 +102,7 @@ import { bus } from '../main'
     data() {return {
       protocol : comm.protocol,
       server : comm.static_server,
-      products: [],
+      product: {},
       productAmount:{},
       cart:[],
       showCart : false,
@@ -135,43 +118,21 @@ import { bus } from '../main'
     })
     },
     mounted(){
-       this.getProducts();
-    },
-    methods: {
-    sendItem(item){
-       bus.$emit('product-data', item);
-    },
-     hasRole(role){
-      return comm.hasRole(role);
-    },
-     deleteProduct(id){
-       axios({
-                method: "delete",
-                url: comm.protocol +'://' + comm.server + '/product/' + id,
-                headers: comm.getHeader()
-            }).then(response => {
-              if(response.status==200){
-                console.log("ok");
-              }
-            }).catch(() => {
-              console.log("error")
-            });
-      this.getProducts();
-    },
-     getProducts(){
        axios({
                 method: "get",
-                url: comm.protocol +'://' + comm.server + '/product',
+                url: comm.protocol +'://' + comm.server + '/product/' + parseInt(this.$route.params.id),
             }).then(response => {
               if(response.status==200){
-                this.products = response.data;
-                console.log(this.products);
+                this.product = response.data;
+                console.log(this.product);
               }
             }).catch((response) => {
               console.log(response.data)
             });
-     }, 
-     addToCart(p){
+    },
+    methods : {
+
+    addToCart(p){
        p.amount = 1;
        if(this.productAmount[p.id] != null)
           p.amount = this.productAmount[p.id];
@@ -182,7 +143,7 @@ import { bus } from '../main'
        }
        this.cart.push(p);
      },
-     makeOrder(){
+      makeOrder(){
        if(!comm.isUserLogged()){
          alert("You need to be logged in to make order!");
          return;
@@ -209,6 +170,6 @@ import { bus } from '../main'
             })
        this.showCart = false;
      }
-    },
+    }
   }
 </script>
