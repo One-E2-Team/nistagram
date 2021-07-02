@@ -9,6 +9,7 @@ services:
         restart: always
         networks: 
             - net_apigateway
+            - net_agent
         volumes: 
             - ./conf/krakend.json:/etc/krakend/krakend.json
             - ./conf/certs/pem/localhost.cert.pem:/certs/pem/localhost.cert.pem
@@ -42,6 +43,7 @@ services:
         ports: 
             - 83:443
         volumes: 
+            - "../agentstaticdata/data:/usr/share/nginx/html/data:ro"
             - ./conf/certs/pem/agent.cert.pem:/etc/nginx/ssl/agent.cert.pem
             - ./conf/certs/key/agent.key.pem:/etc/nginx/ssl/agent.key.pem
             - ./conf/agent-static.default.conf:/etc/nginx/conf.d/default.conf
@@ -203,12 +205,12 @@ services:
         volumes:
             - ./conf/certs/key/agent.key.pem:/nistagram/key.pem
             - ./conf/certs/pem/agent.cert.pem:/nistagram/cert.pem
-            - ../nistagramstaticdata:/nistagramstaticdata
+            - ../agentstaticdata:/agentstaticdata
         ports:
             - 82:8080
         networks:
             - net_db_relational
-            - net_apigateway
+            - net_agent
             - net_exist
         depends_on:
             - db_relational
@@ -382,6 +384,7 @@ networks:
     net_mongo:
 #    net_:
     net_exist:
+    net_agent:
 
 volumes: 
     data_profile:

@@ -68,7 +68,7 @@ func (handler *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Requ
 }
 
 func (handler *ProductHandler) savePicture(fileName string, picture multipart.File) error {
-	f, err := os.OpenFile("../../nistagramstaticdata/data/"+fileName, os.O_WRONLY|os.O_CREATE, 0666)
+	f, err := os.OpenFile("../../agentstaticdata/data/"+fileName, os.O_WRONLY|os.O_CREATE, 0666)
 	defer func(f *os.File) {
 		_ = f.Close()
 	}(f)

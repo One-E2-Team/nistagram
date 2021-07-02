@@ -173,13 +173,26 @@ func (handler *CampaignHandler) GetAvailableCampaignsForUser(w http.ResponseWrit
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	postIDs, _, err := handler.CampaignService.GetAvailableCampaignsForUser(util.String2Uint(params["profileID"]), followingProfiles)
+	postIDs, influencerIDs, campaignIDs, err := handler.CampaignService.GetAvailableCampaignsForUser(util.String2Uint(params["profileID"]), followingProfiles)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	js, err := json.Marshal(postIDs)
+	if len(postIDs) != len(influencerIDs) || len(postIDs) != len(campaignIDs) || len(influencerIDs) != len(campaignIDs){
+		fmt.Println("BAD LIST SIZES")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	ret := make([]dto.SponsoredPostsDTO, 0)
+	for i, postID := range postIDs {
+		ret = append(ret, dto.SponsoredPostsDTO{
+			PostID:       postID,
+			InfluencerID: influencerIDs[i],
+			CampaignID:   campaignIDs[i],
+		})
+	}
+	js, err := json.Marshal(ret)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)

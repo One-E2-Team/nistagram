@@ -480,7 +480,7 @@ func (service *CampaignService) GeneratePdfForCampaign(campaignId uint) error {
 		})
 	}
 
-	err = m.OutputFileAndClose("../../nistagramstaticdata/data/campaign" +
+	err = m.OutputFileAndClose("../../agentstaticdata/data/campaign" +
 		util.Uint2String(campaignId) + ".pdf")
 	if err != nil {
 		return err

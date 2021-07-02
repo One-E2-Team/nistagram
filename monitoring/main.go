@@ -95,6 +95,7 @@ func closeConnection(client *mongo.Client) {
 }
 
 func main() {
+	util.TracerInit("monitoring")
 	client := initDB()
 	defer closeConnection(client)
 	repo := initRepo(client)
