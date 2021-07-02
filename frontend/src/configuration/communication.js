@@ -70,3 +70,9 @@ export function getUrlVars() {
   });
   return vars;
 }
+
+export function openWebSocketConn(url, handler){
+  let ws = new WebSocket(url + "?token=" + getJWTToken().token)
+  ws.onmessage = function(event) {handler(event)}
+  return function(data){ws.send(data)}
+}
