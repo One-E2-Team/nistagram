@@ -47,20 +47,20 @@ func initDB() *mongo.Client {
 	}
 }
 
-func initRepo(client *mongo.Client) *repository.NotificationRepository {
-	return &repository.NotificationRepository{Client: client}
+func initRepo(client *mongo.Client) *repository.Repository {
+	return &repository.Repository{Client: client}
 }
-
-func initService(notificationRepository *repository.NotificationRepository) *service.NotificationService {
-	return &service.NotificationService{NotificationRepository: notificationRepository}
+func initService(repository *repository.Repository) *service.Service {
+	return &service.Service{Repository: repository}
 }
-func initHandler(notificationService *service.NotificationService) *handler.Handler {
-	return &handler.Handler{NotificationService: notificationService}
+func initHandler(service *service.Service) *handler.Handler {
+	return &handler.Handler{Service: service}
 }
 
 func handleFunc(handler *handler.Handler) {
 	router := mux.NewRouter().StrictSlash(true)
 
+	router.HandleFunc("/connections", handler.GetMessageConnections).Methods("GET")
 
 	fmt.Println("Starting server..")
 	host, port := util.GetNotificationHostAndPort()
