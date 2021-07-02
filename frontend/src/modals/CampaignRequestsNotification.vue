@@ -11,12 +11,12 @@
             <v-card-text>
               <div v-for="n in notifications" :key="n.campaign_id">
                 <p>{{n.post.publisherUsername}}</p>
-               
-                <v-btn text @click="approve(n.request_id)">Approve</v-btn>
-                <v-btn text @click="decline(n.request_id)">Decline</v-btn>
               </div>
             </v-card-text>
             <v-card-actions class="justify-end">
+              <show-campaign-request-modal/>
+              <v-btn text @click="approve(n.request_id,true)">Approve</v-btn>
+              <v-btn text @click="approve(n.request_id,false)">Decline</v-btn>
               <v-btn text @click="dialog.value = false">Close</v-btn>
             </v-card-actions>
           </v-card>
@@ -29,7 +29,9 @@
 <script>
 import axios from 'axios'
 import * as comm from '../configuration/communication.js'
+import ShowCampaignRequestModal from './ShowCampaignRequestModal.vue'
 export default {
+  components: { ShowCampaignRequestModal },
     name: "CampaignRequestNotifications",
     data() {
         return {
@@ -40,7 +42,7 @@ export default {
         getNotifications(){
             axios({
                 method: "get",
-                url: comm.protocol +'://' + comm.server + '/campaign/request/my',
+                url: comm.protocol +'://' + comm.server + 'api/campaign/request/my',
                 headers: comm.getHeader(),
             }).then(response => {
               if(response.status==200){
@@ -48,6 +50,26 @@ export default {
               }
             })
         },
+        approve(requestId,isAccepted){
+            let data = {
+                accepted: isAccepted
+            }
+            axios({
+                method: "put",
+                url: comm.protocol +'://' + comm.server + '/api/campaign/request/' + requestId,
+                headers: comm.getHeader(),
+                data: JSON.stringify(data)
+            }).then(response => {
+                if(response.status==200){
+                    document.getElementById('close'+this.notification.campaign_id).close();
+                    if(isAccepted){
+                        alert("notifiaction is accepted")
+                    }else{
+                        alert("notification is declined")
+                    }
+                }
+            })
+            }
     }
 }
 </script>

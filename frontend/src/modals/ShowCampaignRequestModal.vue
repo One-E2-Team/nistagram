@@ -2,7 +2,7 @@
   <v-row justify="space-around">
     <v-col cols="auto">
       <v-dialog transition="dialog-bottom-transition" width="900">
-        <template v-slot:activator="{ on, attrs }" v-if="post.postType==2">
+        <template v-slot:activator="{ on, attrs }">
             <span v-bind="attrs"  v-on="on" >
                 <v-btn text>Show</v-btn>
             </span>
@@ -63,7 +63,7 @@ import axios from 'axios'
 export default {
   components: { PostMedia },
   name: 'ShowPostModal',
-  props: ['width','height','post','notification'],
+  props: ['notification'],
   data(){
       return{
           isUserLogged: comm.isUserLogged(),
@@ -72,6 +72,8 @@ export default {
           searchedTaggedUsers : [],
           cursorStart: -1,
           cursorEnd: -1,
+          width: 300,
+          height: 400,
       }
   },
   methods:{
@@ -92,7 +94,7 @@ export default {
         }
         axios({
             method: "put",
-            url: comm.protocol +'://' + comm.server + '/campaign/request/my',
+            url: comm.protocol +'://' + comm.server + '/api/campaign/request/' + this.notification.request_id,
             headers: comm.getHeader(),
             data: JSON.stringify(data)
         }).then(response => {
