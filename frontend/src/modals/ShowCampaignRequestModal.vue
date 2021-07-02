@@ -11,8 +11,8 @@
           <v-card>
             <v-list-item >
                 <v-list-item-content >
-                    <v-list-item-title  class="text-h5 d-flex justify-space-between ">
-                        <router-link :to="{ name: 'Profile', params: { username: notification.publisherUsername.post.publisherUsername }}">{{notification.publisherUsername.post.publisherUsername}}</router-link>
+                    <v-list-item-title  class="text-h5 d-flex justify-space-between">
+                        <router-link :to="{ name: 'Profile', params: { username: notification.post.publisherUsername }}">{{notification.post.publisherUsername}}</router-link>
                     </v-list-item-title>
                 </v-list-item-content>
             </v-list-item>
@@ -20,7 +20,7 @@
                 <v-container>
                     <v-row justify="center">
                         <v-col cols="12" sm="6">
-                           <post-media :width="width" :height="height" :post="notification.post"/>
+                            <post-media :width="width" :height="height" :post="notification.post"/>
                         </v-col>
                     <v-col cols="12" sm="6">
                         <v-row> <v-col>Location: {{notification.post.location}} </v-col></v-row>
@@ -61,8 +61,8 @@ import PostMedia from '../components/Posts/PostMedia.vue'
 import * as comm from '../configuration/communication.js'
 import axios from 'axios'
 export default {
-  components: { PostMedia },
-  name: 'ShowPostModal',
+   components: { PostMedia },
+  name: 'ShowCampaignRequestModal',
   props: ['notification'],
   data(){
       return{
@@ -76,7 +76,7 @@ export default {
           height: 400,
       }
   },
-  methods:{
+  methods: {
     preventActionIfUnauthorized() {
         if(!comm.isUserLogged()){
             alert('You must be logged to react on post');
@@ -99,12 +99,8 @@ export default {
             data: JSON.stringify(data)
         }).then(response => {
             if(response.status==200){
-                document.getElementById('close'+this.notification.campaign_id).close();
-                if(isAccepted){
-                    alert("notifiaction is accepted")
-                }else{
-                    alert("notification is declined")
-                }
+                alert('Notification successfully ' + (isAccepted ? 'accepted' : 'declined') + '!');
+                document.getElementById('close'+this.notification.campaign_id).click();
             }
         })
     }

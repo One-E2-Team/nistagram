@@ -24,12 +24,13 @@
 import * as comm from '../../configuration/communication.js'
 export default {
     props:['post','width','height'],
+    name: 'PostMedia',
     data(){
         return{
             protocol: comm.protocol,
             server: comm.server
         }
-    }
+    },
 }
 </script>
 

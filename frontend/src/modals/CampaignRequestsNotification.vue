@@ -11,12 +11,12 @@
             <v-card-text>
               <div v-for="n in notifications" :key="n.campaign_id">
                 <p>{{n.post.publisherUsername}}</p>
+                <show-campaign-request-modal :notification="n"/>
+                <v-btn text @click="approve(n.request_id,true)">Approve</v-btn>
+                <v-btn text @click="approve(n.request_id,false)">Decline</v-btn>
               </div>
             </v-card-text>
             <v-card-actions class="justify-end">
-              <show-campaign-request-modal/>
-              <v-btn text @click="approve(n.request_id,true)">Approve</v-btn>
-              <v-btn text @click="approve(n.request_id,false)">Decline</v-btn>
               <v-btn text @click="dialog.value = false">Close</v-btn>
             </v-card-actions>
           </v-card>
@@ -42,7 +42,7 @@ export default {
         getNotifications(){
             axios({
                 method: "get",
-                url: comm.protocol +'://' + comm.server + 'api/campaign/request/my',
+                url: comm.protocol +'://' + comm.server + '/api/campaign/request/my',
                 headers: comm.getHeader(),
             }).then(response => {
               if(response.status==200){
