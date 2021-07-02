@@ -15,8 +15,9 @@ import (
 
 func main() {
 	reader := bufio.NewReader(os.Stdin)
-	//jwt, _ := reader.ReadString('\n')
-	jwt:= "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2dnZWRVc2VySWQiOjEsImV4cCI6MTYyNTM0MTEwMywiaWF0IjoxNjI1MjU0NzAzLCJpc3MiOiJhdXRoX3NlcnZpY2UifQ.lTONxXzDgnhnib8ulsf6RIJ4p9alaMzjefXoS9XjGyY"
+	jwt, _ := reader.ReadString('\n')
+	jwt = jwt[:len(jwt)-1]
+	//jwt:= "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2dnZWRVc2VySWQiOjEsImV4cCI6MTYyNTM0MTEwMywiaWF0IjoxNjI1MjU0NzAzLCJpc3MiOiJhdXRoX3NlcnZpY2UifQ.lTONxXzDgnhnib8ulsf6RIJ4p9alaMzjefXoS9XjGyY"
 	header := http.Request{
 		Header: map[string][]string{"Authorization": []string{"Bearer " + jwt}},
 	}
