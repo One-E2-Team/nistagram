@@ -69,13 +69,24 @@ func (handler *Handler) messageMultiplexer(senderId uint, request string, data [
 	switch request {
 	case "Random":
 		return handler.RndHandler(senderId, data)
+	case "SendMessage":
+		return handler.SendMessage(senderId, data)
 	default:
 		return []byte("{\"status\": \"invalid call\"}"), true
 	}
 }
 
-func TrySendMessage(profileId uint, data []byte) {
+func TrySendMessage(profileId uint, responseType string, data []byte) {
+	temp := dto.WSResponseBodyDTO{
+		Response: responseType,
+		Data:     string(data),
+	}
+	ret, err := json.Marshal(temp)
+	if err != nil{
+		fmt.Println(err)
+		return
+	}
 	for _, value := range wsMessageMap[profileId] {
-		value.WriteMessage(websocket.TextMessage, data)
+		value.WriteMessage(websocket.TextMessage, ret)
 	}
 }
