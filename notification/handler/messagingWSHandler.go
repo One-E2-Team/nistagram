@@ -10,7 +10,9 @@ import (
 	"nistagram/util"
 )
 
-var upgrader = websocket.Upgrader{}
+var upgrader = websocket.Upgrader{CheckOrigin: func(r *http.Request) bool {
+	return true
+}}
 
 var wsMessageMap = make(map[uint][]*websocket.Conn, 0)
 
