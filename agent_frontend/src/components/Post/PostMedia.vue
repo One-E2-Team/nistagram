@@ -27,7 +27,7 @@ export default {
     data(){
         return{
             protocol: comm.protocol,
-            server: comm.static_server,
+            server: comm.nistagram_server,
         }
     }
 }
