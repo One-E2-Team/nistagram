@@ -73,7 +73,7 @@
                   <template slot="progress">
                     <v-progress-linear color="deep-purple" height="10" indeterminate ></v-progress-linear>
                   </template>
-                    <v-img contain width="330" height="440" :src="protocol + '://' + server + '/static/data/' + p.picturePath"></v-img>
+                    <v-img contain width="330" height="440" :src="protocol + '://' + server + '/data/' + p.picturePath"></v-img>
                   <v-card-title>{{p.name}}</v-card-title>
 
                   <v-card-text>
@@ -118,7 +118,7 @@ import { bus } from '../main'
     name: "HomePage",
     data() {return {
       protocol : comm.protocol,
-      server : comm.nistagram_server,
+      server : comm.static_server,
       products: [],
       productAmount:{},
       cart:[],
