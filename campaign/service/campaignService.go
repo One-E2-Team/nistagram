@@ -228,25 +228,27 @@ func (service *CampaignService) GetAvailableCampaignsForUser(loggedUserID uint, 
 	retInfluencerIDs := make([]uint, 0)
 	var wg sync.WaitGroup
 	for _, params := range allActiveParams {
-		wg.Add(2)
-		go func() {
-			defer wg.Done()
-			if campaignParamsContainsInterest(params, interests) {
-				campaignIDs = append(campaignIDs, params.CampaignID)
-				retInfluencerIDs = append(retInfluencerIDs, 0)
-			}
-		}()
-		go func() {
-			defer wg.Done()
-			test, influencerIDs := campaignParamsContainsInfluencerIDs(params, potentialInfluencers)
-			if test {
-				for _, influencerID := range influencerIDs {
+		if campaignIsAvailableNow(params) {
+			wg.Add(2)
+			go func() {
+				defer wg.Done()
+				if campaignParamsContainsInterest(params, interests) {
 					campaignIDs = append(campaignIDs, params.CampaignID)
-					retInfluencerIDs = append(retInfluencerIDs, influencerID)
+					retInfluencerIDs = append(retInfluencerIDs, 0)
 				}
-			}
-		}()
-		wg.Wait()
+			}()
+			go func() {
+				defer wg.Done()
+				test, influencerIDs := campaignParamsContainsInfluencerIDs(params, potentialInfluencers)
+				if test {
+					for _, influencerID := range influencerIDs {
+						campaignIDs = append(campaignIDs, params.CampaignID)
+						retInfluencerIDs = append(retInfluencerIDs, influencerID)
+					}
+				}
+			}()
+			wg.Wait()
+		}
 	}
 	if len(campaignIDs) == 0 {
 		return make([]string, 0), make([]uint, 0), make([]uint, 0), nil
@@ -359,6 +361,20 @@ func getProfileInterests(loggedUserID uint) ([]string, error) {
 		return nil, err
 	}
 	return ret, nil
+}
+
+func campaignIsAvailableNow(params model.CampaignParameters) bool {
+	for _, timestamp := range params.Timestamps {
+		timestampTime := timestamp.Time.UTC()
+		now := time.Now().UTC()
+		nowDate := time.Date(1, 1, 1, now.Hour(), now.Minute(), 0, 0, time.UTC)
+		timestampTimeDate := time.Date(1, 1, 1, timestampTime.Hour(), timestampTime.Minute(), 0, 0, time.UTC)
+		if (timestampTimeDate.Equal(now) || timestampTimeDate.Before(nowDate)) &&
+			(timestampTimeDate.Add(1*time.Hour).Equal(now) || timestampTimeDate.Add(1*time.Hour).After(nowDate)) {
+			return true
+		}
+	}
+	return false
 }
 
 func campaignParamsContainsInterest(params model.CampaignParameters, interests []string) bool {
