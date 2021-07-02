@@ -255,7 +255,11 @@ export default {
             headers: comm.getHeader(),
           }).then((response) => {
             if(response.status == 200){
-              this.populateActiveCampaignParams(response.data);
+              if (response.data != '') {
+                this.populateActiveCampaignParams(response.data);
+              } else {
+                alert('Campaign didn\'t start or ended!');
+              }
             }
           });
         },
