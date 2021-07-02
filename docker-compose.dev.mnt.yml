@@ -458,7 +458,7 @@ services:
       GF_INSTALL_PLUGINS: "grafana-clock-panel,grafana-simple-json-datasource"
     restart: always
     ports:
-      - 3000:3000
+      - 3003:3000
     user: "104"
     volumes:
       - type: volume

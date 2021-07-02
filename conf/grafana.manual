@@ -1,0 +1,28 @@
+configuration-> datasources
+- prometheus
+    prometheus:9090
+    include stats and 2.0 stats dashboard
+- influx
+    influxql
+    http://influx:8086
+    server default
+    database krakend
+    user admin
+    pass supersecretpassword
+    http GET
+dashboards->manage->import
+- krakend
+    5722
+    influxdb
+- opencensus krakend
+    9680
+    prometheus
+- docker engine metrics
+    1229
+    ukljuciti docker experimental
+- nginx exporter static
+    12708
+
+docker experimental add configuration
+    "metrics-addr" : "127.0.0.1:9323",
+    "experimental" : true,
