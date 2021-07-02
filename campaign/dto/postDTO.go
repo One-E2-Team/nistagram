@@ -10,7 +10,8 @@ type Media struct {
 }
 
 type PostDTO struct {
-	PostType           int  `json:"postType"`
+	PublisherUsername  string    `json:"publisherUsername"`
+	PostType           int       `json:"postType"`
 	Medias             []Media   `json:"medias"`
 	PublishDate        time.Time `json:"publishDate"`
 	Description        string    `json:"description"`
