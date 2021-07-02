@@ -9,11 +9,11 @@
           <v-card>
             <v-toolbar color="primary" dark>Campaign requests</v-toolbar>
             <v-card-text>
-              <div v-for="n in notifications" :key="n.campaign_id">
-                <p>{{n.post.publisherUsername}}</p>
+              <div v-for="n in notifications" :key="n.campaign_id" class="d-flex">
+                <h3>{{n.post.publisherUsername}}</h3>
                 <show-campaign-request-modal :notification="n"/>
-                <v-btn text @click="approve(n.request_id,true)">Approve</v-btn>
-                <v-btn text @click="approve(n.request_id,false)">Decline</v-btn>
+                <v-btn text @click="approve(n.request_id,true)" color="success">Approve</v-btn>
+                <v-btn text @click="approve(n.request_id,false)" color="error">Decline</v-btn>
               </div>
             </v-card-text>
             <v-card-actions class="justify-end">

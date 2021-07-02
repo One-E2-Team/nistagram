@@ -45,8 +45,8 @@
             </v-container>
             </v-card-text>
             <v-card-actions class="justify-end">
-              <v-btn text @click="accept(true)">Accept</v-btn>
-              <v-btn text @click="accept(false)">Decline</v-btn>
+              <v-btn text @click="accept(true)" color="success">Accept</v-btn>
+              <v-btn text @click="accept(false)" color="error">Decline</v-btn>
               <v-btn text @click="dialog.value = false" :id="'close'+notification.campaign_id">Close</v-btn>
             </v-card-actions>
           </v-card>
