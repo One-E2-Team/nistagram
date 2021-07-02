@@ -109,6 +109,19 @@ func (handler *CampaignHandler) EditCampaign(w http.ResponseWriter, r *http.Requ
 	w.Header().Set("Content-Type", "application/json")
 }
 
+func (handler *CampaignHandler) DeleteCampaign(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	resp, err := handler.CampaignService.DeleteCampaign(params["id"])
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(util.GetResponseJSON(*resp))
+	w.Header().Set("Content-Type", "application/json")
+}
+
 func (handler *CampaignHandler) GeneratePdfForCampaign(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	campaignId := util.String2Uint(vars["id"])

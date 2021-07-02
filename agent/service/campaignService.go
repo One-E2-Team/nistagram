@@ -143,6 +143,11 @@ func (service *CampaignService) EditCampaign(postID string, requestBody []byte) 
 		requestBody, map[string]string{"Content-Type": "application/json"})
 }
 
+func (service *CampaignService) DeleteCampaign(campaignID string) (*http.Response, error) {
+	return util.NistagramRequest(http.MethodDelete, "/agent-api/campaign/"+campaignID,
+		nil, map[string]string{})
+}
+
 func (service *CampaignService) GeneratePdfForCampaign(campaignId uint) error {
 	resp, err := util.ExistDBRequest(http.MethodGet, "/exist/rest/collection/reports/report"+util.Uint2String(campaignId)+".xml", []byte(""), map[string]string{})
 	if err != nil {
