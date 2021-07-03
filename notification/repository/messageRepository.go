@@ -119,6 +119,44 @@ func (repo *Repository) GetConnectedProfileIds(profileId uint) ([]uint,error) {
 	return ret,nil
 }
 
+func (repo *Repository) GetMessageById(messageId string) (model.Message,error) {
+	var ret model.Message
+
+	messId, err := primitive.ObjectIDFromHex(messageId)
+	if err != nil{
+		return ret, err
+	}
+
+	collection := repo.getCollection()
+	filter := bson.D{{"_id", messId}}
+
+	cursor, err := collection.Find(context.TODO(), filter)
+	if err != nil {
+		return ret,err
+	}
+
+	for cursor.Next(context.TODO()) {
+		err = cursor.Decode(&ret)
+	}
+
+	return ret,err
+}
+
+func (repo *Repository) DeleteMessage(messageId string) error {
+
+	messId, err := primitive.ObjectIDFromHex(messageId)
+	if err != nil{
+		return  err
+	}
+
+	collection := repo.getCollection()
+	filter := bson.D{{"_id", messId}}
+
+	_, err = collection.DeleteOne(context.TODO(), filter)
+
+	return err
+}
+
 func (repo *Repository) getCollection() *mongo.Collection {
 	return repo.Client.Database(notificationDbName).Collection(messagesCollectionName)
 }

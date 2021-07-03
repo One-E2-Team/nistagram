@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"nistagram/notification/model"
 )
 
@@ -23,6 +24,21 @@ func (service *Service) GetAllMessages(firstId uint, secondId uint) ([]model.Mes
 	messages = sortMessages(messages)
 
 	return messages, nil
+}
+
+func (service *Service) DeleteMessage(loggedUserId uint, messageId string) error{
+	message, err := service.Repository.GetMessageById(messageId)
+	if err != nil{
+		return err
+	}
+
+	if message.SenderId == loggedUserId || message.ReceiverId == loggedUserId{
+		err = service.Repository.DeleteMessage(messageId)
+	}else{
+		return errors.New("This user is not allowed to delete message.")
+	}
+
+	return err
 }
 
 func sortMessages(messages []model.Message) []model.Message {

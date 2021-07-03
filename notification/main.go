@@ -65,6 +65,8 @@ func handleFunc(handler *handler.Handler) {
 
 	router.HandleFunc("/connections", util.RBAC(handler.GetMessageConnections, "MESSAGING", true)).Methods("GET")
 
+	router.HandleFunc("/message/{id}", util.RBAC(handler.DeleteMessage, "MESSAGING", false)).Methods("DELETE")
+
 	fmt.Println("Starting server..")
 	host, port := util.GetNotificationHostAndPort()
 	var err error
