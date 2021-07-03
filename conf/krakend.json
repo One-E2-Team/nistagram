@@ -2223,10 +2223,15 @@
     },
     {
       "endpoint": "/api/messaging",
-      "querystring_params":[ "*" ],
+      "querystring_params": [
+        "*"
+      ],
       "extra_config": {
         "github.com/devopsfaith/krakend-websocket": {
-          "headers_to_pass":["Cookie", "Authorization"],
+          "headers_to_pass": [
+            "Cookie",
+            "Authorization"
+          ],
           "connect_event": true,
           "disconnect_event": true
         }
@@ -2240,7 +2245,8 @@
           "host": [
             "wss://notification:8080"
           ],
-          "disable_host_sanitize": true
+          "disable_host_sanitize": true,
+          "extra_config": {}
         }
       ]
     },
@@ -2285,6 +2291,30 @@
             "https://campaign:8080"
           ],
           "disable_host_sanitize": false,
+          "is_collection": true,
+          "target": ""
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/messaging/message/{id}",
+      "method": "GET",
+      "output_encoding": "json",
+      "extra_config": {},
+      "headers_to_pass": [
+        "Authorization"
+      ],
+      "backend": [
+        {
+          "url_pattern": "/message/{id}",
+          "encoding": "json",
+          "sd": "static",
+          "method": "GET",
+          "extra_config": {},
+          "disable_host_sanitize": false,
+          "host": [
+            "https://notification:8080"
+          ],
           "is_collection": true,
           "target": ""
         }
