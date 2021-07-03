@@ -56,10 +56,10 @@ func GetLoggedUserIDFromToken(r *http.Request) uint {
 	}
 	tokenString, err := getToken(r.Header)
 	if err != nil {
-		fmt.Println(err)
-		tokenString, err = getTokenFromParams(r.URL.String())
-		if err != nil {
-			fmt.Println(err)
+		var err1 error
+		tokenString, err1 = getTokenFromParams(r.URL.String())
+		if err1 != nil {
+			fmt.Println(err, err1)
 			return 0
 		}
 	}
