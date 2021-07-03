@@ -77,7 +77,7 @@ export function getUrlVars() {
 
 export function openWebSocketConn(url, handler){
   let ws = new WebSocket(url + "?token=" + getJWTToken().token)
-  let reload = function(event) {window.location.reload()}
+  let reload = function(event) { console.log(event); window.location.reload()}
   ws.onerror = reload
   ws.onclose = reload
   ws.onmessage = function(event) {
