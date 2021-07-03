@@ -28,14 +28,14 @@
                         <v-row><v-col>Description: {{notification.post.description}} </v-col></v-row>
                         <v-row justify="center">
                             <v-col>    
-                                <p>Date: {{notification.start}} - {{notification.end}}</p>
+                                <p>Date: {{formatedDate(notification.start)}} - {{formatedDate(notification.end)}}</p>
                             </v-col>
                          </v-row>
                         <v-row justify="space-around">
                             <v-col cols="12" sm="8" md="8">
                                 <v-sheet elevation="17"  height="50" >
                                     <v-chip-group mandatory class="primary--text">
-                                        <v-chip v-for="time in notification.timestamps" :key="time">{{ time }}</v-chip>
+                                        <v-chip v-for="time in notification.timestamps" :key="time">{{formatedTime(time) }}</v-chip>
                                     </v-chip-group>
                                 </v-sheet>
                             </v-col>
@@ -59,6 +59,7 @@
 <script>
 import PostMedia from '../components/Posts/PostMedia.vue'
 import * as comm from '../configuration/communication.js'
+import * as dateFormater from '../plugins/dateFormater.js'
 import axios from 'axios'
 export default {
    components: { PostMedia },
@@ -103,6 +104,12 @@ export default {
                 document.getElementById('close'+this.notification.campaign_id).click();
             }
         })
+    },
+    formatedDate : function(d){
+          return dateFormater.formatDateToYYYYMMDD(d)
+    },
+    formatedTime: function(t){
+          return dateFormater.formatTime(t)
     }
       
   },
