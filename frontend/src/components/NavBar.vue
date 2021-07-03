@@ -47,6 +47,9 @@
           <v-col cols="12" sm="1" class="float-right">
               <settings v-if="isUserLogged"/>
           </v-col>
+          <v-col cols="12" sm="1" class="float-right">
+              <message-connections v-if="isUserLogged"/>
+          </v-col>
         </v-row>
       </v-container>
     </div>
@@ -59,6 +62,7 @@ import FollowRequests from '../components/FollowRequests.vue'
 import MessageRequestsModal from '../modals/MessageRequestsModal.vue'
 import ConnectionRecommendationModal from '../modals/ConnectionRecommendationModal.vue'
 import CampaignRequestsNotification from '../modals/CampaignRequestsNotification.vue'
+import MessageConnections from '../components/MessageConnections.vue'
 export default {
     name: "NavBar",
     components: {
@@ -66,7 +70,8 @@ export default {
       MessageRequestsModal,
       ConnectionRecommendationModal,
       Settings,
-      CampaignRequestsNotification
+      CampaignRequestsNotification,
+      MessageConnections
     },
     data(){
       return {
@@ -100,7 +105,7 @@ export default {
         }
         let sender = comm.openWebSocketConn(comm.wsProtocol + '://' + comm.wsNotificationServer + '/messaging', handler)
         this.messagingSenderWS = sender
-      }
+      },
     }
 }
 </script>

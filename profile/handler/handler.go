@@ -538,6 +538,7 @@ func (handler *Handler) GetProfileUsernamesByIDs(w http.ResponseWriter, r *http.
 		return
 	}
 	ret, err := handler.ProfileService.GetProfileUsernamesByIDs(input.Ids)
+	fmt.Println(ret)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)

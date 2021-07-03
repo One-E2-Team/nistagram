@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"nistagram/notification/dto"
@@ -16,15 +17,21 @@ func (service *Service) GetMessageConnections(loggedUserId uint) ([]dto.MessageC
 		return nil,err
 	}
 
+	fmt.Println(profileIds)
+
 	usernames, err := getProfileUsernamesByIDs(profileIds)
 	if err != nil{
 		return nil, err
 	}
 
+	fmt.Println(usernames)
+
 	messageApproved, err := getMessageApprovedByIDs(profileIds)
 	if err != nil{
 		return nil, err
 	}
+
+	fmt.Println(messageApproved)
 
 	var ret []dto.MessageConnectionDTO
 
@@ -64,6 +71,8 @@ func getProfileUsernamesByIDs(profileIDs []uint) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Println(body)
 
 	defer func(Body io.ReadCloser) {
 		_ = Body.Close()
