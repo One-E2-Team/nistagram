@@ -3,7 +3,7 @@
     <v-col cols="auto">
       <v-dialog transition="dialog-top-transition" max-width="600">
         <template v-slot:activator="{ on, attrs }">
-            <v-btn v-bind="attrs" v-on="on" color="primary"  @click="clearInputs()">Add</v-btn>
+            <v-btn v-bind="attrs" v-on="on" color="primary"  @click="clearInputs()">Add media</v-btn>
         </template>
         <template v-slot:default="dialog">
           <v-card>

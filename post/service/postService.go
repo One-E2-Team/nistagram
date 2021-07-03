@@ -204,7 +204,7 @@ func (service *PostService) CreatePost(postType model.PostType, post dto.PostDto
 		m := model.Media{
 			ID:       primitive.NewObjectID(),
 			FilePath: mediaNames[i],
-			WebSite:  "",
+			WebSite:  post.Links[i],
 		}
 		medias = append(medias, m)
 	}

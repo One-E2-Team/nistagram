@@ -68,15 +68,15 @@
             label="Hash tags"
           ></v-text-field>
 
-          <v-file-input
+          <v-file-input v-if="!hasRole('AGENT')"
             v-model="files"
             multiple
             :rules="[rules.oneOrMoreElement]"
             chips
             label="Input pictures.."
           ></v-file-input>
-             <picture-with-link-modal v-on:addPictureWithLink="addFileWithLink($event)"/>
-            <v-simple-table fixed-header height="300px">
+             <picture-with-link-modal v-on:addPictureWithLink="addFileWithLink($event)" v-if="hasRole('AGENT')"/>
+            <v-simple-table fixed-header height="300px" v-if="hasRole('AGENT')">
               <template v-slot:default>
                 <thead>
                   <tr>
@@ -183,17 +183,26 @@
         this.files = []
       },
       submit () {
-        if(this.$refs.form.validate() !== true )
+        if(this.$refs.form.validate() !== true ) {
           return
-        
+        }
+        let links = [];
+        const data = new FormData();
+        if (this.files.length > 0) {
+          for(let i = 0;i < this.files.length;i++) {
+            data.append("file" + i, this.files[i], this.files[i].name);
+            links.push("");
+          }
+        } else if (this.filesWithLink.length > 0) {
+          for(let i = 0;i < this.filesWithLink.length;i++) {
+            data.append("file" + i, this.filesWithLink[i].file, this.filesWithLink[i].file.name);
+            links.push(this.filesWithLink[i].link);
+          }
+        }
         let dto = {"description" : this.description, "isHighlighted" : this.isHighlighted,
         "isCloseFriendsOnly": this.isCloseFriendsOnly, "location" : this.location, 
-        "hashTags" : this.hashTags, "taggedUsers" : [], "postType" : this.selectedPostType}
+        "hashTags" : this.hashTags, "taggedUsers" : [], "postType" : this.selectedPostType, "links": links}
         let json = JSON.stringify(dto);
-        const data = new FormData();
-        for(let i = 0;i < this.files.length;i++){
-            data.append("file" + i, this.files[i], this.files[i].name);
-          }
         data.append("data", json);
         axios.defaults.headers.common['Authorization'] = 'Bearer ' + comm.getJWTToken().token;
         axios({
@@ -250,6 +259,9 @@
       removeFile(item){
         this.filesWithLink.splice(this.filesWithLink.indexOf(item), 1)
         this.filesWithLink = [...this.filesWithLink]
+      },
+      hasRole(role) {
+        return comm.hasRole(role);
       }
     }
   }
