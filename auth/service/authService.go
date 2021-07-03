@@ -119,6 +119,8 @@ func (service *AuthService) Register(ctx context.Context, dto dto.RegisterDTO) e
 	message := "Visit this link in the next 60 minutes to validate your account: " + util.GetMicroservicesProtocol() +
 		"://" + gatewayHost + ":" + gatewayPort + "/api/auth/validate/" + util.Uint2String(user.ProfileId) + "/" + user.ValidationUid //+ "/" + uid
 	go util.SendMail(dto.Email, "Account Validation", message)
+
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("send verification mail to %s", dto.Email))
 	return nil
 }
 
@@ -163,6 +165,8 @@ func (service *AuthService) RequestPassRecovery(ctx context.Context, email strin
 	var message = "Visit this link in the next 20 minutes to change your password: " + util.GetFrontProtocol() + "://" + frontHost + ":" + frontPort + "/web#/reset-password?id=" +
 		util.Uint2String(user.ProfileId) + "&str=" + user.ValidationUid
 	go util.SendMail(user.Email, "Recovery password", message)
+
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("send recovery password mail to %s", user.Email))
 	return nil
 }
 
@@ -309,6 +313,7 @@ func (service *AuthService) BanUser(ctx context.Context, profileID uint) error {
 	}
 	message := "Unfortunately, your account has been deleted from Nistagram due inappropriate posts!"
 	go util.SendMail(user.Email, "Deleted account", message)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("send deleted account mail to %s", user.Email))
 	return nil
 }
 
