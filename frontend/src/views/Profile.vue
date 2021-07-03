@@ -39,8 +39,8 @@
             </v-col>
         </v-row>
         <v-row v-if="followTypeValue == followType.FOLLOW || !isProfilePrivate || isMyProfile()">
-            <v-col cols="12" sm="4" v-for="p in posts" :key="p._id">
-               <post v-bind:usage="'Profile'" v-bind:post="p.post" v-bind:myReaction="p.reaction" />
+            <v-col cols="12" sm="4" v-for="(p, index) in posts" :key="p._id">
+               <post v-bind:usage="'Profile'" v-bind:post="p.post" v-bind:myReaction="p.reaction" :campaignData="campaignData[index]"/>
             </v-col>
         </v-row>
         <v-row v-else-if="followTypeValue != followType.FOLLOW && isProfilePrivate">
@@ -71,6 +71,7 @@ export default {
             isProfilePrivate: null,
             posts: [],
             stories: [],
+            campaignData: [],
             server: comm.server,
             protocol: comm.protocol,
             showFollowOption: false,
@@ -166,8 +167,10 @@ export default {
                 url: comm.protocol + '://' + comm.server + '/api/post/my',
                 headers: comm.getHeader(),
             }).then(response => {
-                if (response.status==200)
-                    this.setPostAndStories(response.data.collection)
+                if (response.status==200) {
+                    this.setPostAndStories(response.data.collection);
+                    this.setCampaignData(response.data.collection);
+                }
             });
         },
         isUserLoggedIn(){
@@ -179,7 +182,8 @@ export default {
                     headers: comm.getHeader(),
                     }).then(response => {
                         if(response.status==200){   
-                            this.setPostAndStories(response.data.collection)
+                            this.setPostAndStories(response.data.collection);
+                            this.setCampaignData(response.data.collection);
                         }
                     });
         },
@@ -237,7 +241,18 @@ export default {
                 this.followTypeValue = this.followType.NOT_FOLLOW;
             }
             this.connection = newConnection;
-        }
+        },
+        setCampaignData(response) {
+            this.campaignData = [];
+            for (let r of response) {
+            let data = {
+                campaignId: r.campaignId,
+                influencerId: r.influencerId,
+                influencerUsername: r.influencerUsername,
+            }
+            this.campaignData.push(data);
+            }
+        },
     },
 }
 </script>

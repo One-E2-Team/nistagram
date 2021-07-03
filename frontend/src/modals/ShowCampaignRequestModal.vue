@@ -34,7 +34,7 @@
                         <v-row justify="space-around">
                             <v-col cols="12" sm="8" md="8">
                                 <v-sheet elevation="17"  height="50" >
-                                    <v-chip-group mandatory class="primary--text">
+                                    <v-chip-group>
                                         <v-chip v-for="time in notification.timestamps" :key="time">{{formatedTime(time) }}</v-chip>
                                     </v-chip-group>
                                 </v-sheet>

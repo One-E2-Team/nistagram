@@ -67,7 +67,7 @@
                 <v-row justify="space-around">
                   <v-col cols="12" sm="8" md="8">
                     <v-sheet elevation="17"  height="50" >
-                      <v-chip-group mandatory active-class="primary--text">
+                      <v-chip-group>
                         <v-chip v-for="time in timestamps" :key="time" close @click:close="removeTime(time)" clearable>
                           {{ time }}
                         </v-chip>
@@ -128,6 +128,7 @@
 import * as validator from '../plugins/validator.js'
 import axios from 'axios'
 import * as comm from '../configuration/communication.js'
+import * as dateFormatter from '../plugins/dateFormatter.js'
 export default {
     props:['campaignId'],
     data() {
@@ -274,12 +275,7 @@ export default {
             this.influensers.push(this.allFollowerUsernames[index]);
           }
           for(let t of response.timestamps){
-            let timestamp = t.timestamp;
-            let d = new Date(timestamp);
-            let minutes = d.getMinutes() < 10 ? '0'+d.getMinutes() : d.getMinutes()
-            let hours =  d.getHours() < 10 ? '0'+ d.getHours() :  d.getHours()
-            let time = hours + ":" + minutes
-            this.timestamps.push(time)
+            this.timestamps.push(dateFormatter.formatTime(t.timestamp));
           }
         },
     },

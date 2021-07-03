@@ -6,7 +6,7 @@
         <v-list-item-title  class="text-h6 d-flex justify-space-between">
           <router-link v-if="campaignData == undefined || campaignData.influencerUsername == ''" :to="{ name: 'Profile', params: { username: post.publisherUsername }}">{{post.publisherUsername}}</router-link>
           <router-link v-else-if="campaignData.influencerUsername != ''" :to="{ name: 'Profile', params: { username: campaignData.influencerUsername }}">{{campaignData.influencerUsername}}</router-link>
-          <v-row v-if="campaignData != undefined && campaignData.campaignId != 0">
+          <v-row v-if="isSponsored()">
             <v-col>Sponsored</v-col>
           </v-row>
           <v-btn dark icon @click="showDialog = true" v-if="isUserLogged && !isMyPost()">
@@ -21,6 +21,9 @@
       <show-post-modal v-else  :width="width" :height="height" :post="post" :reaction="reaction" v-on:reactionChanged="react($event)"/>
     <v-card-text class="text--primary">
        <v-container>
+         <v-row v-if="isSponsored() && usage=='Profile'">
+          <v-col>Sponsored</v-col>
+         </v-row>
          <v-row>
           <v-col>Location: {{post.location}} </v-col>
          </v-row>
@@ -162,6 +165,9 @@ export default {
     },
     isMyPost(){
       return comm.getLoggedUserID() == this.post.publisherId
+    },
+    isSponsored() {
+      return this.campaignData != undefined && this.campaignData.campaignId != 0;
     }
   },
   watch: {
