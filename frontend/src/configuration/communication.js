@@ -77,7 +77,10 @@ export function getUrlVars() {
 
 export function openWebSocketConn(url, handler){
   let ws = new WebSocket(url + "?token=" + getJWTToken().token)
-  let reload = function(event) { console.log(event); window.location.reload()}
+  let reload = function(event) {
+    console.log(event)
+    window.location.reload()
+  }
   ws.onerror = reload
   ws.onclose = reload
   ws.onmessage = function(event) {
@@ -90,14 +93,4 @@ export function openWebSocketConn(url, handler){
       data: JSON.stringify(data)
     }
     ws.send(JSON.stringify(req))}
-}
-
-let messagingSenderWS = function(request, data) {console.log("sender is not resent for request and data", request, data)}
-
-export function registerMessagingWebSocketSender(sender) {
-  messagingSenderWS = sender
-}
-
-export function getMessagingWebSocketSender() {
-  return messagingSenderWS
 }
