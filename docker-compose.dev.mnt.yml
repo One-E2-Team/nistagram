@@ -308,6 +308,7 @@ services:
     volumes:
       - ./conf/certs/key/monitoring.key.pem:/nistagram/key.pem
       - ./conf/certs/pem/monitoring.cert.pem:/nistagram/cert.pem
+      - ../logs/monitoring:/logs/monitoring
     ports:
       - 7007:8080
     networks:
@@ -342,6 +343,7 @@ services:
     volumes:
       - ./conf/certs/key/notification.key.pem:/nistagram/key.pem
       - ./conf/certs/pem/notification.cert.pem:/nistagram/cert.pem
+      - ../logs/notification:/logs/notification
     ports:
       - 7008:8080
     networks:
