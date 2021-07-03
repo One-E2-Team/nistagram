@@ -34,12 +34,52 @@ func (service *PostService) GetPublic(loggedUserID uint) ([]dto.ResponsePostDTO,
 }
 
 func (service *PostService) GetProfilesPosts(followingProfiles []util.FollowingProfileDTO, targetUsername string, loggedUserID uint) ([]dto.ResponsePostDTO, error) {
+	profileID, err := getProfileIDByUsername(targetUsername)
+	if err != nil {
+		return nil, err
+	}
+	sponsoredPostsDTO, err := getCampaignsWhereUserIsInfluencer(profileID)
+	campaignPosts := make([]model.Post, 0)
+	influencerIDs := make([]uint, 0)
+	for _, sponsoredPostDTO := range sponsoredPostsDTO {
+		primitiveID, err := primitive.ObjectIDFromHex(sponsoredPostDTO.PostID)
+		if err != nil {
+			return nil, err
+		}
+		post, err := service.PostRepository.Read(primitiveID)
+		if err != nil {
+			return nil, err
+		}
+		influencerIDs = append(influencerIDs, sponsoredPostDTO.InfluencerID)
+		campaignPosts = append(campaignPosts, post)
+	}
+	initialSponsoredPosts, err := getReactionsForPosts(campaignPosts, loggedUserID)
+	if err != nil {
+		return nil, err
+	}
+	ret := make([]dto.ResponsePostDTO, 0)
+	influencerUsernames, err := getProfileUsernamesByIDs(influencerIDs)
+	for i, initial := range initialSponsoredPosts {
+		ret = append(ret, dto.ResponsePostDTO{
+			Post:               initial.Post,
+			Reaction:           initial.Reaction,
+			CampaignId:         sponsoredPostsDTO[i].CampaignID,
+			InfluencerId:       sponsoredPostsDTO[i].InfluencerID,
+			InfluencerUsername: influencerUsernames[i],
+		})
+	}
 	posts, err := service.PostRepository.GetProfilesPosts(followingProfiles, targetUsername)
 	if err != nil {
 		return nil, err
 	}
-	responseDTO, err := getReactionsForPosts(posts, loggedUserID)
-	return responseDTO, err
+	postsDTO, err := getReactionsForPosts(posts, loggedUserID)
+	if err != nil {
+		return nil, err
+	}
+	for _, post := range postsDTO {
+		ret = append(ret, post)
+	}
+	return ret, err
 }
 
 func (service *PostService) GetPublicPostByLocation(location string, loggedUserID uint) ([]dto.ResponsePostDTO, error) {
@@ -69,12 +109,48 @@ func (service *PostService) GetPublicPostByHashTag(hashTag string, loggedUserID 
 }
 
 func (service *PostService) GetMyPosts(loggedUserID uint) ([]dto.ResponsePostDTO, error) {
+	sponsoredPostsDTO, err := getCampaignsWhereUserIsInfluencer(loggedUserID)
+	campaignPosts := make([]model.Post, 0)
+	influencerIDs := make([]uint, 0)
+	for _, sponsoredPostDTO := range sponsoredPostsDTO {
+		primitiveID, err := primitive.ObjectIDFromHex(sponsoredPostDTO.PostID)
+		if err != nil {
+			return nil, err
+		}
+		post, err := service.PostRepository.Read(primitiveID)
+		if err != nil {
+			return nil, err
+		}
+		influencerIDs = append(influencerIDs, sponsoredPostDTO.InfluencerID)
+		campaignPosts = append(campaignPosts, post)
+	}
+	initialSponsoredPosts, err := getReactionsForPosts(campaignPosts, loggedUserID)
+	if err != nil {
+		return nil, err
+	}
+	ret := make([]dto.ResponsePostDTO, 0)
+	influencerUsernames, err := getProfileUsernamesByIDs(influencerIDs)
+	for i, initial := range initialSponsoredPosts {
+		ret = append(ret, dto.ResponsePostDTO{
+			Post:               initial.Post,
+			Reaction:           initial.Reaction,
+			CampaignId:         sponsoredPostsDTO[i].CampaignID,
+			InfluencerId:       sponsoredPostsDTO[i].InfluencerID,
+			InfluencerUsername: influencerUsernames[i],
+		})
+	}
 	posts, err := service.PostRepository.GetMyPosts(loggedUserID)
 	if err != nil {
 		return nil, err
 	}
-	responseDTO, err := getReactionsForPosts(posts, loggedUserID)
-	return responseDTO, err
+	postsDTO, err := getReactionsForPosts(posts, loggedUserID)
+	if err != nil {
+		return nil, err
+	}
+	for _, post := range postsDTO {
+		ret = append(ret, post)
+	}
+	return ret, err
 }
 
 func (service *PostService) GetPostsForHomePage(followingProfiles []util.FollowingProfileDTO, loggedUserID uint) ([]dto.ResponsePostDTO, error) {
@@ -396,6 +472,32 @@ func getCampaigns(loggedUserID uint, followingProfiles []util.FollowingProfileDT
 	return ret, nil
 }
 
+func getCampaignsWhereUserIsInfluencer(userID uint) ([]dto.SponsoredPostsDTO, error) {
+	campaignHost, campaignPort := util.GetCampaignHostAndPort()
+	resp, err := util.CrossServiceRequest(context.Background(), http.MethodGet,
+		util.GetCrossServiceProtocol()+"://"+campaignHost+":"+campaignPort+"/accepted-by-influencer/"+util.Uint2String(userID),
+		nil, map[string]string{})
+
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("BAD_REQUEST")
+	}
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(resp.Body)
+	var ret []dto.SponsoredPostsDTO
+	if err = json.Unmarshal(body, &ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+}
+
 func getProfileUsernamesByIDs(profileIDs []uint) ([]string, error) {
 	type data struct {
 		Ids []string `json:"ids"`
@@ -433,4 +535,30 @@ func getProfileUsernamesByIDs(profileIDs []uint) ([]string, error) {
 	}
 
 	return ret, nil
+}
+
+func getProfileIDByUsername(username string) (uint, error) {
+	profileHost, profilePort := util.GetProfileHostAndPort()
+	resp, err := util.CrossServiceRequest(context.Background(), http.MethodGet,
+		util.GetCrossServiceProtocol()+"://"+profileHost+":"+profilePort+"/get-by-username/" + username,
+		nil, map[string]string{})
+	if err != nil {
+		return 0, err
+	}
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return 0, err
+	}
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(resp.Body)
+	type ProfileDTO struct {
+		ID uint `json:"id"`
+	}
+	var ret ProfileDTO
+	if err = json.Unmarshal(body, &ret); err != nil {
+		return 0, err
+	}
+
+	return ret.ID, nil
 }

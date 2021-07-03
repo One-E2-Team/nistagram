@@ -257,6 +257,27 @@ func (service *CampaignService) GetAvailableCampaignsForUser(loggedUserID uint, 
 	return postIDs, retInfluencerIDs, campaignIDs, err
 }
 
+func (service *CampaignService) GetAcceptedCampaignsForInfluencer(influencerID uint) ([]string, []uint, []uint, error) {
+	allActiveParams, err := service.CampaignRepository.GetAllActiveParameters()
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	campaignIDs := make([]uint, 0)
+	retInfluencerIDs := make([]uint, 0)
+	for _, params := range allActiveParams {
+		test, _ := campaignParamsContainsInfluencerIDs(params, []uint{influencerID})
+		if test {
+			campaignIDs = append(campaignIDs, params.CampaignID)
+			retInfluencerIDs = append(retInfluencerIDs, influencerID)
+		}
+	}
+	if len(campaignIDs) == 0 {
+		return make([]string, 0), make([]uint, 0), make([]uint, 0), nil
+	}
+	postIDs, err := service.CampaignRepository.GetPostIDsFromCampaignIDs(campaignIDs)
+	return postIDs, retInfluencerIDs, campaignIDs, err
+}
+
 func (service *CampaignService) UpdateCampaignRequest(loggedUserId uint, requestId string, status model.RequestStatus) error {
 	if service.CampaignRepository.GetCampaignRequestInfluencerId(util.String2Uint(requestId)) != loggedUserId {
 		return fmt.Errorf("not allowed")

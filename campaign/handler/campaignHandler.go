@@ -203,6 +203,38 @@ func (handler *CampaignHandler) GetAvailableCampaignsForUser(w http.ResponseWrit
 	w.Header().Set("Content-Type", "application/json")
 }
 
+func (handler *CampaignHandler) GetAcceptedCampaignsForInfluencer(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	postIDs, influencerIDs, campaignIDs, err := handler.CampaignService.GetAcceptedCampaignsForInfluencer(util.String2Uint(params["influencerID"]))
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	if len(postIDs) != len(influencerIDs) || len(postIDs) != len(campaignIDs) || len(influencerIDs) != len(campaignIDs){
+		fmt.Println("BAD LIST SIZES")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	ret := make([]dto.SponsoredPostsDTO, 0)
+	for i, postID := range postIDs {
+		ret = append(ret, dto.SponsoredPostsDTO{
+			PostID:       postID,
+			InfluencerID: influencerIDs[i],
+			CampaignID:   campaignIDs[i],
+		})
+	}
+	js, err := json.Marshal(ret)
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(js)
+	w.Header().Set("Content-Type", "application/json")
+}
+
 func (handler CampaignHandler) UpdateCampaignRequest(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	type ReqBody struct {
