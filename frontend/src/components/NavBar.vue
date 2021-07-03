@@ -80,6 +80,9 @@ export default {
         this.isUserLogged = comm.getLoggedUserUsername() != null;
       })
       if (this.isUserLogged) this.startMessagingWebSocket()
+      this.$root.$on('getmessageWS', () => {
+        this.$root.$emit('messageWS', this.messagingSenderWS)
+      })
     },
     methods: {
       hasRole(role){
