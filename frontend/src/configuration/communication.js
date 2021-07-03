@@ -2,6 +2,10 @@ export let server = 'localhost:81'
 
 export let protocol = 'https'
 
+export let wsProtocol = 'wss'
+
+export let wsNotificationServer = 'localhost:7008'
+
 export function setJWTToken(jwt) {
   let new_roles = [];
   for(let item of jwt.roles){
@@ -69,4 +73,24 @@ export function getUrlVars() {
     vars[key] = value;
   });
   return vars;
+}
+
+export function openWebSocketConn(url, handler){
+  let ws = new WebSocket(url + "?token=" + getJWTToken().token)
+  let reload = function(event) {
+    console.log(event)
+    window.location.reload()
+  }
+  ws.onerror = reload
+  ws.onclose = reload
+  ws.onmessage = function(event) {
+    handler(event.data.response, event.data.data)
+  }
+  return function(request, data){
+    let req = {
+      jwt: getJWTToken().token, 
+      request: request,
+      data: JSON.stringify(data)
+    }
+    ws.send(JSON.stringify(req))}
 }

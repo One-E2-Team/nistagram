@@ -2222,6 +2222,29 @@
       ]
     },
     {
+      "endpoint": "/api/messaging",
+      "querystring_params":[ "*" ],
+      "extra_config": {
+        "github.com/devopsfaith/krakend-websocket": {
+          "headers_to_pass":["Cookie", "Authorization"],
+          "connect_event": true,
+          "disconnect_event": true
+        }
+      },
+      "headers_to_pass": [
+        "*"
+      ],
+      "backend": [
+        {
+          "url_pattern": "/messaging",
+          "host": [
+            "wss://notification:8080"
+          ],
+          "disable_host_sanitize": true
+        }
+      ]
+    },
+    {
       "endpoint": "/api/campaign/request/{id}",
       "method": "PUT",
       "output_encoding": "json",

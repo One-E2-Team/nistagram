@@ -16,6 +16,8 @@ services:
       - ./conf/certs/key/localhost.key.pem:/certs/key/localhost.key.pem
     ports:
       - 81:80
+    depends_on: 
+      - notification
 
   static:
     container_name: static_srv_nginx
@@ -80,6 +82,7 @@ services:
       - net_db_relational
     depends_on:
       - db_relational
+      - tracing
 
   auth:
     container_name: auth_ms
@@ -115,6 +118,7 @@ services:
       - net_db_relational
     depends_on:
       - db_relational
+      - tracing
 
   connection:
     container_name: connection_ms
@@ -146,6 +150,7 @@ services:
       - net_db_graph
     depends_on:
       - graphdb_connection
+      - tracing
 
   post:
     container_name: post_ms
@@ -178,6 +183,7 @@ services:
       - net_mongo
     depends_on:
       - mongo1
+      - tracing
 
   postreaction:
     container_name: postreaction_ms
@@ -209,6 +215,7 @@ services:
       - net_mongo
     depends_on:
       - mongo1
+      - tracing
 
   agent:
     container_name: agent_app
@@ -274,6 +281,7 @@ services:
       - net_db_relational
     depends_on:
       - db_relational
+      - tracing
 
   monitoring:
     container_name: monitoring_ms
@@ -300,6 +308,7 @@ services:
     volumes:
       - ./conf/certs/key/monitoring.key.pem:/nistagram/key.pem
       - ./conf/certs/pem/monitoring.cert.pem:/nistagram/cert.pem
+      - ../logs/monitoring:/logs/monitoring
     ports:
       - 7007:8080
     networks:
@@ -307,6 +316,7 @@ services:
       - net_mongo
     depends_on:
       - mongo1
+      - tracing
 
   notification:
     container_name: notification_ms
@@ -333,6 +343,7 @@ services:
     volumes:
       - ./conf/certs/key/notification.key.pem:/nistagram/key.pem
       - ./conf/certs/pem/notification.cert.pem:/nistagram/cert.pem
+      - ../logs/notification:/logs/notification
     ports:
       - 7008:8080
     networks:
@@ -340,6 +351,7 @@ services:
       - net_mongo
     depends_on:
       - mongo1
+      - tracing
 
   db_relational:
     container_name: db_mysql

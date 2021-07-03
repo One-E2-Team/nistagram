@@ -3,9 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/gorilla/mux"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"net/http"
 	"nistagram/notification/handler"
 	"nistagram/notification/repository"
@@ -13,6 +10,10 @@ import (
 	"nistagram/util"
 	"os"
 	"time"
+
+	"github.com/gorilla/mux"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func initDB() *mongo.Client {
@@ -60,7 +61,11 @@ func initHandler(service *service.Service) *handler.Handler {
 func handleFunc(handler *handler.Handler) {
 	router := mux.NewRouter().StrictSlash(true)
 
-	router.HandleFunc("/connections", handler.GetMessageConnections).Methods("GET")
+	router.HandleFunc("/messaging", util.RBAC(handler.MessagingWebSocket, "MESSAGING", false)).Methods("GET")
+
+	router.HandleFunc("/connections", util.RBAC(handler.GetMessageConnections, "MESSAGING", true)).Methods("GET")
+
+	router.HandleFunc("/message/{id}", util.RBAC(handler.DeleteMessage, "MESSAGING", false)).Methods("DELETE")
 
 	fmt.Println("Starting server..")
 	host, port := util.GetNotificationHostAndPort()

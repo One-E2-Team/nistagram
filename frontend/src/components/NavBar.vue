@@ -70,17 +70,36 @@ export default {
     },
     data(){
       return {
-        isUserLogged: comm.getLoggedUserUsername() != null
+        isUserLogged: comm.getLoggedUserUsername() != null,
+        messagingSenderWS: function(request, data) {console.log("sender is not resent for request and data", request, data)}
       }
     },
     mounted(){
       this.$root.$on('loggedUser', () => {
         this.isUserLogged = comm.getLoggedUserUsername() != null;
       })
+      if (this.isUserLogged) this.startMessagingWebSocket()
+      this.$root.$on('getmessageWS', () => {
+        this.$root.$emit('messageWS', this.messagingSenderWS)
+      })
     },
     methods: {
       hasRole(role){
         return comm.hasRole(role);
+      },
+      startMessagingWebSocket(){
+        let handler = function(response, data) {
+          switch (response) {
+            case "message":
+              this.$root.$emit('message', data)
+              break;
+          
+            default:
+              break;
+          }
+        }
+        let sender = comm.openWebSocketConn(comm.wsProtocol + '://' + comm.wsNotificationServer + '/messaging', handler)
+        this.messagingSenderWS = sender
       }
     }
 }
