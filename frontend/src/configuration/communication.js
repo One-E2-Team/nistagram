@@ -2,6 +2,10 @@ export let server = 'localhost:81'
 
 export let protocol = 'https'
 
+export let wsProtocol = 'wss'
+
+export let wsNotificationServer = 'localhost:7008'
+
 export function setJWTToken(jwt) {
   let new_roles = [];
   for(let item of jwt.roles){
@@ -73,6 +77,27 @@ export function getUrlVars() {
 
 export function openWebSocketConn(url, handler){
   let ws = new WebSocket(url + "?token=" + getJWTToken().token)
-  ws.onmessage = function(event) {handler(event)}
-  return function(data){ws.send(data)}
+  let reload = function(event) {window.location.reload()}
+  ws.onerror = reload
+  ws.onclose = reload
+  ws.onmessage = function(event) {
+    handler(event.data.response, event.data.data)
+  }
+  return function(request, data){
+    let req = {
+      jwt: getJWTToken().token, 
+      request: request,
+      data: JSON.stringify(data)
+    }
+    ws.send(JSON.stringify(req))}
+}
+
+let messagingSenderWS = function(request, data) {console.log("sender is not resent for request and data", request, data)}
+
+export function registerMessagingWebSocketSender(sender) {
+  messagingSenderWS = sender
+}
+
+export function getMessagingWebSocketSender() {
+  return messagingSenderWS
 }

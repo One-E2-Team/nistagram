@@ -10,3 +10,5 @@ new Vue({
   router,
   render: h => h(App)
 }).$mount('#app')
+
+export const messageBus = new Vue()

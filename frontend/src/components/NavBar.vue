@@ -59,6 +59,7 @@ import FollowRequests from '../components/FollowRequests.vue'
 import MessageRequestsModal from '../modals/MessageRequestsModal.vue'
 import ConnectionRecommendationModal from '../modals/ConnectionRecommendationModal.vue'
 import CampaignRequestsNotification from '../modals/CampaignRequestsNotification.vue'
+import {messageBus, messagebus} from '../main'
 export default {
     name: "NavBar",
     components: {
@@ -77,10 +78,25 @@ export default {
       this.$root.$on('loggedUser', () => {
         this.isUserLogged = comm.getLoggedUserUsername() != null;
       })
+      if (this.isUserLogged) startMessagingWebSocket()
     },
     methods: {
       hasRole(role){
         return comm.hasRole(role);
+      },
+      startMessagingWebSocket(){
+        let handler = function(response, data) {
+          switch (response) {
+            case "message":
+              messageBus.$emit('message', data)
+              break;
+          
+            default:
+              break;
+          }
+        }
+        let sender = comm.openWebSocketConn(comm.wsProtocol + '://' + comm.wsNotificationServer + '/messaging', handler)
+        comm.registerMessagingWebSocketSender(sender)
       }
     }
 }
