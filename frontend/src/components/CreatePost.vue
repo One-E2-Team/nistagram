@@ -75,6 +75,29 @@
             chips
             label="Input pictures.."
           ></v-file-input>
+             <picture-with-link-modal v-on:addPictureWithLink="addFileWithLink($event)"/>
+            <v-simple-table fixed-header height="300px">
+              <template v-slot:default>
+                <thead>
+                  <tr>
+                    <th class="text-left">File</th>
+                    <th class="text-left">Link</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="item in filesWithLink" :key="item.file.name">
+                    <td>{{ item.file.name }}</td>
+                    <td>{{ item.link }}</td>
+                    <td>
+                      <v-btn color="warning" fab dark @click="removeFile(item)">
+                        <v-icon>mdi-delete </v-icon>
+                      </v-btn>
+                    </td>
+                  </tr>
+                </tbody>
+              </template>
+            </v-simple-table>
       </v-card-text>
       <v-card-actions>
           <v-btn text>
@@ -117,9 +140,11 @@
   import axios from 'axios'
   import * as comm from '../configuration/communication.js'
   import * as validator from '../plugins/validator.js'
+  import PictureWithLinkModal from '../modals/PictureWithLinkModal.vue'
   export default {
 
     name: 'CreatePost',
+    components: {PictureWithLinkModal},
 
     data() {return {
       valid: true,
@@ -138,6 +163,7 @@
       isHighlighted: false,
       isCloseFriendsOnly: false,
       files : [],
+      filesWithLink: [],
       validPostType: (v) => (v == 'Post' || v == 'Story') || 'Post type must be selected'
     }},
     mounted(){
@@ -217,6 +243,13 @@
         this.description = this.description.slice(0, this.cursorStart) +
                            item + this.description.slice(this.cursorEnd + 1, this.description.length);
         this.searchedTaggedUsers = [];
+      },
+      addFileWithLink(item){
+        this.filesWithLink.push(item);
+      },
+      removeFile(item){
+        this.filesWithLink.splice(this.filesWithLink.indexOf(item), 1)
+        this.filesWithLink = [...this.filesWithLink]
       }
     }
   }
