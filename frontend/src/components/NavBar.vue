@@ -59,7 +59,6 @@ import FollowRequests from '../components/FollowRequests.vue'
 import MessageRequestsModal from '../modals/MessageRequestsModal.vue'
 import ConnectionRecommendationModal from '../modals/ConnectionRecommendationModal.vue'
 import CampaignRequestsNotification from '../modals/CampaignRequestsNotification.vue'
-import {messageBus, messagebus} from '../main'
 export default {
     name: "NavBar",
     components: {

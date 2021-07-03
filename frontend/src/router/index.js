@@ -114,6 +114,12 @@ const routes = [{
     component: () =>
       import ('./../components/RegisterAgent.vue')
   },
+  {
+    path: '/messaging',
+    name: 'Messaging',
+    component: () =>
+      import ('./../components/Messaging.vue')
+  },
 ]
 const router = new VueRouter({
   routes
