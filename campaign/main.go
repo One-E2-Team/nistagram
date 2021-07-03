@@ -116,6 +116,9 @@ func handlerFunc(handler *handler.CampaignHandler) {
 	router.HandleFunc("/available-for-profile/{profileID}",
 		util.MSAuth(handler.GetAvailableCampaignsForUser, []string{"post"})).Methods("POST")
 
+	router.HandleFunc("/accepted-by-influencer/{influencerID}",
+		util.MSAuth(handler.GetAcceptedCampaignsForInfluencer, []string{"post"})).Methods("GET")
+
 	host, port := util.GetCampaignHostAndPort()
 	var err error
 	if util.DockerChecker() {

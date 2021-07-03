@@ -115,6 +115,8 @@ func handleFunc(handler *handler.Handler) {
 	router.HandleFunc("/search/{username}", handler.Search).Methods("GET") // frontend func
 	router.HandleFunc("/search-for-tag/{username}", handler.SearchForTag).Methods("GET")
 	router.HandleFunc("/get/{username}", handler.GetProfileByUsername).Methods("GET") // frontend func
+	router.HandleFunc("/get-by-username/{username}",
+		util.MSAuth(handler.GetProfileByUsername, []string{"post"})).Methods("GET")
 	router.HandleFunc("/interests", handler.GetAllInterests).Methods("GET")           // frontend func
 	router.HandleFunc("/categories", handler.GetAllCategories).Methods("GET")         // frontend func
 	router.HandleFunc("/verification-request",
