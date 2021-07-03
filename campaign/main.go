@@ -136,5 +136,6 @@ func main() {
 	campaignService := initAuthService(campaignRepo)
 	campaignHandler := initAuthHandler(campaignService)
 	_ = util.SetupMSAuth("campaign")
+	util.InitMonitoring("campaign")
 	handlerFunc(campaignHandler)
 }

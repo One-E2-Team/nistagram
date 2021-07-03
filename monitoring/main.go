@@ -101,5 +101,6 @@ func main() {
 	service := initService(repo)
 	handler := initHandler(service)
 	_ = util.SetupMSAuth("monitoring")
+	util.InitMonitoring("monitoring")
 	handleFunc(handler)
 }

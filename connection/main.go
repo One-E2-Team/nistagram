@@ -66,6 +66,7 @@ func initHandler(service *service.Service) *handler.Handler {
 
 func handleFunc(handler *handler.Handler) {
 	router := mux.NewRouter().StrictSlash(true)
+
 	router.HandleFunc("/profile/{id}", util.MSAuth(handler.AddProfile, []string{"profile"})).Methods("POST")
 
 	router.HandleFunc("/profile/{id}", util.MSAuth(handler.DeleteProfile, []string{"profile"})).Methods("DELETE")
@@ -182,5 +183,6 @@ func main() {
 	connectionService := initService(connectionRepo)
 	connectionHandler := initHandler(connectionService)
 	_ = util.SetupMSAuth("connection")
+	util.InitMonitoring("connection")
 	handleFunc(connectionHandler)
 }

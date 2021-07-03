@@ -98,5 +98,6 @@ func main() {
 	service := initService(repo)
 	handler := initHandler(service)
 	_ = util.SetupMSAuth("notification")
+	util.InitMonitoring("notification")
 	handleFunc(handler)
 }
