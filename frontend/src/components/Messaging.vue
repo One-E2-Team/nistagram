@@ -17,7 +17,9 @@
               >
              
              <v-list-item-content>
-              <v-list-item-title class="" @click="getAllMessages(item)" >{{ item.username }}</v-list-item-title>
+              <v-list-item-title v-if="user.messageApproved != false" style="color:red" @click="getAllMessages(item)" >{{ item.username }}</v-list-item-title>
+              <v-list-item-title v-else @click="getAllMessages(item)" >{{ item.username }}</v-list-item-title>
+            
             </v-list-item-content>
               
             </v-list-item>
@@ -67,11 +69,12 @@
                     <div class="font-weight-normal" v-if="m.postId != ''">
                       <strong> {{ m.postId }} </strong>
                     </div>
-                    <v-img v-if="m.mediaPath != ''"
-                        height="120px"
-                        width="100px"
-                        src="https://cdn.pixabay.com/photo/2020/07/12/07/47/bee-5396362_1280.jpg"
-                      />
+                    <div v-if="m.mediaPath != ''">
+                       <video autoplay loop width="100px"  height="120px" :src=" protocol + '://' + server + '/static/data/' + m.mediaPath" v-if="m.mediaPath.includes('mp4')">
+                        Your browser does not support the video tag.
+                        </video>
+                        <img width="100px"  height="120px" :src=" protocol + '://' + server + '/static/data/' + m.mediaPath" v-if="!m.mediaPath.includes('mp4')">
+                    </div>
                   <!--<div>@{{ message.timestamp }}</div>-->
                   </div>
                 </v-row>
@@ -81,10 +84,10 @@
           </v-card-text>
           
         </v-card>
-        <v-card width="1000">
+        <v-card v-if="this.user.messageApproved == true">
 
           <v-card-text>
-            <v-textarea
+            <v-textarea v-if="user.messageApproved != false"
               v-model="message.text"
               no-resize
               rows="1"
@@ -92,7 +95,12 @@
               label="Enter message here.."
             ></v-textarea>
           </v-card-text>
-              <v-btn
+          <v-file-input v-if="user.messageApproved != false"
+            v-model="message.file"
+            accept="image/*"
+            label="Input picture.."
+          ></v-file-input>
+              <v-btn v-if="user.messageApproved != false"
             class="ma-2"
             color="secondary"
             @click="sendMessage()"
@@ -143,7 +151,9 @@ export default {
       return {
         messages: [],
         loggedUserId: 0,
-        user : {},
+        user : {
+          newUser : false,
+        },
         post : null,
         file : null,
         usersToChat: [],
@@ -151,7 +161,15 @@ export default {
         selectedUser : {},
         searchedUsernames: [],
         messagingSenderWS: null,
-        message: {}
+        protocol: comm.protocol,
+        server: comm.server,
+        message: {
+          senderId : 0,
+          receiverId : 0,
+          text : '',
+          mediaPath : '',
+          file : null
+        }
       }
     },
     mounted() {
@@ -160,26 +178,33 @@ export default {
       this.startMessagingWebSocket();
     },
     methods : {
-      async startMessagingWebSocket(){
-        let handler = function(response, data) {
+      addMessage(data){
+        let d = JSON.parse(data);
+        if (d.senderId == this.user.profileId)
+            this.messages.push(JSON.parse(data)); 
+        },
+        handler(response, data) {
           switch (response) {
             case "message":
-              this.addMessage(data)
+              this.addMessage(data);
               break;
           
             default:
               break;
           }
-        }
+        },
+      startMessagingWebSocket(){
         let ws = new WebSocket(comm.wsProtocol + '://' + comm.wsNotificationServer + '/messaging' + "?token=" + comm.getJWTToken().token)
         let reload = function(event) {
-          console.log(event)
+          console.log(event);
           window.location.reload()
         }
         ws.onerror = reload
         ws.onclose = reload
+        let h = this.handler
         ws.onmessage = function(event) {
-          handler(event.data.response, event.data.data)
+          let temp = JSON.parse(event.data)
+          h(temp.response, temp.data)
         }
         this.messagingSenderWS = ws
       },
@@ -230,9 +255,9 @@ export default {
             });
          },
          sendMessage(){
-            if (this.file != null){
+            if (this.message.file != null){
                  const data = new FormData();
-                 data.append("file", this.file);
+                 data.append("file", this.message.file);
                  axios.defaults.headers.common['Authorization'] = 'Bearer ' + comm.getJWTToken().token;
                  axios({
                     method: "post",
@@ -241,25 +266,36 @@ export default {
                     config: { headers: {...data.headers}}
                   }).then(response => {
                     console.log(response.data.fileName);
-                    this.message.fileName = response.data.fileName;
+                    this.message.mediaPath = response.data.fileName;
+                      let data = {
+                      senderId : this.loggedUserId,
+                      receiverId : this.user.profileId,
+                      text : this.message.text,
+                      mediaPath : this.message.mediaPath
+                    }
+                    console.log(this.messagingSenderWS);
+                    this.sendWS("SendMessage", data);
+                    this.messages.push(data);
+                    this.message = {};
                     delete axios.defaults.headers.common["Authorization"];
                   })
                   .catch(response => {
                     delete axios.defaults.headers.common["Authorization"];
                     console.log(response);
                   });
+            }else{
+                 let data = {
+                  senderId : this.loggedUserId,
+                  receiverId : this.user.profileId,
+                  text : this.message.text,
+                  mediaPath : this.message.mediaPath
+                }
+                console.log(this.messagingSenderWS);
+                this.sendWS("SendMessage", data);
+                this.messages.push(data);
+                this.message = {};
             }
-            let data = {
-              senderId : this.loggedUserId,
-              receiverId : this.selectedUser.profileId,
-              text : this.message.text,
-            }
-            console.log(this.messagingSenderWS);
-            this.sendWS("SendMessage", data);
          },
-        addMessage(data){
-          this.messages.push(JSON.parse(data));
-        },
         search(){
            axios({
               method: "get",
@@ -279,6 +315,7 @@ export default {
                   if(response.status==200){
                         let selectedUser = {"profileId" : response.data.ID, "username" : response.data.username};
                         this.user = selectedUser;
+                        this.user.newUser = true;
                         axios({
                         method: "get",
                         url: comm.protocol + '://' + comm.server + '/api/messaging/message/' + response.data.ID,

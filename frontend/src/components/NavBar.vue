@@ -72,7 +72,6 @@ export default {
     data(){
       return {
         isUserLogged: comm.getLoggedUserUsername() != null,
-        messagingSenderWS: function(request, data) {console.log("sender is not resent for request and data", request, data)}
       }
     },
     mounted(){
