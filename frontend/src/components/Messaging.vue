@@ -65,13 +65,11 @@
                       <strong>{{user.username}}: </strong> {{ message.text }}
                     </div>
                     <div class="font-weight-normal" v-if="message.postId != ''">
-                      <strong> {{ message.postId }} </strong>
+                      <show-post-from-message-modal :postId="message.postId"/>
                     </div>
-                    <v-img v-if="message.mediaPath != ''"
-                        height="120px"
-                        width="100px"
-                        src="https://cdn.pixabay.com/photo/2020/07/12/07/47/bee-5396362_1280.jpg"
-                      />
+                    <div class="font-weight-normal"  v-if="message.mediaPath != ''">
+                      <show-media-from-message :media="message.mediaPath"/>
+                    </div>
                   <!--<div>@{{ message.timestamp }}</div>-->
                   </div>
                 </v-row>
@@ -137,7 +135,10 @@
 <script>
 import axios from 'axios'
 import * as comm from '../configuration/communication.js'
+import ShowPostFromMessageModal from '../modals/showPostFromMessageModal.vue'
+import ShowMediaFromMessage from '../modals/showMediaFromMessage.vue'
 export default {
+  components: { ShowPostFromMessageModal, ShowMediaFromMessage },
     name: "Messaging",
     data() {
       return {
