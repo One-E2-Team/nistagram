@@ -7,4 +7,5 @@ type PostDto struct {
 	Location           string   `json:"location"`
 	HashTags           string   `json:"hashTags"`
 	PostType           string   `json:"postType"`
+	Links              []string `json:"links"`
 }
