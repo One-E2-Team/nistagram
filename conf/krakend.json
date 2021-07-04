@@ -2343,6 +2343,29 @@
           "target": ""
         }
       ]
+    },
+    {
+      "endpoint": "/api/messaging/file",
+      "method": "POST",
+      "output_encoding": "json",
+      "extra_config": {},
+      "headers_to_pass": [
+        "Authorization",
+        "Content-Type"
+      ],
+      "backend": [
+        {
+          "url_pattern": "/file",
+          "encoding": "json",
+          "sd": "static",
+          "method": "POST",
+          "extra_config": {},
+          "host": [
+            "https://notification:8080"
+          ],
+          "disable_host_sanitize": false
+        }
+      ]
     }
   ],
   "read_timeout": "0s",

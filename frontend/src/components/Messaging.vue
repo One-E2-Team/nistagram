@@ -50,24 +50,24 @@
               dense
             >
               <v-timeline-item
-                v-for="message in messages"
-                :key="message.id"
-                :color="getColor(message.senderId)"
+                v-for="m in messages"
+                :key="m.id"
+                :color="getColor(m.senderId)"
                 small
               >
               <v-container >
                 <v-row justify="left">
                   <div>
-                    <div class="font-weight-normal" v-if="loggedUserId == message.senderId">
-                      <strong>You: </strong> {{ message.text }}
+                    <div class="font-weight-normal" v-if="loggedUserId == m.senderId">
+                      <strong>You: </strong> {{ m.text }}
                     </div>
                     <div class="font-weight-normal" v-else>
-                      <strong>{{user.username}}: </strong> {{ message.text }}
+                      <strong>{{user.username}}: </strong> {{ m.text }}
                     </div>
-                    <div class="font-weight-normal" v-if="message.postId != ''">
-                      <strong> {{ message.postId }} </strong>
+                    <div class="font-weight-normal" v-if="m.postId != ''">
+                      <strong> {{ m.postId }} </strong>
                     </div>
-                    <v-img v-if="message.mediaPath != ''"
+                    <v-img v-if="m.mediaPath != ''"
                         height="120px"
                         width="100px"
                         src="https://cdn.pixabay.com/photo/2020/07/12/07/47/bee-5396362_1280.jpg"
@@ -85,7 +85,7 @@
 
           <v-card-text>
             <v-textarea
-              v-model="text"
+              v-model="message.text"
               no-resize
               rows="1"
               name="input-7-4"
@@ -144,7 +144,6 @@ export default {
         messages: [],
         loggedUserId: 0,
         user : {},
-        text : '',
         post : null,
         file : null,
         usersToChat: [],
@@ -152,7 +151,8 @@ export default {
         selectedUser : {},
         sender: function(a,b){console.log("kita" + a + b)},
         searchedUsernames: [],
-        messagingSenderWS: function(request, data) {console.log("sender is not resent for request and data", request, data)}
+        messagingSenderWS: function(request, data) {console.log("sender is not resent for request and data", request, data)},
+        message: {}
       }
     },
     mounted() {
@@ -215,10 +215,29 @@ export default {
             });
          },
          sendMessage(){
+            if (this.file != null){
+                 const data = new FormData();
+                 data.append("file", this.file);
+                 axios.defaults.headers.common['Authorization'] = 'Bearer ' + comm.getJWTToken().token;
+                 axios({
+                    method: "post",
+                    url: comm.protocol + "://" + comm.server + "/api/messaging/file",
+                    data: data,
+                    config: { headers: {...data.headers}}
+                  }).then(response => {
+                    console.log(response.data.fileName);
+                    this.message.fileName = response.data.fileName;
+                    delete axios.defaults.headers.common["Authorization"];
+                  })
+                  .catch(response => {
+                    delete axios.defaults.headers.common["Authorization"];
+                    console.log(response);
+                  });
+            }
             let data = {
               senderId : this.loggedUserId,
               receiverId : this.selectedUser.profileId,
-              text : this.text,
+              text : this.message.text,
             }
             console.log(this.messagingSenderWS);
             this.messagingSenderWS("SendMessage", data);
