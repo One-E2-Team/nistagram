@@ -2,10 +2,12 @@ package service
 
 import (
 	"errors"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"nistagram/notification/model"
 )
 
 func (service *Service) CreateMessage(message *model.Message) error{
+	message.ID = primitive.NewObjectID()
 	return service.Repository.CreateMessage(message)
 }
 
