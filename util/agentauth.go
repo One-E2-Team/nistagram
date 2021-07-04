@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -48,16 +49,13 @@ func parseAgentTokenClaim(r *http.Request) (*TokenClaims, bool) {
 	}
 }
 
-func ValidateAgentToken(r *http.Request) bool {
+func ValidateAgentToken(r *http.Request) (bool, uint) {
 	if claims, ok := parseAgentTokenClaim(r); ok {
 		if agentHasAPIAccessPrivilege(claims.LoggedUserId) {
-			return true
-		} else {
-			return false
+			return true, claims.LoggedUserId
 		}
-	} else {
-		return false
 	}
+	return false, 0
 }
 
 func agentHasAPIAccessPrivilege(id uint) bool {
@@ -88,9 +86,11 @@ func AgentAuth(handler func(http.ResponseWriter, *http.Request)) func(http.Respo
 	}
 
 	return func(writer http.ResponseWriter, request *http.Request) {
-		if ValidateAgentToken(request) {
+		if check, id := ValidateAgentToken(request); check {
+			writer.Header().Set("initiator", "API_" + strconv.Itoa(int(id)))
 			finalHandler(true)(writer, request)
 		} else {
+			writer.Header().Set("initiator", "API_UNAUTHORIZED")
 			finalHandler(false)(writer, request)
 		}
 	}

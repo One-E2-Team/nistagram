@@ -25,3 +25,7 @@ scrape_configs:
     scrape_interval: 5s
     static_configs:
       - targets: ['host.docker.internal:9323']
+  - job_name: microservices
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['profile:9090', 'auth:9090', 'connection:9090', 'post:9090', 'postreaction:9090', 'campaign:9090', 'monitoring:9090', 'notification:9090']

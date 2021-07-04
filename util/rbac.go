@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"reflect"
 	"runtime"
+	"strconv"
 	"strings"
 )
 
@@ -28,11 +29,14 @@ func RBAC(handler func(http.ResponseWriter, *http.Request), privilege string, re
 	}
 
 	return func(writer http.ResponseWriter, request *http.Request) {
+		writer.Header().Set("initiator", "NO_TOKEN")
 		var handleFunc func(http.ResponseWriter, *http.Request)
 		id := GetLoggedUserIDFromToken(request)
 		if id == 0 {
+			writer.Header().Set("initiator", "UNAUTHORIZED")
 			handleFunc = finalHandler(false)
 		} else {
+			writer.Header().Set("initiator", strconv.Itoa(int(id)))
 			validPrivileges, ok := GetUserPrivileges(id)
 			if !ok {
 				handleFunc = finalHandler(false)

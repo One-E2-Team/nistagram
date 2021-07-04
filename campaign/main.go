@@ -86,6 +86,7 @@ func initAuthHandler(service *service.CampaignService) *handler.CampaignHandler 
 func handlerFunc(handler *handler.CampaignHandler) {
 	fmt.Println("Campaign server started...")
 	router := mux.NewRouter().StrictSlash(true)
+	util.InitMonitoring("campaign", router)
 
 	router.HandleFunc("/campaign",
 		util.AgentAuth(handler.CreateCampaign)).Methods("POST") //frontend func

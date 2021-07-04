@@ -18,6 +18,7 @@ type AuthHandler struct {
 }
 
 func (handler *AuthHandler) LogIn(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("loging in")
 	span := util.Tracer.StartSpanFromRequest("LogIn-handler", r)
 	defer util.Tracer.FinishSpan(span)
 

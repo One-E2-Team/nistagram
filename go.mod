@@ -16,6 +16,7 @@ require (
 	github.com/neo4j/neo4j-go-driver/v4 v4.3.0
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/pquerna/otp v1.3.0
+	github.com/prometheus/client_golang v1.11.0
 	github.com/uber/jaeger-client-go v2.29.1+incompatible
 	github.com/uber/jaeger-lib v2.4.1+incompatible
 	go.mongodb.org/mongo-driver v1.5.3
