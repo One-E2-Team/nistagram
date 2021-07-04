@@ -291,6 +291,7 @@ services:
             - ./conf/certs/key/notification.key.pem:/nistagram/key.pem
             - ./conf/certs/pem/notification.cert.pem:/nistagram/cert.pem
             - ../logs/notification:/logs/notification
+            - ../nistagramstaticdata:/nistagramstaticdata
         ports:
             - 7008:8080
         networks:
@@ -357,7 +358,7 @@ services:
               source: data3
               target: /data/db
 
-    exist: 
+    exist:
         image: existdb/existdb:release
         container_name: exist-db
         restart: always
@@ -367,7 +368,7 @@ services:
             - type: volume
               source: data_exist
               target: /exist-data
-        networks: 
+        networks:
             - net_exist
 
     mongo-express:
