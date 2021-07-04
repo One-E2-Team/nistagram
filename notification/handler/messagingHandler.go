@@ -120,3 +120,20 @@ func (handler *Handler) SaveFile(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(ret)
 }
+
+func (handler *Handler) Seen(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	messageId := vars["id"]
+
+	err := handler.Service.Seen(messageId)
+	if err != nil{
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte("{\"message\":\"ok\"}"))
+	w.Header().Set("Content-Type", "application/json")
+}

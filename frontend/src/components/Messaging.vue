@@ -69,8 +69,8 @@
                     <div class="font-weight-normal" v-if="m.postId != ''">
                       <show-post-from-message-modal :postId="m.postId"/>
                     </div>
-                    <div class="font-weight-normal"  v-if="m.mediaPath != ''">
-                      <show-media-from-message :medias="m.mediaPath"/>
+                    <div class="font-weight-normal" v-if="m.mediaPath != '' && m.seen == false">
+                      <show-media-from-message :medias="m"/>
                     </div>
                   <!--<div>@{{ message.timestamp }}</div>-->
                   </div>
@@ -175,6 +175,11 @@ export default {
       this.loggedUserId = comm.getLoggedUserID();
       this.getMessageConnections();
       this.startMessagingWebSocket();
+      
+      this.$root.$on('seen', ()=>{
+        console.log('seen');
+        this.getAllMessages(this.user);
+      });
     },
     methods : {
       addMessage(data){

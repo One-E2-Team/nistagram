@@ -3,7 +3,7 @@
     <v-col cols="auto">
       <v-dialog transition="dialog-bottom-transition" width="900">
         <template v-slot:activator="{ on, attrs }" >
-            <v-btn v-on="on" @click="test()" v-bind="attrs">Show media</v-btn>
+            <v-btn v-on="on" @click="show()" v-bind="attrs">Show media</v-btn>
         </template>
         <template v-slot:default="dialog">
           <v-card>
@@ -27,6 +27,7 @@
 </template>
 
 <script>
+import axios from 'axios'
 import * as comm from '../configuration/communication.js'
 import PostMedia from '../components/Posts/PostMedia.vue'
 export default {
@@ -50,16 +51,29 @@ export default {
     isMyPost() {
       return comm.getLoggedUserID() == this.post.publisherId;
     },
-    test(){
-      console.log(this.medias);
+    show(){
+      if(this.medias.seen == true){
+        return;
+      }
+      this.$root.$emit('seen');
       this.post = {
               medias: [
                 {
-                  filePath : this.medias
+                  filePath : this.medias.mediaPath
                 }
               ]
           }
-      console.log(this.post);
+            axios({
+            method: "put",
+            url: comm.protocol + '://' + comm.server + '/api/messaging/seen/' + this.medias.id,
+            headers: comm.getHeader(),
+        }).then(response => {
+            if(response.status==200) {
+                console.log(response.data);
+            }
+        }).catch(reason => {
+            console.log(reason);
+        });
     }
   },
 }
