@@ -78,6 +78,7 @@ func initAuthHandler(service *service.AuthService) *handler.AuthHandler {
 func handlerFunc(handler *handler.AuthHandler) {
 	fmt.Println("Auth server started...")
 	router := mux.NewRouter().StrictSlash(true)
+	util.InitMonitoring("auth", router)
 
 	router.HandleFunc("/login", handler.LogIn).Methods("POST")                          //frontend func
 	router.HandleFunc("/login/apitoken", handler.LogInAgentAPI).Methods("POST")
@@ -122,6 +123,5 @@ func main() {
 	authService := initAuthService(authRepo)
 	authHandler := initAuthHandler(authService)
 	_ = util.SetupMSAuth("auth")
-	util.InitMonitoring("auth")
 	handlerFunc(authHandler)
 }

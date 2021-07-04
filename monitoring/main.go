@@ -61,6 +61,7 @@ func initHandler(monitoringService *service.MonitoringService) *handler.Handler 
 
 func handleFunc(handler *handler.Handler) {
 	router := mux.NewRouter().StrictSlash(true)
+	util.InitMonitoring("monitoring", router)
 
 	router.HandleFunc("/influencer",
 		util.MSAuth(handler.CreateEventInfluencer, []string{"postreaction"})).Methods("POST")
@@ -101,6 +102,5 @@ func main() {
 	service := initService(repo)
 	handler := initHandler(service)
 	_ = util.SetupMSAuth("monitoring")
-	util.InitMonitoring("monitoring")
 	handleFunc(handler)
 }

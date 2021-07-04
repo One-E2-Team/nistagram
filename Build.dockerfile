@@ -12,4 +12,5 @@ RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
 COPY ./conf/certs/pem/* /usr/local/share/ca-certificates
 RUN update-ca-certificates
 EXPOSE 8080
+EXPOSE 9090
 ENTRYPOINT ["/bin/sh", "-c" , "cd nistagram/microservice && ./exec"]

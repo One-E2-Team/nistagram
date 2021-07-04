@@ -74,6 +74,7 @@ func initHandler(postService *service.PostService) *handler.Handler {
 
 func handleFunc(handler *handler.Handler) {
 	router := mux.NewRouter().StrictSlash(true)
+	util.InitMonitoring("post", router)
 
 	router.HandleFunc("/profile/{username}", handler.GetProfilesPosts).Methods("GET")            // frontend func
 	router.HandleFunc("/public", handler.GetPublic).Methods("GET")                               // frontend func
@@ -134,6 +135,5 @@ func main() {
 	postService := initService(postRepo)
 	postHandler := initHandler(postService)
 	_ = util.SetupMSAuth("post")
-	util.InitMonitoring("post")
 	handleFunc(postHandler)
 }

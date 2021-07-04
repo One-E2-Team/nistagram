@@ -1,6 +1,7 @@
 package util
 
 import (
+	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -29,7 +30,7 @@ var (
 	httpDuration *prometheus.HistogramVec
 )
 
-func InitMonitoring(ms string)  {
+func InitMonitoring(ms string, router *mux.Router)  {
 
 	if !DockerChecker() {
 		return
@@ -42,7 +43,7 @@ func InitMonitoring(ms string)  {
 	prometheus.Register(responseStatus)
 	prometheus.Register(httpDuration)
 
-	router := mux.NewRouter().StrictSlash(true)
+	promRouter := mux.NewRouter().StrictSlash(true)
 
 	router.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -69,8 +70,14 @@ func InitMonitoring(ms string)  {
 		})
 	})
 
-	router.Path("/metrics").Handler(promhttp.Handler())
-	http.ListenAndServe(":9090", router)
+	promRouter.Path("/metrics").Handler(promhttp.Handler())
+	go func() {
+		err := http.ListenAndServe(":9090", promRouter)
+		if err != nil {
+			fmt.Println("FAILED TO START PROMETHEUS METRICS!")
+			return
+		}
+	}()
 }
 
 func initMonitoringVars(ms string) {

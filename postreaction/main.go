@@ -79,6 +79,7 @@ func initHandler(postService *service.PostReactionService) *handler.PostReaction
 
 func handleFunc(handler *handler.PostReactionHandler) {
 	router := mux.NewRouter().StrictSlash(true)
+	util.InitMonitoring("postreaction", router)
 
 	router.HandleFunc("/react",
 		util.RBAC(handler.ReactOnPost, "REACT_ON_POST", false)).Methods("POST") //frontend func
@@ -129,6 +130,5 @@ func main() {
 	postReactionService := initService(postReactionRepo)
 	postReactionHandler := initHandler(postReactionService)
 	_ = util.SetupMSAuth("postreaction")
-	util.InitMonitoring("postreaction")
 	handleFunc(postReactionHandler)
 }
