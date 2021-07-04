@@ -9,6 +9,7 @@
                 <router-link v-else :to="{ name: 'Home'}">Home</router-link> |
                 <router-link :to="{ name: 'Explore'}">Explore </router-link>
                 <template v-if="isUserLogged"> | <router-link :to="{ name: 'Reactions'}" >Reactions</router-link> </template>
+                <template v-if="isUserLogged"> | <router-link :to="{ name: 'Messaging'}">Chat </router-link> </template>
                 <template v-if="hasRole('ADMIN')">
                   <v-menu offset-y>
                     <template v-slot:activator="{ on, attrs }">
@@ -47,9 +48,6 @@
           <v-col cols="12" sm="1" class="float-right">
               <settings v-if="isUserLogged"/>
           </v-col>
-          <v-col cols="12" sm="1" class="float-right">
-              <message-connections v-if="isUserLogged"/>
-          </v-col>
         </v-row>
       </v-container>
     </div>
@@ -62,7 +60,6 @@ import FollowRequests from '../components/FollowRequests.vue'
 import MessageRequestsModal from '../modals/MessageRequestsModal.vue'
 import ConnectionRecommendationModal from '../modals/ConnectionRecommendationModal.vue'
 import CampaignRequestsNotification from '../modals/CampaignRequestsNotification.vue'
-import MessageConnections from '../components/MessageConnections.vue'
 export default {
     name: "NavBar",
     components: {
@@ -71,7 +68,6 @@ export default {
       ConnectionRecommendationModal,
       Settings,
       CampaignRequestsNotification,
-      MessageConnections
     },
     data(){
       return {
@@ -83,28 +79,10 @@ export default {
       this.$root.$on('loggedUser', () => {
         this.isUserLogged = comm.getLoggedUserUsername() != null;
       })
-      if (this.isUserLogged) this.startMessagingWebSocket()
-      this.$root.$on('getmessageWS', () => {
-        this.$root.$emit('messageWS', this.messagingSenderWS)
-      })
     },
     methods: {
       hasRole(role){
         return comm.hasRole(role);
-      },
-      startMessagingWebSocket(){
-        let handler = function(response, data) {
-          switch (response) {
-            case "message":
-              this.$root.$emit('message', data)
-              break;
-          
-            default:
-              break;
-          }
-        }
-        let sender = comm.openWebSocketConn(comm.wsProtocol + '://' + comm.wsNotificationServer + '/messaging', handler)
-        this.messagingSenderWS = sender
       },
     }
 }

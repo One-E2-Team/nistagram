@@ -80,8 +80,8 @@
               <template v-slot:default>
                 <thead>
                   <tr>
-                    <th class="text-left">File</th>
-                    <th class="text-left">Link</th>
+                    <th class="text-center">File</th>
+                    <th class="text-center">Link</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -90,7 +90,7 @@
                     <td>{{ item.file.name }}</td>
                     <td>{{ item.link }}</td>
                     <td>
-                      <v-btn color="warning" fab dark @click="removeFile(item)">
+                      <v-btn color="warning" fab dark @click="removeFile(item)" small>
                         <v-icon>mdi-delete </v-icon>
                       </v-btn>
                     </td>

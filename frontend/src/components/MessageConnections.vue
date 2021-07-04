@@ -7,7 +7,7 @@
                     left
                 >
                     <template v-slot:activator="{ on, attrs }">
-                    <v-btn
+                    <v-btn width="300"
                         @click="getMessageConnections()"
                         dark
                         icon
@@ -18,12 +18,19 @@
                     </v-btn>
                     </template>
 
+                    <v-text-field
+                        v-model="searchUsername"
+                        label="Search username.."
+                    ></v-text-field>
+
                     <v-list>
                     <v-list-item
                         v-for="(item, i) in users"
                         :key="i"
+                        v-model="item.messageApproved"
                     >
-                        <v-list-item-title>{{ item.username }}</v-list-item-title>
+
+                        <v-list-item-title class="" @click="goToMessaging(item)" >{{ item.username }}</v-list-item-title>
                     </v-list-item>
                     <v-list-item>
                         <v-divider/>
@@ -43,25 +50,13 @@ export default {
 
     data(){
         return{
-            users: {}
+            users: {},
+             searchUsername: ''
         }
     },
 
     methods:{
-       getMessageConnections(){
-            axios({
-            method: "get",
-            url: comm.protocol + '://' + comm.server + '/api/messaging/connections',
-            headers: comm.getHeader(),
-        }).then(response => {
-            if(response.status==200) {
-                console.log(response.data);
-                this.users = response.data.collection;
-            }
-        }).catch(reason => {
-            console.log(reason);
-        });
-       },
+      
     },
 
 

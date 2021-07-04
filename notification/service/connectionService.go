@@ -26,7 +26,7 @@ func (service *Service) GetMessageConnections(loggedUserId uint) ([]dto.MessageC
 
 	fmt.Println(usernames)
 
-	messageApproved, err := getMessageApprovedByIDs(profileIds)
+	messageApproved, err := getMessageApprovedByIDs(loggedUserId,profileIds)
 	if err != nil{
 		return nil, err
 	}
@@ -85,22 +85,23 @@ func getProfileUsernamesByIDs(profileIDs []uint) ([]string, error) {
 	return ret, nil
 }
 
-func getMessageApprovedByIDs(profileIDs []uint) ([]bool, error) {
+func getMessageApprovedByIDs(loggedUserId uint,profileIDs []uint) ([]bool, error) {
 	type data struct {
+		FollowerId string `json:"followerId"`
 		Ids []string `json:"ids"`
 	}
 	req := make([]string, 0)
 	for _, value := range profileIDs {
 		req = append(req, util.Uint2String(value))
 	}
-	bodyData := data{Ids: req}
+	bodyData := data{FollowerId: util.Uint2String(loggedUserId),Ids: req}
 	jsonBody, err := json.Marshal(bodyData)
 	if err != nil {
 		return nil, err
 	}
-	profileHost, profilePort := util.GetProfileHostAndPort()
+	connHost, connPort := util.GetConnectionHostAndPort()
 	resp, err := util.CrossServiceRequest(context.Background(), http.MethodPost,
-		util.GetCrossServiceProtocol()+"://"+profileHost+":"+profilePort+"/get-by-ids",
+		util.GetCrossServiceProtocol()+"://"+connHost+":"+connPort+"/connection/messaging/my-properties",
 		jsonBody, map[string]string{"Content-Type": "application/json;"})
 	if err != nil {
 		return nil, err

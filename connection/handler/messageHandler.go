@@ -51,14 +51,9 @@ func (handler *Handler) GetMessageRelationship(writer http.ResponseWriter, reque
 }
 
 func (handler *Handler) GetMessageRelationships(writer http.ResponseWriter, request *http.Request) {
-	followerId := util.GetLoggedUserIDFromToken(request)
-	if followerId == 0 {
-		writer.Write([]byte("{\"status\":\"error\"}"))
-		writer.WriteHeader(http.StatusBadRequest)
-		return
-	}
 
 	type data struct {
+		FollowerId string `json:"followerId"`
 		Ids []string `json:"ids"`
 	}
 
@@ -72,9 +67,15 @@ func (handler *Handler) GetMessageRelationships(writer http.ResponseWriter, requ
 	var messages []model.MessageEdge
 
 	for _, id := range input.Ids{
-		message := handler.ConnectionService.GetMessage(followerId, util.String2Uint(id))
+		message := handler.ConnectionService.GetMessage(util.String2Uint(input.FollowerId), util.String2Uint(id))
+		if message == nil{
+			message = handler.ConnectionService.GetMessage(util.String2Uint(id), util.String2Uint(input.FollowerId))
+		}
 		messages = append(messages, *message)
 	}
+
+	fmt.Println("Messages len: ", len(messages))
+	fmt.Println("Messages: ", messages)
 
 	writer.WriteHeader(http.StatusOK)
 	writer.Header().Set("Content-Type", "application/json")

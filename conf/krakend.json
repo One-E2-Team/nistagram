@@ -53,7 +53,7 @@
       "format": "default"
     }
   },
-  "timeout": "3000ms",
+  "timeout": "5000ms",
   "cache_ttl": "300s",
   "output_encoding": "json",
   "name": "test",
