@@ -53,11 +53,17 @@ func (handler *PostReactionHandler) DeleteReaction(w http.ResponseWriter, r *htt
 	span := util.Tracer.StartSpanFromRequest("DeleteReaction-handler", r)
 	defer util.Tracer.FinishSpan(span)
 
-	vars := mux.Vars(r)
-	postID := vars["postID"]
+	var reactionDTO dto.ReactionDTO
+	err := json.NewDecoder(r.Body).Decode(&reactionDTO)
+	if err != nil {
+		util.Tracer.LogError(span, err)
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
 	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
-	err := handler.PostReactionService.DeleteReaction(ctx, postID, util.GetLoggedUserIDFromToken(r))
+	err = handler.PostReactionService.DeleteReaction(ctx, reactionDTO, util.GetLoggedUserIDFromToken(r))
 	if err != nil {
 		util.Tracer.LogError(span, err)
 		fmt.Println(err)

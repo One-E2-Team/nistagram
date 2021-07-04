@@ -39,46 +39,85 @@ func (service *PostReactionService) ReactOnPost(ctx context.Context, reactionDto
 		util.Tracer.LogError(span, fmt.Errorf("cannot react on deleted post"))
 		return fmt.Errorf("CANNOT REACT ON DELETED POST")
 	}
-	if model.GetReactionTypeString(reactionType) == "like_reset" ||
-		model.GetReactionTypeString(reactionType) == "dislike_reset" {
-		err = service.DeleteReaction(nextCtx, reactionDto.PostID, loggedUserID)
-		if err != nil {
-			util.Tracer.LogError(span, err)
-			return err
-		}
-	} else {
-		reaction := model.Reaction{ReactionType: reactionType, PostID: reactionDto.PostID, ProfileID: loggedUserID}
-		err = service.PostReactionRepository.ReactOnPost(nextCtx, &reaction)
-		if err != nil {
-			util.Tracer.LogError(span, err)
-			return err
-		}
+	reaction := model.Reaction{ReactionType: reactionType, PostID: reactionDto.PostID, ProfileID: loggedUserID}
+	oldReaction, err := service.PostReactionRepository.ReactOnPost(nextCtx, &reaction)
+	if err != nil {
+		util.Tracer.LogError(span, err)
+		return err
 	}
-	if post.IsCampaign {
+	if oldReaction != nil && *oldReaction != reactionType {
 		go func() {
-			event := &dto.EventDTO{EventType: reactionDto.ReactionType, PostId: reactionDto.PostID,
+			var eventType string
+			if *oldReaction == model.LIKE {
+				eventType = "LIKE_RESET"
+			} else {
+				eventType = "DISLIKE_RESET"
+			}
+			event := &dto.EventDTO{EventType: eventType, PostId: reactionDto.PostID,
 				ProfileId: loggedUserID, CampaignId: reactionDto.CampaignID,
 				InfluencerId: reactionDto.InfluencerID, InfluencerUsername: reactionDto.InfluencerUsername}
-			if reactionDto.InfluencerID == 0 {
+			if reactionDto.InfluencerID != 0 {
 				err = saveToMonitoringMsInfluencer(nextCtx, event)
+			} else {
+				err = saveToMonitoringMsTargetGroup(nextCtx, event)
 			}
-			err = saveToMonitoringMsTargetGroup(nextCtx, event)
 			if err != nil {
 				util.Tracer.LogError(span, err)
 				fmt.Println("Monitoring bug!")
 				fmt.Println(err)
 			}
 		}()
-
+	}
+	if reactionDto.CampaignID != 0 {
+		go func() {
+			event := &dto.EventDTO{EventType: reactionDto.ReactionType, PostId: reactionDto.PostID,
+				ProfileId: loggedUserID, CampaignId: reactionDto.CampaignID,
+				InfluencerId: reactionDto.InfluencerID, InfluencerUsername: reactionDto.InfluencerUsername}
+			if reactionDto.InfluencerID != 0 {
+				err = saveToMonitoringMsInfluencer(nextCtx, event)
+			} else {
+				err = saveToMonitoringMsTargetGroup(nextCtx, event)
+			}
+			if err != nil {
+				util.Tracer.LogError(span, err)
+				fmt.Println("Monitoring bug!")
+				fmt.Println(err)
+			}
+		}()
 	}
 	return nil
 }
 
-func (service *PostReactionService) DeleteReaction(ctx context.Context, postID string, loggedUserID uint) error {
+func (service *PostReactionService) DeleteReaction(ctx context.Context, reactionDTO dto.ReactionDTO, loggedUserID uint) error {
 	span := util.Tracer.StartSpanFromContext(ctx, "DeleteReaction-service")
 	defer util.Tracer.FinishSpan(span)
 	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
-	return service.PostReactionRepository.DeleteReaction(nextCtx, postID, loggedUserID)
+	deletedReaction, err := service.PostReactionRepository.DeleteReaction(nextCtx, reactionDTO.PostID, loggedUserID)
+	if err != nil {
+		return err
+	}
+	go func() {
+		var eventType string
+		if deletedReaction.ReactionType == model.LIKE {
+			eventType = "LIKE_RESET"
+		} else {
+			eventType = "DISLIKE_RESET"
+		}
+		event := &dto.EventDTO{EventType: eventType, PostId: deletedReaction.PostID,
+			ProfileId: loggedUserID, CampaignId: reactionDTO.CampaignID,
+			InfluencerId: reactionDTO.InfluencerID, InfluencerUsername: reactionDTO.InfluencerUsername}
+		if reactionDTO.InfluencerID != 0 {
+			err = saveToMonitoringMsInfluencer(nextCtx, event)
+		} else {
+			err = saveToMonitoringMsTargetGroup(nextCtx, event)
+		}
+		if err != nil {
+			util.Tracer.LogError(span, err)
+			fmt.Println("Monitoring bug!")
+			fmt.Println(err)
+		}
+	}()
+	return nil
 }
 
 func (service *PostReactionService) CommentPost(ctx context.Context, commentDTO dto.CommentDTO, loggedUserID uint) error {
@@ -114,15 +153,16 @@ func (service *PostReactionService) CommentPost(ctx context.Context, commentDTO 
 		return err
 	}
 
-	if post.IsCampaign {
+	if commentDTO.CampaignID != 0 {
 		go func() {
 			event := &dto.EventDTO{EventType: "COMMENT", PostId: commentDTO.PostID,
 				ProfileId: loggedUserID, CampaignId: commentDTO.CampaignID,
 				InfluencerId: commentDTO.InfluencerID, InfluencerUsername: commentDTO.InfluencerUsername}
-			if commentDTO.InfluencerID == 0 {
+			if commentDTO.InfluencerID != 0 {
 				err = saveToMonitoringMsInfluencer(nextCtx, event)
+			} else {
+				err = saveToMonitoringMsTargetGroup(nextCtx, event)
 			}
-			err = saveToMonitoringMsTargetGroup(nextCtx, event)
 			if err != nil {
 				util.Tracer.LogError(span, err)
 				fmt.Println("Monitoring bug!")
@@ -536,12 +576,12 @@ func saveToMonitoringMsInfluencer(ctx context.Context, eventDto *dto.EventDTO) e
 	defer util.Tracer.FinishSpan(span)
 
 	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
-	body, _ := json.Marshal(map[string]string{
+	body, _ := json.Marshal(map[string]interface{}{
 		"eventType":          eventDto.EventType,
 		"postId":             eventDto.PostId,
-		"profileId":          util.Uint2String(eventDto.ProfileId),
-		"campaignId":         util.Uint2String(eventDto.CampaignId),
-		"influencerId":       util.Uint2String(eventDto.InfluencerId),
+		"profileId":          eventDto.ProfileId,
+		"campaignId":         eventDto.CampaignId,
+		"influencerId":       eventDto.InfluencerId,
 		"influencerUsername": eventDto.InfluencerUsername,
 	})
 	monitoringHost, monitoringPort := util.GetMonitoringHostAndPort()
@@ -556,12 +596,12 @@ func saveToMonitoringMsTargetGroup(ctx context.Context, eventDto *dto.EventDTO) 
 	defer util.Tracer.FinishSpan(span)
 	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
 
-	body, _ := json.Marshal(map[string]string{
+	body, _ := json.Marshal(map[string]interface{}{
 		"eventType":          eventDto.EventType,
 		"postId":             eventDto.PostId,
-		"profileId":          util.Uint2String(eventDto.ProfileId),
-		"campaignId":         util.Uint2String(eventDto.CampaignId),
-		"influencerId":       util.Uint2String(eventDto.InfluencerId),
+		"profileId":          eventDto.ProfileId,
+		"campaignId":         eventDto.CampaignId,
+		"influencerId":       eventDto.InfluencerId,
 		"influencerUsername": eventDto.InfluencerUsername,
 	})
 	monitoringHost, monitoringPort := util.GetMonitoringHostAndPort()

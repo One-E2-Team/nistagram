@@ -25,7 +25,7 @@ type PostReactionRepository struct {
 	Client *mongo.Client
 }
 
-func (repo *PostReactionRepository) ReactOnPost(ctx context.Context, reaction *model.Reaction) error {
+func (repo *PostReactionRepository) ReactOnPost(ctx context.Context, reaction *model.Reaction) (*model.ReactionType, error) {
 	span := util.Tracer.StartSpanFromContext(ctx, "ReactOnPost-repository")
 	defer util.Tracer.FinishSpan(span)
 
@@ -37,8 +37,9 @@ func (repo *PostReactionRepository) ReactOnPost(ctx context.Context, reaction *m
 		_, err := reactionsCollection.InsertOne(emptyContext, reaction)
 		if err != nil {
 			util.Tracer.LogError(span, err)
+			return nil, err
 		}
-		return err
+		return nil, nil
 	}
 	update := bson.D{
 		{"$set", bson.D{
@@ -48,12 +49,12 @@ func (repo *PostReactionRepository) ReactOnPost(ctx context.Context, reaction *m
 	result, _ := reactionsCollection.UpdateOne(emptyContext, filter, update)
 	if result.MatchedCount == 0 {
 		util.Tracer.LogError(span, fmt.Errorf("reaction not updated"))
-		return mongo.ErrNoDocuments
+		return nil, mongo.ErrNoDocuments
 	}
-	return nil
+	return &existingReaction.ReactionType, nil
 }
 
-func (repo *PostReactionRepository) DeleteReaction(ctx context.Context, postID string, loggedUserID uint) error {
+func (repo *PostReactionRepository) DeleteReaction(ctx context.Context, postID string, loggedUserID uint) (*model.Reaction, error) {
 	span := util.Tracer.StartSpanFromContext(ctx, "DeleteReaction-repository")
 	defer util.Tracer.FinishSpan(span)
 
@@ -63,13 +64,14 @@ func (repo *PostReactionRepository) DeleteReaction(ctx context.Context, postID s
 	err := reactionsCollection.FindOne(emptyContext, filter).Decode(&existingReaction)
 	if err != nil {
 		util.Tracer.LogError(span, err)
-		return err
+		return nil, err
 	}
 	_, err = reactionsCollection.DeleteOne(emptyContext, existingReaction)
 	if err != nil {
 		util.Tracer.LogError(span, err)
+		return nil, err
 	}
-	return err
+	return &existingReaction, err
 }
 
 func (repo *PostReactionRepository) CommentPost(ctx context.Context, comment *model.Comment) error {

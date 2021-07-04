@@ -100,7 +100,7 @@ import axios from 'axios'
 export default {
   components: { PostMedia, PostReactionsModal },
   name: 'ShowPostModal',
-  props: ['width','height','post','reaction'],
+  props: ['width','height','post','reaction', 'campaignData'],
   data(){
       return{
           isUserLogged: comm.isUserLogged(),
@@ -131,7 +131,10 @@ export default {
       if (this.preventActionIfUnauthorized()) {
         return;
       }
-      let dto = {'postId' : this.post.id, 'content' : this.comment}
+      let campaignId = this.campaignData == undefined ? 0 : this.campaignData.campaignId;
+      let influencerID = this.campaignData == undefined ? 0 : this.campaignData.influencerId;
+      let influencerUsername = this.campaignData == undefined ? '' : this.campaignData.influencerUsername;
+      let dto = {'postId' : this.post.id, 'content' : this.comment, 'campaignId': campaignId, 'influencerID': influencerID, 'influencerUsername': influencerUsername};
       axios({
         method: 'post',
         url: comm.protocol + '://' + comm.server + '/api/postreaction/comment',
