@@ -150,9 +150,8 @@ export default {
         usersToChat: [],
         searchUsername: '',
         selectedUser : {},
-        sender: function(a,b){console.log("kita" + a + b)},
         searchedUsernames: [],
-        messagingSenderWS: function(request, data) {console.log("sender is not resent for request and data", request, data)}
+        messagingSenderWS: null
       }
     },
     mounted() {
@@ -161,7 +160,7 @@ export default {
       this.startMessagingWebSocket();
     },
     methods : {
-      startMessagingWebSocket(){
+      async startMessagingWebSocket(){
         let handler = function(response, data) {
           switch (response) {
             case "message":
@@ -172,11 +171,27 @@ export default {
               break;
           }
         }
-        let sender = comm.openWebSocketConn(comm.wsProtocol + '://' + comm.wsNotificationServer + '/messaging', handler)
-        console.log(sender);
-        this.messagingSenderWS = sender
-        console.log("blabla");
+        let ws = new WebSocket(comm.wsProtocol + '://' + comm.wsNotificationServer + '/messaging' + "?token=" + comm.getJWTToken().token)
+        let reload = function(event) {
+          console.log(event)
+          window.location.reload()
+        }
+        ws.onerror = reload
+        ws.onclose = reload
+        ws.onmessage = function(event) {
+          handler(event.data.response, event.data.data)
+        }
+        this.messagingSenderWS = ws
       },
+      sendWS(request, data){
+        let req = {
+          jwt: comm.getJWTToken().token, 
+          request: request,
+          data: JSON.stringify(data)
+        }
+        this.messagingSenderWS.send(JSON.stringify(req))
+      },
+
         getAllMessages(user){
           this.user = user;
             axios({
@@ -221,7 +236,7 @@ export default {
               text : this.text,
             }
             console.log(this.messagingSenderWS);
-            this.messagingSenderWS("SendMessage", data);
+            this.sendWS("SendMessage", data);
          },
         addMessage(data){
           this.messages.push(JSON.parse(data));
