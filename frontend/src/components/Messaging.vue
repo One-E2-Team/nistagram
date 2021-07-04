@@ -66,11 +66,11 @@
                     <div class="font-weight-normal" v-else>
                       <strong>{{user.username}}: </strong> {{ m.text }}
                     </div>
-                    <div class="font-weight-normal" v-if="message.postId != ''">
-                      <show-post-from-message-modal :postId="message.postId"/>
+                    <div class="font-weight-normal" v-if="m.postId != ''">
+                      <show-post-from-message-modal :postId="m.postId"/>
                     </div>
-                    <div class="font-weight-normal"  v-if="message.mediaPath != ''">
-                      <show-media-from-message :media="message.mediaPath"/>
+                    <div class="font-weight-normal"  v-if="m.mediaPath != ''">
+                      <show-media-from-message :medias="m.mediaPath"/>
                     </div>
                   <!--<div>@{{ message.timestamp }}</div>-->
                   </div>
@@ -94,7 +94,6 @@
           </v-card-text>
           <v-file-input v-if="user.messageApproved != false"
             v-model="message.file"
-            accept="image/*"
             label="Input picture.."
           ></v-file-input>
               <v-btn v-if="user.messageApproved != false"

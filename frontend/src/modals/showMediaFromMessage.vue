@@ -3,7 +3,7 @@
     <v-col cols="auto">
       <v-dialog transition="dialog-bottom-transition" width="900">
         <template v-slot:activator="{ on, attrs }" >
-            <v-btn v-on="on" v-bind="attrs">Show media</v-btn>
+            <v-btn v-on="on" @click="test()" v-bind="attrs">Show media</v-btn>
         </template>
         <template v-slot:default="dialog">
           <v-card>
@@ -31,7 +31,7 @@ import * as comm from '../configuration/communication.js'
 import PostMedia from '../components/Posts/PostMedia.vue'
 export default {
   components:{PostMedia},
-  props: ['media'],
+  props: ['medias'],
   name: 'ShowPostFullScreenModal',
   data(){
     return {
@@ -49,14 +49,18 @@ export default {
     },
     isMyPost() {
       return comm.getLoggedUserID() == this.post.publisherId;
+    },
+    test(){
+      console.log(this.medias);
+      this.post = {
+              medias: [
+                {
+                  filePath : this.medias
+                }
+              ]
+          }
+      console.log(this.post);
     }
   },
-  watch: {
-      medias: function(){
-          this.post = {
-              medias: this.medias
-          }
-      }
-  }
 }
 </script>
