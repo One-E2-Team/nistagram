@@ -21,27 +21,36 @@ type PostReactionService struct {
 	PostReactionRepository *repository.PostReactionRepository
 }
 
-func (service *PostReactionService) ReactOnPost(reactionDto dto.ReactionDTO, loggedUserID uint, reactionType model.ReactionType) error {
-	post, err := getPost(reactionDto.PostID)
+func (service *PostReactionService) ReactOnPost(ctx context.Context, reactionDto dto.ReactionDTO, loggedUserID uint, reactionType model.ReactionType) error {
+	span := util.Tracer.StartSpanFromContext(ctx, "ReactOnPost-service")
+	defer util.Tracer.FinishSpan(span)
+
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+	post, err := getPost(nextCtx, reactionDto.PostID)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return err
 	}
 	if post.PostType == postModel.GetPostType("story") {
+		util.Tracer.LogError(span, fmt.Errorf("cannot react on story"))
 		return fmt.Errorf("CANNOT REACT ON STORY")
 	}
 	if post.IsDeleted {
+		util.Tracer.LogError(span, fmt.Errorf("cannot react on deleted post"))
 		return fmt.Errorf("CANNOT REACT ON DELETED POST")
 	}
 	if model.GetReactionTypeString(reactionType) == "like_reset" ||
 		model.GetReactionTypeString(reactionType) == "dislike_reset" {
-		err = service.DeleteReaction(reactionDto.PostID, loggedUserID)
+		err = service.DeleteReaction(nextCtx, reactionDto.PostID, loggedUserID)
 		if err != nil {
+			util.Tracer.LogError(span, err)
 			return err
 		}
 	} else {
 		reaction := model.Reaction{ReactionType: reactionType, PostID: reactionDto.PostID, ProfileID: loggedUserID}
-		err = service.PostReactionRepository.ReactOnPost(&reaction)
+		err = service.PostReactionRepository.ReactOnPost(nextCtx, &reaction)
 		if err != nil {
+			util.Tracer.LogError(span, err)
 			return err
 		}
 	}
@@ -51,10 +60,11 @@ func (service *PostReactionService) ReactOnPost(reactionDto dto.ReactionDTO, log
 				ProfileId: loggedUserID, CampaignId: reactionDto.CampaignID,
 				InfluencerId: reactionDto.InfluencerID, InfluencerUsername: reactionDto.InfluencerUsername}
 			if reactionDto.InfluencerID == 0 {
-				err = saveToMonitoringMsInfluencer(event)
+				err = saveToMonitoringMsInfluencer(nextCtx, event)
 			}
-			err = saveToMonitoringMsTargetGroup(event)
+			err = saveToMonitoringMsTargetGroup(nextCtx, event)
 			if err != nil {
+				util.Tracer.LogError(span, err)
 				fmt.Println("Monitoring bug!")
 				fmt.Println(err)
 			}
@@ -64,31 +74,43 @@ func (service *PostReactionService) ReactOnPost(reactionDto dto.ReactionDTO, log
 	return nil
 }
 
-func (service *PostReactionService) DeleteReaction(postID string, loggedUserID uint) error {
-	return service.PostReactionRepository.DeleteReaction(postID, loggedUserID)
+func (service *PostReactionService) DeleteReaction(ctx context.Context, postID string, loggedUserID uint) error {
+	span := util.Tracer.StartSpanFromContext(ctx, "DeleteReaction-service")
+	defer util.Tracer.FinishSpan(span)
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+	return service.PostReactionRepository.DeleteReaction(nextCtx, postID, loggedUserID)
 }
 
-func (service *PostReactionService) CommentPost(commentDTO dto.CommentDTO, loggedUserID uint) error {
-	post, err := getPost(commentDTO.PostID)
+func (service *PostReactionService) CommentPost(ctx context.Context, commentDTO dto.CommentDTO, loggedUserID uint) error {
+	span := util.Tracer.StartSpanFromContext(ctx, "CommentPost-service")
+	defer util.Tracer.FinishSpan(span)
+
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+	post, err := getPost(nextCtx, commentDTO.PostID)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return err
 	}
 	if post.PostType == postModel.GetPostType("story") {
+		util.Tracer.LogError(span, fmt.Errorf("cannot comment on story"))
 		return fmt.Errorf("CANNOT COMMENT ON STORY")
 	}
 	if post.IsDeleted {
+		util.Tracer.LogError(span, fmt.Errorf("cannot comment on deleted post"))
 		return fmt.Errorf("CANNOT COMMENT ON DELETED POST")
 	}
 	if strings.Contains(commentDTO.Content, "@") {
-		err = canUsersBeTagged(post.Description, loggedUserID)
+		err = canUsersBeTagged(nextCtx, post.Description, loggedUserID)
 		if err != nil {
+			util.Tracer.LogError(span, err)
 			return err
 		}
 	}
 	comment := model.Comment{PostID: commentDTO.PostID, ProfileID: loggedUserID,
 		Content: commentDTO.Content, Time: time.Now()}
-	err = service.PostReactionRepository.CommentPost(&comment)
+	err = service.PostReactionRepository.CommentPost(nextCtx, &comment)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return err
 	}
 
@@ -98,10 +120,11 @@ func (service *PostReactionService) CommentPost(commentDTO dto.CommentDTO, logge
 				ProfileId: loggedUserID, CampaignId: commentDTO.CampaignID,
 				InfluencerId: commentDTO.InfluencerID, InfluencerUsername: commentDTO.InfluencerUsername}
 			if commentDTO.InfluencerID == 0 {
-				err = saveToMonitoringMsInfluencer(event)
+				err = saveToMonitoringMsInfluencer(nextCtx, event)
 			}
-			err = saveToMonitoringMsTargetGroup(event)
+			err = saveToMonitoringMsTargetGroup(nextCtx, event)
 			if err != nil {
+				util.Tracer.LogError(span, err)
 				fmt.Println("Monitoring bug!")
 				fmt.Println(err)
 			}
@@ -110,22 +133,33 @@ func (service *PostReactionService) CommentPost(commentDTO dto.CommentDTO, logge
 	return nil
 }
 
-func (service *PostReactionService) ReportPost(postID string, reason string) error {
-	post, err := getPost(postID)
+func (service *PostReactionService) ReportPost(ctx context.Context, postID string, reason string) error {
+	span := util.Tracer.StartSpanFromContext(ctx, "ReportPost-service")
+	defer util.Tracer.FinishSpan(span)
+
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+	post, err := getPost(nextCtx, postID)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return err
 	}
 	if post.IsDeleted {
+		util.Tracer.LogError(span, fmt.Errorf("cannot report deleted post"))
 		return fmt.Errorf("CANNOT REPORT DELETED POST")
 	}
 	report := model.Report{ID: primitive.NewObjectID(), PostID: postID, Time: time.Now(), Reason: reason,
 		IsDeleted: false}
-	return service.PostReactionRepository.ReportPost(&report)
+	return service.PostReactionRepository.ReportPost(nextCtx, &report)
 }
 
-func (service *PostReactionService) GetMyReactions(reactionType model.ReactionType, loggedUserID uint) ([]postModel.Post, error) {
-	reactions, err := service.PostReactionRepository.GetProfileReactions(reactionType, loggedUserID)
+func (service *PostReactionService) GetMyReactions(ctx context.Context, reactionType model.ReactionType, loggedUserID uint) ([]postModel.Post, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "GetMyReactions-service")
+	defer util.Tracer.FinishSpan(span)
+
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+	reactions, err := service.PostReactionRepository.GetProfileReactions(nextCtx, reactionType, loggedUserID)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 	ret := make([]string, 0)
@@ -136,20 +170,23 @@ func (service *PostReactionService) GetMyReactions(reactionType model.ReactionTy
 	postBody, _ := json.Marshal(map[string][]string{
 		"ids": ret,
 	})
-	resp, err := util.CrossServiceRequest(context.Background(), http.MethodPost,
+	resp, err := util.CrossServiceRequest(nextCtx, http.MethodPost,
 		util.GetCrossServiceProtocol()+"://"+postHost+":"+postPort+"/posts",
 		postBody, map[string]string{"Content-Type": "application/json;"})
 
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 
 	if resp.StatusCode != 200 {
+		util.Tracer.LogError(span, fmt.Errorf("bad post id"))
 		return nil, fmt.Errorf("BAD_POST_ID")
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 	defer func(Body io.ReadCloser) {
@@ -158,24 +195,34 @@ func (service *PostReactionService) GetMyReactions(reactionType model.ReactionTy
 
 	var posts []postModel.Post
 	if err = json.Unmarshal(body, &posts); err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 	return posts, nil
 }
 
-func (service *PostReactionService) GetReactionTypes(profileID uint, postIDs []string) []string {
+func (service *PostReactionService) GetReactionTypes(ctx context.Context, profileID uint, postIDs []string) []string {
+	span := util.Tracer.StartSpanFromContext(ctx, "GetReactionTypes-service")
+	defer util.Tracer.FinishSpan(span)
+
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
 	ret := make([]string, 0)
 	for _, value := range postIDs {
-		ret = append(ret, service.PostReactionRepository.GetReactionType(profileID, value))
+		ret = append(ret, service.PostReactionRepository.GetReactionType(nextCtx, profileID, value))
 	}
 	return ret
 }
 
-func (service *PostReactionService) GetAllReports() ([]dto.ShowReportDTO, error) {
+func (service *PostReactionService) GetAllReports(ctx context.Context) ([]dto.ShowReportDTO, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "GetAllReports-service")
+	defer util.Tracer.FinishSpan(span)
+
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
 	var ret []dto.ShowReportDTO
 
-	reports, err := service.PostReactionRepository.GetAllReports()
+	reports, err := service.PostReactionRepository.GetAllReports(nextCtx)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 
@@ -185,8 +232,9 @@ func (service *PostReactionService) GetAllReports() ([]dto.ShowReportDTO, error)
 		repIds = append(repIds, reports[i].PostID)
 	}
 
-	posts, err := getPostsByPostsIds(repIds)
+	posts, err := getPostsByPostsIds(nextCtx, repIds)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 
@@ -201,16 +249,21 @@ func (service *PostReactionService) GetAllReports() ([]dto.ShowReportDTO, error)
 	return ret, nil
 }
 
-func (service *PostReactionService) DeletePostsReports(postId string) error {
+func (service *PostReactionService) DeletePostsReports(ctx context.Context, postId string) error {
+	span := util.Tracer.StartSpanFromContext(ctx, "DeletePostsReports-service")
+	defer util.Tracer.FinishSpan(span)
 
-	reports, err := service.PostReactionRepository.GetReportsByPostId(postId)
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+	reports, err := service.PostReactionRepository.GetReportsByPostId(nextCtx, postId)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return err
 	}
 
 	for i := 0; i < len(reports); i++ {
-		err = service.PostReactionRepository.DeleteReport(reports[i].ID)
+		err = service.PostReactionRepository.DeleteReport(nextCtx, reports[i].ID)
 		if err != nil {
+			util.Tracer.LogError(span, err)
 			return err
 		}
 	}
@@ -218,37 +271,51 @@ func (service *PostReactionService) DeletePostsReports(postId string) error {
 	return nil
 }
 
-func (service *PostReactionService) GetAllReactions(postID string) ([]string, []string, error) {
-	likes, dislikes, err := service.PostReactionRepository.GetAllReactions(postID)
+func (service *PostReactionService) GetAllReactions(ctx context.Context, postID string) ([]string, []string, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "GetAllReactions-service")
+	defer util.Tracer.FinishSpan(span)
+
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+	likes, dislikes, err := service.PostReactionRepository.GetAllReactions(nextCtx, postID)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, nil, err
 	}
-	likesUsernames, err := getProfileUsernamesByIDs(likes)
+	likesUsernames, err := getProfileUsernamesByIDs(nextCtx, likes)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, nil, err
 	}
-	dislikesUsernames, err := getProfileUsernamesByIDs(dislikes)
+	dislikesUsernames, err := getProfileUsernamesByIDs(nextCtx, dislikes)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, nil, err
 	}
 	return likesUsernames, dislikesUsernames, nil
 }
 
-func (service *PostReactionService) GetAllComments(postID string) ([]dto.ResponseCommentDTO, error) {
-	comments, err := service.PostReactionRepository.GetAllComments(postID)
+func (service *PostReactionService) GetAllComments(ctx context.Context, postID string) ([]dto.ResponseCommentDTO, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "GetAllComments-service")
+	defer util.Tracer.FinishSpan(span)
+
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+	comments, err := service.PostReactionRepository.GetAllComments(nextCtx, postID)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 	profileIDs := make([]uint, 0)
 	for _, value := range comments {
 		profileIDs = append(profileIDs, value.ProfileID)
 	}
-	commentUsernames, err := getProfileUsernamesByIDs(profileIDs)
+	commentUsernames, err := getProfileUsernamesByIDs(nextCtx, profileIDs)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 	ret := make([]dto.ResponseCommentDTO, 0)
 	if len(commentUsernames) != len(comments) {
+		util.Tracer.LogError(span, fmt.Errorf("bad slice sizes"))
 		return nil, fmt.Errorf("BAD_SLICE_SIZES")
 	}
 	for i, value := range comments {
@@ -257,7 +324,11 @@ func (service *PostReactionService) GetAllComments(postID string) ([]dto.Respons
 	return ret, nil
 }
 
-func getProfileUsernamesByIDs(profileIDs []uint) ([]string, error) {
+func getProfileUsernamesByIDs(ctx context.Context, profileIDs []uint) ([]string, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "getProfileUsernamesByIDs-service")
+	defer util.Tracer.FinishSpan(span)
+
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
 	type data struct {
 		Ids []string `json:"ids"`
 	}
@@ -268,13 +339,15 @@ func getProfileUsernamesByIDs(profileIDs []uint) ([]string, error) {
 	bodyData := data{Ids: req}
 	jsonBody, err := json.Marshal(bodyData)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 	profileHost, profilePort := util.GetProfileHostAndPort()
-	resp, err := util.CrossServiceRequest(context.Background(), http.MethodPost,
+	resp, err := util.CrossServiceRequest(nextCtx, http.MethodPost,
 		util.GetCrossServiceProtocol()+"://"+profileHost+":"+profilePort+"/get-by-ids",
 		jsonBody, map[string]string{"Content-Type": "application/json;"})
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 
@@ -282,6 +355,7 @@ func getProfileUsernamesByIDs(profileIDs []uint) ([]string, error) {
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 
@@ -290,13 +364,18 @@ func getProfileUsernamesByIDs(profileIDs []uint) ([]string, error) {
 	}(resp.Body)
 
 	if err = json.Unmarshal(body, &ret); err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 
 	return ret, nil
 }
 
-func getPostsByPostsIds(postsIds []string) ([]dto.PostDTO, error) {
+func getPostsByPostsIds(ctx context.Context, postsIds []string) ([]dto.PostDTO, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "getPostsByPostsIds-service")
+	defer util.Tracer.FinishSpan(span)
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
 	var ret []dto.PostDTO
 	type data struct {
 		Ids []string `json:"ids"`
@@ -304,19 +383,22 @@ func getPostsByPostsIds(postsIds []string) ([]dto.PostDTO, error) {
 	bodyData := data{Ids: postsIds}
 	jsonBody, err := json.Marshal(bodyData)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 	postHost, postPort := util.GetPostHostAndPort()
-	resp, err := util.CrossServiceRequest(context.Background(), http.MethodPost,
+	resp, err := util.CrossServiceRequest(nextCtx, http.MethodPost,
 		util.GetCrossServiceProtocol()+"://"+postHost+":"+postPort+"/posts",
 		jsonBody, map[string]string{})
 
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 
@@ -331,20 +413,27 @@ func getPostsByPostsIds(postsIds []string) ([]dto.PostDTO, error) {
 	return ret, nil
 }
 
-func getPost(postID string) (*postModel.Post, error) {
+func getPost(ctx context.Context, postID string) (*postModel.Post, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "getPost-service")
+	defer util.Tracer.FinishSpan(span)
+
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
 	postHost, postPort := util.GetPostHostAndPort()
-	resp, err := util.CrossServiceRequest(context.Background(), http.MethodGet,
+	resp, err := util.CrossServiceRequest(nextCtx, http.MethodGet,
 		util.GetCrossServiceProtocol()+"://"+postHost+":"+postPort+"/post/"+postID,
 		nil, map[string]string{})
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 	if resp.StatusCode != 200 {
+		util.Tracer.LogError(span, fmt.Errorf("bad post id"))
 		return nil, fmt.Errorf("BAD_POST_ID")
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 
@@ -355,15 +444,20 @@ func getPost(postID string) (*postModel.Post, error) {
 	var post postModel.Post
 
 	if err = json.Unmarshal(body, &post); err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 	return &post, nil
 }
 
-func canUsersBeTagged(description string, publisherId uint) error {
+func canUsersBeTagged(ctx context.Context, description string, publisherId uint) error {
+	span := util.Tracer.StartSpanFromContext(ctx, "canUsersBeTagged-service")
+	defer util.Tracer.FinishSpan(span)
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
 
-	followingProfiles, err := getFollowingProfiles(publisherId)
+	followingProfiles, err := getFollowingProfiles(nextCtx, publisherId)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return err
 	}
 
@@ -372,7 +466,7 @@ func canUsersBeTagged(description string, publisherId uint) error {
 		if strings.Contains(descriptionParts[i], "@") {
 			taggedUsername := descriptionParts[i][1:len(descriptionParts[i])]
 			var taggedProfile dto.ProfileDto
-			if resp, err := getProfileByUsername(taggedUsername); err != nil {
+			if resp, err := getProfileByUsername(nextCtx, taggedUsername); err != nil {
 				return err
 			} else {
 				body, _ := io.ReadAll(resp.Body)
@@ -380,15 +474,18 @@ func canUsersBeTagged(description string, publisherId uint) error {
 					_ = Body.Close()
 				}(resp.Body)
 				if err := json.Unmarshal(body, &taggedProfile); err != nil {
+					util.Tracer.LogError(span, err)
 					return err
 				}
 			}
 
 			if !taggedProfile.ProfileSettings.CanBeTagged {
+				util.Tracer.LogError(span, fmt.Errorf("%s can't be tagged", taggedProfile.Username))
 				return errors.New(taggedProfile.Username + " can't be tagged!")
 			}
 
 			if !util.IsFollowed(followingProfiles, taggedProfile.ProfileId) {
+				util.Tracer.LogError(span, fmt.Errorf("%s is not followed by this profile", taggedProfile.Username))
 				return errors.New(taggedProfile.Username + " is not followed by this profile!")
 			}
 		}
@@ -396,13 +493,18 @@ func canUsersBeTagged(description string, publisherId uint) error {
 	return nil
 }
 
-func getFollowingProfiles(loggedUserId uint) ([]util.FollowingProfileDTO, error) {
+func getFollowingProfiles(ctx context.Context, loggedUserId uint) ([]util.FollowingProfileDTO, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "getFollowingProfiles-service")
+	defer util.Tracer.FinishSpan(span)
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
 	connHost, connPort := util.GetConnectionHostAndPort()
-	resp, err := util.CrossServiceRequest(context.Background(), http.MethodGet,
+	resp, err := util.CrossServiceRequest(nextCtx, http.MethodGet,
 		util.GetCrossServiceProtocol()+"://"+connHost+":"+connPort+"/connection/following/show/"+util.Uint2String(loggedUserId),
 		nil, map[string]string{})
 
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 
@@ -410,21 +512,30 @@ func getFollowingProfiles(loggedUserId uint) ([]util.FollowingProfileDTO, error)
 
 	err = json.NewDecoder(resp.Body).Decode(&followingProfiles)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 
 	return followingProfiles, err
 }
 
-func getProfileByUsername(username string) (*http.Response, error) {
+func getProfileByUsername(ctx context.Context, username string) (*http.Response, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "getProfileByUsername-service")
+	defer util.Tracer.FinishSpan(span)
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
 	profileHost, profilePort := util.GetProfileHostAndPort()
-	resp, err := util.CrossServiceRequest(context.Background(), http.MethodGet,
+	resp, err := util.CrossServiceRequest(nextCtx, http.MethodGet,
 		util.GetCrossServiceProtocol()+"://"+profileHost+":"+profilePort+"/get/"+username,
 		nil, map[string]string{})
 	return resp, err
 }
 
-func saveToMonitoringMsInfluencer(eventDto *dto.EventDTO) error {
+func saveToMonitoringMsInfluencer(ctx context.Context, eventDto *dto.EventDTO) error {
+	span := util.Tracer.StartSpanFromContext(ctx, "saveToMonitoringMsInfluencer-service")
+	defer util.Tracer.FinishSpan(span)
+
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
 	body, _ := json.Marshal(map[string]string{
 		"eventType":          eventDto.EventType,
 		"postId":             eventDto.PostId,
@@ -434,13 +545,17 @@ func saveToMonitoringMsInfluencer(eventDto *dto.EventDTO) error {
 		"influencerUsername": eventDto.InfluencerUsername,
 	})
 	monitoringHost, monitoringPort := util.GetMonitoringHostAndPort()
-	_, err := util.CrossServiceRequest(context.Background(), http.MethodPost,
+	_, err := util.CrossServiceRequest(nextCtx, http.MethodPost,
 		util.GetCrossServiceProtocol()+"://"+monitoringHost+":"+monitoringPort+"/influencer",
 		body, map[string]string{"Content-Type": "application/json;"})
 	return err
 }
 
-func saveToMonitoringMsTargetGroup(eventDto *dto.EventDTO) error {
+func saveToMonitoringMsTargetGroup(ctx context.Context, eventDto *dto.EventDTO) error {
+	span := util.Tracer.StartSpanFromContext(ctx, "saveToMonitoringMsTargetGroup-service")
+	defer util.Tracer.FinishSpan(span)
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
 	body, _ := json.Marshal(map[string]string{
 		"eventType":          eventDto.EventType,
 		"postId":             eventDto.PostId,
@@ -450,7 +565,7 @@ func saveToMonitoringMsTargetGroup(eventDto *dto.EventDTO) error {
 		"influencerUsername": eventDto.InfluencerUsername,
 	})
 	monitoringHost, monitoringPort := util.GetMonitoringHostAndPort()
-	_, err := util.CrossServiceRequest(context.Background(), http.MethodPost,
+	_, err := util.CrossServiceRequest(nextCtx, http.MethodPost,
 		util.GetCrossServiceProtocol()+"://"+monitoringHost+":"+monitoringPort+"/target-group",
 		body, map[string]string{"Content-Type": "application/json;"})
 	return err
