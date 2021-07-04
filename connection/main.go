@@ -146,7 +146,7 @@ func handleFunc(handler *handler.Handler) {
 	router.HandleFunc("/connection/messaging/my-properties/{profileId}",
 		util.RBAC(handler.GetMessageRelationship, "READ_CONNECTION_STATUS", false)).Methods("GET") // frontend func
 
-	router.HandleFunc("/connection/messaging/my-properties/",
+	router.HandleFunc("/connection/messaging/my-properties",
 		util.MSAuth(handler.GetMessageRelationships, []string{"notification"})).Methods("POST")
 
 	router.HandleFunc("/connection/notify/message/{profileId}",

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"nistagram/notification/dto"
 	"nistagram/util"
+	"strings"
 )
 
 var upgrader = websocket.Upgrader{CheckOrigin: func(r *http.Request) bool {
@@ -47,12 +48,16 @@ func (handler *Handler) MessagingWebSocket(writer http.ResponseWriter, request *
 			log.Println("read:", err)
 			break
 		}
+		fmt.Printf("%s\n", message)
 		var requestData dto.WSRequestBodyDTO
 		err = json.Unmarshal(message, &requestData)
 		if err != nil {
 			fmt.Println(err)
 			break
 		}
+		fmt.Println(requestData.Jwt)
+		requestData.Jwt = strings.Replace(requestData.Jwt, "\"", "", -1)
+		fmt.Println(requestData.Jwt)
 		if id != util.GetLoggedUserIDFromPureToken(requestData.Jwt) {
 			break
 		}

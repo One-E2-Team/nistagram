@@ -9,6 +9,7 @@
                 <router-link v-else :to="{ name: 'Home'}">Home</router-link> |
                 <router-link :to="{ name: 'Explore'}">Explore </router-link>
                 <template v-if="isUserLogged"> | <router-link :to="{ name: 'Reactions'}" >Reactions</router-link> </template>
+                <template v-if="isUserLogged"> | <router-link :to="{ name: 'Messaging'}">Chat </router-link> </template>
                 <template v-if="hasRole('ADMIN')">
                   <v-menu offset-y>
                     <template v-slot:activator="{ on, attrs }">
@@ -66,7 +67,7 @@ export default {
       MessageRequestsModal,
       ConnectionRecommendationModal,
       Settings,
-      CampaignRequestsNotification
+      CampaignRequestsNotification,
     },
     data(){
       return {
@@ -78,29 +79,11 @@ export default {
       this.$root.$on('loggedUser', () => {
         this.isUserLogged = comm.getLoggedUserUsername() != null;
       })
-      if (this.isUserLogged) this.startMessagingWebSocket()
-      this.$root.$on('getmessageWS', () => {
-        this.$root.$emit('messageWS', this.messagingSenderWS)
-      })
     },
     methods: {
       hasRole(role){
         return comm.hasRole(role);
       },
-      startMessagingWebSocket(){
-        let handler = function(response, data) {
-          switch (response) {
-            case "message":
-              this.$root.$emit('message', data)
-              break;
-          
-            default:
-              break;
-          }
-        }
-        let sender = comm.openWebSocketConn(comm.wsProtocol + '://' + comm.wsNotificationServer + '/messaging', handler)
-        this.messagingSenderWS = sender
-      }
     }
 }
 </script>

@@ -44,3 +44,24 @@ func (handler *Handler) DeleteMessage(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode("{\"message\":\"ok\"}")
 	w.Header().Set("Content-Type", "application/json")
 }
+
+func (handler *Handler) GetAllMesssages(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	profileId := util.String2Uint(vars["id"])
+	fmt.Println("Profile id: ", profileId)
+	loggedUserId := util.GetLoggedUserIDFromToken(r)
+
+	fmt.Println("Logged user id: ", loggedUserId)
+
+	result, err := handler.Service.GetAllMessages(loggedUserId, profileId)
+	if err != nil{
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(result)
+	w.Header().Set("Content-Type", "application/json")
+}

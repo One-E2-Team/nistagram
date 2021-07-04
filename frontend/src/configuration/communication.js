@@ -75,7 +75,7 @@ export function getUrlVars() {
   return vars;
 }
 
-export function openWebSocketConn(url, handler){
+export async function openWebSocketConn(url, handler){
   let ws = new WebSocket(url + "?token=" + getJWTToken().token)
   let reload = function(event) {
     console.log(event)
@@ -86,11 +86,15 @@ export function openWebSocketConn(url, handler){
   ws.onmessage = function(event) {
     handler(event.data.response, event.data.data)
   }
+
+  await new Promise(r => setTimeout(r, 2000));
+  
   return function(request, data){
     let req = {
       jwt: getJWTToken().token, 
       request: request,
       data: JSON.stringify(data)
     }
-    ws.send(JSON.stringify(req))}
+    ws.send(JSON.stringify(req))
+  }
 }

@@ -68,13 +68,36 @@
             label="Hash tags"
           ></v-text-field>
 
-          <v-file-input
+          <v-file-input v-if="!hasRole('AGENT')"
             v-model="files"
             multiple
             :rules="[rules.oneOrMoreElement]"
             chips
             label="Input pictures.."
           ></v-file-input>
+             <picture-with-link-modal v-on:addPictureWithLink="addFileWithLink($event)" v-if="hasRole('AGENT')"/>
+            <v-simple-table fixed-header height="300px" v-if="hasRole('AGENT')">
+              <template v-slot:default>
+                <thead>
+                  <tr>
+                    <th class="text-center">File</th>
+                    <th class="text-center">Link</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="item in filesWithLink" :key="item.file.name">
+                    <td>{{ item.file.name }}</td>
+                    <td>{{ item.link }}</td>
+                    <td>
+                      <v-btn color="warning" fab dark @click="removeFile(item)" small>
+                        <v-icon>mdi-delete </v-icon>
+                      </v-btn>
+                    </td>
+                  </tr>
+                </tbody>
+              </template>
+            </v-simple-table>
       </v-card-text>
       <v-card-actions>
           <v-btn text>
@@ -117,9 +140,11 @@
   import axios from 'axios'
   import * as comm from '../configuration/communication.js'
   import * as validator from '../plugins/validator.js'
+  import PictureWithLinkModal from '../modals/PictureWithLinkModal.vue'
   export default {
 
     name: 'CreatePost',
+    components: {PictureWithLinkModal},
 
     data() {return {
       valid: true,
@@ -138,6 +163,7 @@
       isHighlighted: false,
       isCloseFriendsOnly: false,
       files : [],
+      filesWithLink: [],
       validPostType: (v) => (v == 'Post' || v == 'Story') || 'Post type must be selected'
     }},
     mounted(){
@@ -157,17 +183,26 @@
         this.files = []
       },
       submit () {
-        if(this.$refs.form.validate() !== true )
+        if(this.$refs.form.validate() !== true ) {
           return
-        
+        }
+        let links = [];
+        const data = new FormData();
+        if (this.files.length > 0) {
+          for(let i = 0;i < this.files.length;i++) {
+            data.append("file" + i, this.files[i], this.files[i].name);
+            links.push("");
+          }
+        } else if (this.filesWithLink.length > 0) {
+          for(let i = 0;i < this.filesWithLink.length;i++) {
+            data.append("file" + i, this.filesWithLink[i].file, this.filesWithLink[i].file.name);
+            links.push(this.filesWithLink[i].link);
+          }
+        }
         let dto = {"description" : this.description, "isHighlighted" : this.isHighlighted,
         "isCloseFriendsOnly": this.isCloseFriendsOnly, "location" : this.location, 
-        "hashTags" : this.hashTags, "taggedUsers" : [], "postType" : this.selectedPostType}
+        "hashTags" : this.hashTags, "taggedUsers" : [], "postType" : this.selectedPostType, "links": links}
         let json = JSON.stringify(dto);
-        const data = new FormData();
-        for(let i = 0;i < this.files.length;i++){
-            data.append("file" + i, this.files[i], this.files[i].name);
-          }
         data.append("data", json);
         axios.defaults.headers.common['Authorization'] = 'Bearer ' + comm.getJWTToken().token;
         axios({
@@ -217,6 +252,16 @@
         this.description = this.description.slice(0, this.cursorStart) +
                            item + this.description.slice(this.cursorEnd + 1, this.description.length);
         this.searchedTaggedUsers = [];
+      },
+      addFileWithLink(item){
+        this.filesWithLink.push(item);
+      },
+      removeFile(item){
+        this.filesWithLink.splice(this.filesWithLink.indexOf(item), 1)
+        this.filesWithLink = [...this.filesWithLink]
+      },
+      hasRole(role) {
+        return comm.hasRole(role);
       }
     }
   }
