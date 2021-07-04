@@ -91,7 +91,7 @@ func initMonitoringVars(ms string) {
 
 	requestInitiators = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "nistagram_" + ms + "_http_requests_total",
+			Name: "nistagram_" + ms + "_http_requests_initiators",
 			Help: "Initiators of HTTP requests.",
 		},
 		[]string{"path", "initiator"},
