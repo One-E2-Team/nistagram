@@ -12,8 +12,12 @@ import (
 	"nistagram/util"
 )
 
-func (service *Service) MessageConnect(followerId, profileId uint) (*model.MessageEdge, bool) {
-	message1, ok1 := service.ConnectionRepository.SelectMessage(followerId, profileId)
+func (service *Service) MessageConnect(ctx context.Context, followerId, profileId uint) (*model.MessageEdge, bool) {
+	span := util.Tracer.StartSpanFromContext(ctx, "MessageConnect-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing id %v %v\n", followerId, profileId))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+	message1, ok1 := service.ConnectionRepository.SelectMessage(nextCtx, followerId, profileId)
 	if !ok1 || message1 == nil || message1.Approved {
 		return nil, false
 	}
@@ -24,33 +28,37 @@ func (service *Service) MessageConnect(followerId, profileId uint) (*model.Messa
 		Approved:         true,
 		NotifyMessage:    true,
 	}
-	messResp, ok2 := service.ConnectionRepository.CreateOrUpdateMessageRelationship(message2)
+	messResp, ok2 := service.ConnectionRepository.CreateOrUpdateMessageRelationship(nextCtx, message2)
 	if !ok2 || messResp == nil {
 		return nil, false
 	}
-	message1, ok1 = service.ConnectionRepository.CreateOrUpdateMessageRelationship(*message1)
+	message1, ok1 = service.ConnectionRepository.CreateOrUpdateMessageRelationship(nextCtx, *message1)
 	if !ok1 || message1 == nil {
 		return nil, false
 	}
 	return messResp, true
 }
 
-func (service *Service) MessageRequest(followerId, profileId uint) (*model.MessageEdge, bool) {
-	if service.IsInBlockingRelationship(followerId, profileId) {
+func (service *Service) MessageRequest(ctx context.Context, followerId, profileId uint) (*model.MessageEdge, bool) {
+	span := util.Tracer.StartSpanFromContext(ctx, "MessageRequest-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing id %v %v\n", followerId, profileId))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+	if service.IsInBlockingRelationship(nextCtx, followerId, profileId) {
 		return nil, false
 	}
-	message, messOk := service.ConnectionRepository.SelectMessage(profileId, followerId)
+	message, messOk := service.ConnectionRepository.SelectMessage(nextCtx, profileId, followerId)
 	if messOk != false {
 		return nil, false
 	}
 	if message != nil {
-		return service.MessageConnect(profileId, followerId)
+		return service.MessageConnect(nextCtx, profileId, followerId)
 	}
-	message, messOk = service.ConnectionRepository.SelectMessage(followerId, profileId)
+	message, messOk = service.ConnectionRepository.SelectMessage(nextCtx, followerId, profileId)
 	if message != nil || messOk != false {
 		return nil, false
 	}
-	connection, connOk := service.ConnectionRepository.SelectConnection(followerId, profileId, false)
+	connection, connOk := service.ConnectionRepository.SelectConnection(nextCtx, followerId, profileId, false)
 	if connection != nil || connOk != false {
 		return nil, false
 	}
@@ -60,7 +68,7 @@ func (service *Service) MessageRequest(followerId, profileId uint) (*model.Messa
 		Approved:         false,
 		NotifyMessage:    true,
 	}
-	resMessage, ok := service.ConnectionRepository.CreateOrUpdateMessageRelationship(newMessage)
+	resMessage, ok := service.ConnectionRepository.CreateOrUpdateMessageRelationship(nextCtx, newMessage)
 	if ok {
 		return resMessage, true
 	} else {
@@ -68,31 +76,39 @@ func (service *Service) MessageRequest(followerId, profileId uint) (*model.Messa
 	}
 }
 
-func (service *Service) DeclineMessageRequest(followerId, profileId uint) (*model.MessageEdge, bool) {
-	if service.IsInBlockingRelationship(followerId, profileId) {
+func (service *Service) DeclineMessageRequest(ctx context.Context, followerId, profileId uint) (*model.MessageEdge, bool) {
+	span := util.Tracer.StartSpanFromContext(ctx, "DeclineMessageRequest-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing id %v %v\n", followerId, profileId))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+	if service.IsInBlockingRelationship(nextCtx, followerId, profileId) {
 		return nil, false
 	}
-	message, messOk := service.ConnectionRepository.SelectMessage(followerId, profileId)
+	message, messOk := service.ConnectionRepository.SelectMessage(nextCtx, followerId, profileId)
 	if message == nil || messOk == false {
 		return nil, false
 	}
-	connection, connOk := service.ConnectionRepository.SelectConnection(followerId, profileId, false)
+	connection, connOk := service.ConnectionRepository.SelectConnection(nextCtx, followerId, profileId, false)
 	if connection != nil || connOk != false {
 		return nil, false
 	}
-	return service.ConnectionRepository.DeleteMessage(followerId, profileId)
+	return service.ConnectionRepository.DeleteMessage(nextCtx, followerId, profileId)
 }
 
-func (service *Service) ToggleNotifyMessage(followerId, profileId uint) (*model.MessageEdge, bool) {
-	if service.IsInBlockingRelationship(followerId, profileId) {
+func (service *Service) ToggleNotifyMessage(ctx context.Context, followerId, profileId uint) (*model.MessageEdge, bool) {
+	span := util.Tracer.StartSpanFromContext(ctx, "ToggleNotifyMessage-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing id %v %v\n", followerId, profileId))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+	if service.IsInBlockingRelationship(nextCtx, followerId, profileId) {
 		return nil, false
 	}
-	message, messOk := service.ConnectionRepository.SelectMessage(followerId, profileId)
+	message, messOk := service.ConnectionRepository.SelectMessage(nextCtx, followerId, profileId)
 	if message == nil || messOk == false {
 		return nil, false
 	}
 	message.NotifyMessage = !message.NotifyMessage
-	resMessage, ok := service.ConnectionRepository.CreateOrUpdateMessageRelationship(*message)
+	resMessage, ok := service.ConnectionRepository.CreateOrUpdateMessageRelationship(nextCtx, *message)
 	if ok {
 		return resMessage, true
 	} else {
@@ -100,8 +116,12 @@ func (service *Service) ToggleNotifyMessage(followerId, profileId uint) (*model.
 	}
 }
 
-func (service *Service) GetMessage(followerId, profileId uint) *model.MessageEdge {
-	message, ok := service.ConnectionRepository.SelectMessage(followerId, profileId)
+func (service *Service) GetMessage(ctx context.Context, followerId, profileId uint) *model.MessageEdge {
+	span := util.Tracer.StartSpanFromContext(ctx, "GetMessage-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing id %v %v\n", followerId, profileId))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+	message, ok := service.ConnectionRepository.SelectMessage(nextCtx, followerId, profileId)
 	if ok {
 		return message
 	} else {
@@ -109,26 +129,33 @@ func (service *Service) GetMessage(followerId, profileId uint) *model.MessageEdg
 	}
 }
 
-func (service *Service) GetAllMessageRequests(id uint) *[]dto.UserDTO {
-	var result = service.ConnectionRepository.GetAllMessageRequests(id)
+func (service *Service) GetAllMessageRequests(ctx context.Context, id uint) *[]dto.UserDTO {
+	span := util.Tracer.StartSpanFromContext(ctx, "GetAllMessageRequests-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing id %v \n", id))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+	var result = service.ConnectionRepository.GetAllMessageRequests(nextCtx, id)
 	var ret = make([]dto.UserDTO, 0) // 0, :)
 	for _, profileId := range *result {
 		var p model2.Profile
 		profileHost, profilePort := util.GetProfileHostAndPort()
-		resp, err := util.CrossServiceRequest(context.Background(), http.MethodGet,
+		resp, err := util.CrossServiceRequest(nextCtx, http.MethodGet,
 			util.GetCrossServiceProtocol()+"://"+profileHost+":"+profilePort+"/get-by-id/"+util.Uint2String(profileId),
 			nil, map[string]string{})
 		if err != nil {
+			util.Tracer.LogError(span, err)
 			fmt.Println(err)
 			return nil
 		}
 		body, err1 := ioutil.ReadAll(resp.Body)
 		if err1 != nil {
+			util.Tracer.LogError(span, err)
 			fmt.Println(err1)
 			return nil
 		}
 		err = json.Unmarshal(body, &p)
 		if err != nil {
+			util.Tracer.LogError(span, err)
 			fmt.Println(err)
 			return nil
 		}

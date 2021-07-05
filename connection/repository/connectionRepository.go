@@ -1,13 +1,18 @@
 package repository
 
 import (
+	"context"
 	"fmt"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j/dbtype"
 	"nistagram/connection/model"
+	"nistagram/util"
 )
 
-func (repo *Repository) GetConnectedProfiles(conn model.ConnectionEdge, excludeMuted bool, direction bool) *[]uint {
+func (repo *Repository) GetConnectedProfiles(ctx context.Context, conn model.ConnectionEdge, excludeMuted bool, direction bool) *[]uint {
+	span := util.Tracer.StartSpanFromContext(ctx, "GetConnectedProfiles-repository")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "repository", fmt.Sprintf("repository call for id %v %v\n", conn.PrimaryProfile, conn.SecondaryProfile))
 	var additionalSelector string = ""
 	if conn.Approved == true {
 		additionalSelector += "AND e.approved = $approved "
@@ -50,6 +55,7 @@ func (repo *Repository) GetConnectedProfiles(conn model.ConnectionEdge, excludeM
 			conn.ToMap())
 		var ret []uint
 		if err != nil {
+			util.Tracer.LogError(span, err)
 			fmt.Println(err.Error())
 			return ret, err
 		}
@@ -61,18 +67,26 @@ func (repo *Repository) GetConnectedProfiles(conn model.ConnectionEdge, excludeM
 		return ret, err
 	})
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err.Error())
 	}
 	ret := profileIDs.([]uint)
 	return &ret
 }
 
-func (repo *Repository) SelectOrCreateConnection(id1, id2 uint) *model.ConnectionEdge {
-	conn, _ := repo.SelectConnection(id1, id2, true)
+func (repo *Repository) SelectOrCreateConnection(ctx context.Context, id1, id2 uint) *model.ConnectionEdge {
+	span := util.Tracer.StartSpanFromContext(ctx, "SelectOrCreateConnection-repository")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "repository", fmt.Sprintf("repository call for id %v %v\n", id1, id2))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+	conn, _ := repo.SelectConnection(nextCtx, id1, id2, true)
 	return conn
 }
 
-func (repo *Repository) SelectConnection(id1, id2 uint, doCreate bool) (*model.ConnectionEdge, bool) {
+func (repo *Repository) SelectConnection(ctx context.Context, id1, id2 uint, doCreate bool) (*model.ConnectionEdge, bool) {
+	span := util.Tracer.StartSpanFromContext(ctx, "SelectConnection-repository")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "repository", fmt.Sprintf("repository call for id %v %v\n", id1, id2))
 	session := (*repo.DatabaseDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close()
 	conn := model.ConnectionEdge{
@@ -104,15 +118,18 @@ func (repo *Repository) SelectConnection(id1, id2 uint, doCreate bool) (*model.C
 					"RETURN e",
 				conn.ToMap())
 			if err1 != nil {
+				util.Tracer.LogError(span, err1)
 				return conn, err1
 			} else {
 				record, rerr = connection.Single()
 				if rerr != nil {
+					util.Tracer.LogError(span, rerr)
 					return nil, rerr
 				}
 			}
 		}
 		if rerr != nil{
+			util.Tracer.LogError(span, rerr)
 			return nil, rerr
 		}
 		res := record.Values[0].(dbtype.Relationship).Props
@@ -133,6 +150,7 @@ func (repo *Repository) SelectConnection(id1, id2 uint, doCreate bool) (*model.C
 	fmt.Println("resulting")
 	fmt.Println(resultingConn)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err.Error())
 		return nil, false
 	}
@@ -140,7 +158,10 @@ func (repo *Repository) SelectConnection(id1, id2 uint, doCreate bool) (*model.C
 	return &ret, true
 }
 
-func (repo *Repository) UpdateConnection(conn *model.ConnectionEdge) (*model.ConnectionEdge, bool) {
+func (repo *Repository) UpdateConnection(ctx context.Context, conn *model.ConnectionEdge) (*model.ConnectionEdge, bool) {
+	span := util.Tracer.StartSpanFromContext(ctx, "UpdateConnection-repository")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "repository", fmt.Sprintf("repository call for id %v %v\n", conn.PrimaryProfile, conn.SecondaryProfile))
 	session := (*repo.DatabaseDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close()
 	resultingConn, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
@@ -153,6 +174,7 @@ func (repo *Repository) UpdateConnection(conn *model.ConnectionEdge) (*model.Con
 				"RETURN e\n",
 			conn.ToMap())
 		if err != nil {
+			util.Tracer.LogError(span, err)
 			fmt.Println(err.Error())
 			return nil, err
 		}
@@ -173,6 +195,7 @@ func (repo *Repository) UpdateConnection(conn *model.ConnectionEdge) (*model.Con
 		return ret, err
 	})
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err.Error())
 		return nil, false
 	}
@@ -181,9 +204,14 @@ func (repo *Repository) UpdateConnection(conn *model.ConnectionEdge) (*model.Con
 	return &ret, true
 }
 
-func (repo *Repository) DeleteConnection(followerId, profileId uint) (*model.ConnectionEdge, bool) {
-	conn, ok := repo.SelectConnection(followerId, profileId, false)
+func (repo *Repository) DeleteConnection(ctx context.Context, followerId, profileId uint) (*model.ConnectionEdge, bool) {
+	span := util.Tracer.StartSpanFromContext(ctx, "DeleteConnection-repository")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "repository", fmt.Sprintf("repository call for id %v %v\n", followerId, profileId))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+	conn, ok := repo.SelectConnection(nextCtx, followerId, profileId, false)
 	if !ok {
+		util.Tracer.LogError(span, fmt.Errorf("select connection did not return a result"))
 		return nil, false
 	}
 	session := (*repo.DatabaseDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
@@ -196,12 +224,16 @@ func (repo *Repository) DeleteConnection(followerId, profileId uint) (*model.Con
 			conn.ToMap())
 	})
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, false
 	}
 	return conn, true
 }
 
-func (repo *Repository) GetAllFollowRequests(id uint) *[]uint {
+func (repo *Repository) GetAllFollowRequests(ctx context.Context, id uint) *[]uint {
+	span := util.Tracer.StartSpanFromContext(ctx, "GetAllFollowRequests-repository")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "repository", fmt.Sprintf("repository call for id %v\n", id))
 	conn := model.ConnectionEdge{
 		PrimaryProfile:    0,
 		SecondaryProfile:  id,
@@ -224,6 +256,7 @@ func (repo *Repository) GetAllFollowRequests(id uint) *[]uint {
 			conn.ToMap())
 		var ret []uint = make([]uint, 0)
 		if err != nil {
+			util.Tracer.LogError(span, err)
 			fmt.Println(err.Error())
 			return ret, err
 		}
@@ -235,6 +268,7 @@ func (repo *Repository) GetAllFollowRequests(id uint) *[]uint {
 		return ret, err
 	})
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err.Error())
 	}
 	ret := profileIDs.([]uint)
