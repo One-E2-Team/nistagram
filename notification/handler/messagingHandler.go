@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
@@ -14,31 +15,44 @@ import (
 	"strings"
 )
 
-func (handler *Handler) RndHandler(senderId uint, object []byte) ([]byte, bool) {
+func (handler *Handler) RndHandler(ctx context.Context, senderId uint, object []byte) ([]byte, bool) {
+	span := util.Tracer.StartSpanFromContext(ctx, "RndHandler-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing id %v\n", senderId))
 	fmt.Println(senderId, object)
 	return []byte("RandomIndeed"), true
 }
 
-func (handler *Handler) SendMessage(senderId uint, object []byte) ([]byte, bool) {
+func (handler *Handler) SendMessage(ctx context.Context, senderId uint, object []byte) ([]byte, bool) {
+	span := util.Tracer.StartSpanFromContext(ctx, "SendMessage-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing id %v\n", senderId))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
 	fmt.Println(senderId, object)
 	var message model.Message
 	err := json.Unmarshal(object, &message)
 	if err != nil{
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 	}else{
-		handler.Service.CreateMessage(&message)
-		TrySendMessage(message.ReceiverId, "message", object)
+		handler.Service.CreateMessage(nextCtx, &message)
+		TrySendMessage(nextCtx, message.ReceiverId, "message", object)
 	}
 	return []byte("Sent"), true
 }
 
 func (handler *Handler) DeleteMessage(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("DeleteMessage-handler", r)
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "handler", fmt.Sprintf("handling %s\n", r.URL.Path))
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
 	vars := mux.Vars(r)
 	messageId := vars["id"]
 	loggedUserId := util.GetLoggedUserIDFromToken(r)
 
-	err := handler.Service.DeleteMessage(loggedUserId, messageId)
+	err := handler.Service.DeleteMessage(ctx, loggedUserId, messageId)
 	if err != nil{
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
@@ -51,6 +65,10 @@ func (handler *Handler) DeleteMessage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (handler *Handler) GetAllMesssages(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("GetAllMesssages-handler", r)
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "handler", fmt.Sprintf("handling %s\n", r.URL.Path))
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
 	vars := mux.Vars(r)
 	profileId := util.String2Uint(vars["id"])
 	fmt.Println("Profile id: ", profileId)
@@ -58,8 +76,9 @@ func (handler *Handler) GetAllMesssages(w http.ResponseWriter, r *http.Request) 
 
 	fmt.Println("Logged user id: ", loggedUserId)
 
-	result, err := handler.Service.GetAllMessages(loggedUserId, profileId)
+	result, err := handler.Service.GetAllMessages(ctx, loggedUserId, profileId)
 	if err != nil{
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
@@ -72,9 +91,13 @@ func (handler *Handler) GetAllMesssages(w http.ResponseWriter, r *http.Request) 
 }
 
 func (handler *Handler) SaveFile(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("SaveFile-handler", r)
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "handler", fmt.Sprintf("handling %s\n", r.URL.Path))
 	w.Header().Set("Content-Type", "application/json")
 
 	if err := r.ParseMultipartForm(0); err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
 		w.WriteHeader(http.StatusBadRequest)
@@ -122,10 +145,14 @@ func (handler *Handler) SaveFile(w http.ResponseWriter, r *http.Request) {
 }
 
 func (handler *Handler) Seen(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("Seen-handler", r)
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "handler", fmt.Sprintf("handling %s\n", r.URL.Path))
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
 	vars := mux.Vars(r)
 	messageId := vars["id"]
 
-	err := handler.Service.Seen(messageId)
+	err := handler.Service.Seen(ctx, messageId)
 	if err != nil{
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
