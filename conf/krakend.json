@@ -2434,29 +2434,7 @@
       ]
     },
     {
-      "endpoint": "/api/monitoring/statistics/{campaignId}",
-      "method": "GET",
-      "output_encoding": "json",
-      "extra_config": {},
-      "headers_to_pass": [
-        "Authorization"
-      ],
-      "backend": [
-        {
-          "url_pattern": "/statistics/{campaignId}",
-          "encoding": "json",
-          "sd": "static",
-          "method": "GET",
-          "extra_config": {},
-          "host": [
-            "https://monitoring:8080"
-          ],
-          "disable_host_sanitize": false
-        }
-      ]
-    },
-    {
-      "endpoint": "/agent-api/statistics/{campaignId}",
+      "endpoint": "/agent-api/monitoring/statistics/{campaignId}",
       "method": "GET",
       "output_encoding": "json",
       "extra_config": {},
@@ -2475,28 +2453,6 @@
       ],
       "headers_to_pass": [
         "Authorization"
-      ]
-    },
-    {
-      "endpoint": "/agent-api/campaign/monitoring/{id}",
-      "method": "GET",
-      "output_encoding": "json",
-      "extra_config": {},
-      "headers_to_pass": [
-        "Authorization"
-      ],
-      "backend": [
-        {
-          "url_pattern": "/campaign/monitoring/{id}",
-          "encoding": "json",
-          "sd": "static",
-          "method": "GET",
-          "extra_config": {},
-          "host": [
-            "https://campaign:8080"
-          ],
-          "disable_host_sanitize": false
-        }
       ]
     }
   ],

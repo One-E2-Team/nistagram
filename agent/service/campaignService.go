@@ -22,7 +22,7 @@ type CampaignService struct {
 
 func (service *CampaignService) SaveCampaignReport(campaignId uint) error {
 	fmt.Println("send req ", campaignId)
-	resp, err := util.NistagramRequest(http.MethodGet, "/agent-api/campaign/monitoring/"+util.Uint2String(campaignId),
+	resp, err := util.NistagramRequest(http.MethodGet, "/agent-api/monitoring/statistics/"+util.Uint2String(campaignId),
 		nil, map[string]string{})
 
 	if err != nil {
@@ -159,7 +159,7 @@ func (service *CampaignService) DeleteCampaign(campaignID string) (*http.Respons
 }
 
 func (service *CampaignService) GeneratePdfForCampaign(campaignId uint) error {
-	resp, err := util.ExistDBRequest(http.MethodGet, "/exist/rest/collection/reports/report"+util.Uint2String(campaignId)+".xml", []byte(""), map[string]string{})
+	resp, err := util.ExistDBRequest(http.MethodGet, "/exist/rest/collection/report"+util.Uint2String(campaignId)+".xml", []byte(""), map[string]string{})
 	if err != nil {
 		return err
 	}
@@ -173,7 +173,6 @@ func (service *CampaignService) GeneratePdfForCampaign(campaignId uint) error {
 	if err != nil {
 		return err
 	}
-
 	m := pdf.NewMaroto(consts.Portrait, consts.Letter)
 
 	m.Row(20, func() {

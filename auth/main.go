@@ -98,7 +98,8 @@ func handlerFunc(handler *handler.AuthHandler) {
 	router.HandleFunc("/update-user",
 		util.MSAuth(handler.UpdateUser, []string{"profile"})).Methods("POST")
 	router.HandleFunc("/privileges/{profileId}",
-		util.MSAuth(handler.GetPrivileges, []string{"auth", "connection", "post", "profile", "postreaction", "campaign", "notification"})).Methods("GET")
+		util.MSAuth(handler.GetPrivileges,
+			[]string{"auth", "connection", "post", "profile", "postreaction", "campaign", "notification", "monitoring"})).Methods("GET")
 	router.HandleFunc("/ban/{profileID}",
 		util.MSAuth(handler.BanUser, []string{"profile"})).Methods("DELETE")
 	router.HandleFunc("/make-agent/{profileID}",

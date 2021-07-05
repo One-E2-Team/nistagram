@@ -92,7 +92,6 @@ func (service *MonitoringService) GetCampaignStatistics(campaignId uint) (dto.St
 	if err != nil {
 		return statistics, err
 	}
-
 	var infIds []uint
 	for _, param := range campaign.CampaignParameters {
 		for _, req := range param.CampaignRequests {
@@ -109,15 +108,14 @@ func (service *MonitoringService) GetCampaignStatistics(campaignId uint) (dto.St
 	}
 
 	usernames, err := getProfileUsernamesByIDs(infIds)
-
-	var usersMap map[uint]string
+	usersMap := make(map[uint]string, 0)
 	for i, id := range infIds {
 		usersMap[id] = usernames[i]
 	}
 
-	for _, param := range campaign.CampaignParameters {
-		for _, req := range param.CampaignRequests {
-			req.InfluencerUsername = usersMap[req.InfluencerID]
+	for i, param := range campaign.CampaignParameters {
+		for j, req := range param.CampaignRequests {
+			campaign.CampaignParameters[i].CampaignRequests[j].InfluencerUsername = usersMap[req.InfluencerID]
 		}
 	}
 
@@ -132,7 +130,6 @@ func (service *MonitoringService) GetCampaignStatistics(campaignId uint) (dto.St
 	statistics.CampaignId = campaignId
 	statistics.Campaign = campaign
 	statistics.Events = eventDtos
-
 	return statistics, err
 }
 
@@ -205,7 +202,6 @@ func getCampaignByCampaignId(campaignId uint) (dto.CampaignMonitoringDTO, error)
 	}
 
 	err = json.NewDecoder(resp.Body).Decode(&ret)
-
 	return ret, err
 }
 
