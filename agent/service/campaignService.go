@@ -502,7 +502,13 @@ func (service *CampaignService) GeneratePdfForSortedCampaigns() error {
 	if err != nil {
 		return err
 	}
-	reports := result.Results
+	reports := make([]model.CampaignReport, 0)
+	for i, info := range result.BasicInformation {
+		reports = append(reports, model.CampaignReport{
+			BasicInformation:     info,
+			OverallStatistics:    result.OverallStatistics[i],
+		})
+	}
 
 	/*
 		expr, err := xpath.Compile("//basic_information | //overall_statistics")
@@ -694,10 +700,10 @@ func (service *CampaignService) GeneratePdfForSortedCampaigns() error {
 }
 
 func sortReports(reports []model.CampaignReport) []model.CampaignReport {
-	var ret []model.CampaignReport
+	ret := make([]model.CampaignReport, 0)
 
 	for i := 0; i < len(reports); i++ {
-		ret[i] = reports[i]
+		ret = append(ret, reports[i])
 		istart := ret[i].BasicInformation.Start
 		iend := ret[i].BasicInformation.Start
 		idays := iend.Sub(istart).Hours() / 24

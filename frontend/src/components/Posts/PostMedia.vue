@@ -51,7 +51,7 @@ export default {
                 url: comm.protocol + '://' + comm.server + '/redirect/'+campaignData.campaignId+'/'+campaignData.influencerId+'/'+this.currentMediaId,
                 headers: comm.getHeader(),
             });
-            window.location.href = this.currentWebsite;
+            window.open(this.currentWebsite, "_blank");
         },
         returnCampaignData(){
             let ret = {};

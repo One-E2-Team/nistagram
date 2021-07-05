@@ -7,7 +7,9 @@ import (
 )
 
 type MonitoringResult struct {
-	Results []CampaignReport      				`json:"result" xml:"result"`
+	XMLName        			xml.Name       				`json:"result" xml:"result"`
+	BasicInformation 		[]BasicInformation 			`json:"basicInformation" xml:"basic_information"`
+	OverallStatistics		[]OverallStatistics			`json:"overallStatistics" xml:"overall_statistics"`
 }
 
 type CampaignReport struct{
