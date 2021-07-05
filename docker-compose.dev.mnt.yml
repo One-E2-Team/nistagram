@@ -344,6 +344,7 @@ services:
       - ./conf/certs/key/notification.key.pem:/nistagram/key.pem
       - ./conf/certs/pem/notification.cert.pem:/nistagram/cert.pem
       - ../logs/notification:/logs/notification
+      - ../nistagramstaticdata:/nistagramstaticdata
     ports:
       - 7008:8080
     networks:
