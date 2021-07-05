@@ -4,7 +4,7 @@
       <v-dialog transition="dialog-bottom-transition" width="900">
         <template v-slot:activator="{ on, attrs }" v-if="post.postType==2">
             <span v-bind="attrs"  v-on="on" >
-                <post-media :width="width" :height="height" :post="post"/>
+                <post-media :width="width" :height="height" :post="post" :campaignData="campaignData"/>
             </span>
         </template>
         <template v-slot:default="dialog">
@@ -20,7 +20,7 @@
                 <v-container>
                     <v-row justify="center">
                         <v-col cols="12" sm="6">
-                           <post-media :width="width" :height="height" :post="post"/>
+                           <post-media :width="width" :height="height" :post="post" :campaignData="campaignData"/>
                         </v-col>
                     <v-col cols="12" sm="6">
                         <v-row> <v-col>Location: {{post.location}} </v-col></v-row>
@@ -100,7 +100,7 @@ import axios from 'axios'
 export default {
   components: { PostMedia, PostReactionsModal },
   name: 'ShowPostModal',
-  props: ['width','height','post','reaction'],
+  props: ['width','height','post','reaction', 'campaignData'],
   data(){
       return{
           isUserLogged: comm.isUserLogged(),
@@ -131,7 +131,10 @@ export default {
       if (this.preventActionIfUnauthorized()) {
         return;
       }
-      let dto = {'postId' : this.post.id, 'content' : this.comment}
+      let campaignId = this.campaignData == undefined ? 0 : this.campaignData.campaignId;
+      let influencerID = this.campaignData == undefined ? 0 : this.campaignData.influencerId;
+      let influencerUsername = this.campaignData == undefined ? '' : this.campaignData.influencerUsername;
+      let dto = {'postId' : this.post.id, 'content' : this.comment, 'campaignId': campaignId, 'influencerID': influencerID, 'influencerUsername': influencerUsername};
       axios({
         method: 'post',
         url: comm.protocol + '://' + comm.server + '/api/postreaction/comment',

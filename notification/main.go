@@ -60,6 +60,7 @@ func initHandler(service *service.Service) *handler.Handler {
 
 func handleFunc(handler *handler.Handler) {
 	router := mux.NewRouter().StrictSlash(true)
+	util.InitMonitoring("notification", router)
 
 	router.HandleFunc("/messaging", util.RBAC(handler.MessagingWebSocket, "MESSAGING", false)).Methods("GET")
 

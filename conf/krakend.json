@@ -1329,7 +1329,7 @@
       ]
     },
     {
-      "endpoint": "/api/postreaction/react/{postID}",
+      "endpoint": "/api/postreaction/react",
       "method": "DELETE",
       "output_encoding": "json",
       "extra_config": {},
@@ -1338,7 +1338,7 @@
       ],
       "backend": [
         {
-          "url_pattern": "/react/{postID}",
+          "url_pattern": "/react",
           "encoding": "json",
           "sd": "static",
           "method": "DELETE",

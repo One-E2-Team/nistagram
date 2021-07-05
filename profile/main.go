@@ -109,6 +109,8 @@ func initHandler(service *service.ProfileService) *handler.Handler {
 
 func handleFunc(handler *handler.Handler) {
 	router := mux.NewRouter().StrictSlash(true)
+	util.InitMonitoring("profile", router)
+
 	router.HandleFunc("/", handler.Register).Methods("POST")               // frontend func
 	router.HandleFunc("/agent", util.RBAC(handler.RegisterAgent,
 		"CREATE_AGENT", false)).Methods("POST")			 //frontend func
