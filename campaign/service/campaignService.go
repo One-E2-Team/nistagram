@@ -19,9 +19,14 @@ type CampaignService struct {
 	CampaignRepository *repository.CampaignRepository
 }
 
-func (service *CampaignService) CreateCampaign(userId uint, campaignRequest dto.CampaignDTO) (model.Campaign, error) {
-	err := makeCampaign(campaignRequest.PostID, userId)
+func (service *CampaignService) CreateCampaign(ctx context.Context, userId uint, campaignRequest dto.CampaignDTO) (model.Campaign, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "CreateCampaign-service")
+	defer util.Tracer.FinishSpan(span)
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
+	err := makeCampaign(nextCtx, campaignRequest.PostID, userId)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return model.Campaign{}, err
 	}
 	campaignParams := model.CampaignParameters{
@@ -29,9 +34,9 @@ func (service *CampaignService) CreateCampaign(userId uint, campaignRequest dto.
 		Start:            campaignRequest.Start,
 		End:              campaignRequest.End,
 		CampaignID:       0,
-		Interests:        service.getInterestsFromRequest(campaignRequest.Interests),
-		CampaignRequests: getCampaignRequestsForProfileId(campaignRequest.InfluencerProfileIds),
-		Timestamps:       getTimestampsFromRequest(campaignRequest.Timestamps),
+		Interests:        service.getInterestsFromRequest(nextCtx, campaignRequest.Interests),
+		CampaignRequests: getCampaignRequestsForProfileId(nextCtx, campaignRequest.InfluencerProfileIds),
+		Timestamps:       getTimestampsFromRequest(nextCtx, campaignRequest.Timestamps),
 	}
 
 	campaign := model.Campaign{
@@ -42,10 +47,15 @@ func (service *CampaignService) CreateCampaign(userId uint, campaignRequest dto.
 		Start:              campaignRequest.Start,
 		CampaignParameters: []model.CampaignParameters{campaignParams},
 	}
-	return service.CampaignRepository.CreateCampaign(campaign)
+	return service.CampaignRepository.CreateCampaign(nextCtx, campaign)
 }
 
-func getTimestampsFromRequest(timestamps []time.Time) []model.Timestamp {
+func getTimestampsFromRequest(ctx context.Context, timestamps []time.Time) []model.Timestamp {
+	span := util.Tracer.StartSpanFromContext(ctx, "getTimestampsFromRequest-service")
+	defer util.Tracer.FinishSpan(span)
+
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing convert times to timestamps model \n",))
+
 	ret := make([]model.Timestamp, 0)
 	for _, value := range timestamps {
 		ret = append(ret, model.Timestamp{
@@ -57,7 +67,12 @@ func getTimestampsFromRequest(timestamps []time.Time) []model.Timestamp {
 	return ret
 }
 
-func getCampaignRequestsForProfileId(profileIds []string) []model.CampaignRequest {
+func getCampaignRequestsForProfileId(ctx context.Context, profileIds []string) []model.CampaignRequest {
+	span := util.Tracer.StartSpanFromContext(ctx, "getCampaignRequestsForProfileId-service")
+	defer util.Tracer.FinishSpan(span)
+
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing get campaign request for profile ids \n",))
+
 	ret := make([]model.CampaignRequest, 0)
 	for _, value := range profileIds {
 		ret = append(ret, model.CampaignRequest{
@@ -70,39 +85,60 @@ func getCampaignRequestsForProfileId(profileIds []string) []model.CampaignReques
 	return ret
 }
 
-func (service *CampaignService) getInterestsFromRequest(interests []string) []model.Interest {
-	return service.CampaignRepository.GetInterests(interests)
+func (service *CampaignService) getInterestsFromRequest(ctx context.Context, interests []string) []model.Interest {
+	span := util.Tracer.StartSpanFromContext(ctx, "getInterestsFromRequest-service")
+	defer util.Tracer.FinishSpan(span)
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
+	return service.CampaignRepository.GetInterests(nextCtx, interests)
 }
 
-func (service *CampaignService) UpdateCampaignParameters(id uint, params dto.CampaignParametersDTO) error {
+func (service *CampaignService) UpdateCampaignParameters(ctx context.Context, id uint, params dto.CampaignParametersDTO) error {
+	span := util.Tracer.StartSpanFromContext(ctx, "UpdateCampaignParameters-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing campaign id %v\n", id))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
 	newParams := model.CampaignParameters{
 		Model:            gorm.Model{},
 		Start:            time.Time{},
 		End:              params.End,
 		CampaignID:       id,
-		Interests:        service.getInterestsFromRequest(params.Interests),
-		CampaignRequests: getCampaignRequestsForProfileId(params.InfluencerProfileIds),
-		Timestamps:       getTimestampsFromRequest(params.Timestamps),
+		Interests:        service.getInterestsFromRequest(nextCtx, params.Interests),
+		CampaignRequests: getCampaignRequestsForProfileId(nextCtx, params.InfluencerProfileIds),
+		Timestamps:       getTimestampsFromRequest(nextCtx, params.Timestamps),
 	}
-	return service.CampaignRepository.UpdateCampaignParameters(newParams)
+	return service.CampaignRepository.UpdateCampaignParameters(nextCtx, newParams)
 }
 
-func (service *CampaignService) DeleteCampaign(id uint) error {
-	return service.CampaignRepository.DeleteCampaign(id)
+func (service *CampaignService) DeleteCampaign(ctx context.Context, id uint) error {
+	span := util.Tracer.StartSpanFromContext(ctx, "DeleteCampaign-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing campaign id %v\n", id))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
+	return service.CampaignRepository.DeleteCampaign(nextCtx, id)
 }
 
-func (service *CampaignService) GetMyCampaigns(agentID uint) ([]dto.CampaignWithPostDTO, error) {
-	campaigns, err := service.CampaignRepository.GetMyCampaigns(agentID)
+func (service *CampaignService) GetMyCampaigns(ctx context.Context, agentID uint) ([]dto.CampaignWithPostDTO, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "GetMyCampaigns-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing agent id %v\n", agentID))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
+	campaigns, err := service.CampaignRepository.GetMyCampaigns(nextCtx, agentID)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 	postIDs := make([]string, 0)
 	for _, value := range campaigns {
 		postIDs = append(postIDs, value.PostID)
 	}
-
-	posts, err := getPostsByPostsIds(postIDs)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing get posts for post ids\n"))
+	posts, err := getPostsByPostsIds(nextCtx, postIDs)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 	ret := make([]dto.CampaignWithPostDTO, 0)
@@ -126,8 +162,12 @@ func (service *CampaignService) GetMyCampaigns(agentID uint) ([]dto.CampaignWith
 	return ret, err
 }
 
-func (service *CampaignService) GetAllInterests() ([]string, error) {
-	return service.CampaignRepository.GetAllInterests()
+func (service *CampaignService) GetAllInterests(ctx context.Context) ([]string, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "GetAllInterests-service")
+	defer util.Tracer.FinishSpan(span)
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
+	return service.CampaignRepository.GetAllInterests(nextCtx)
 }
 
 func getCampaignTypeFromRequest(start time.Time, end time.Time, timestampsLength int) model.CampaignType {
@@ -138,23 +178,39 @@ func getCampaignTypeFromRequest(start time.Time, end time.Time, timestampsLength
 	}
 }
 
-func makeCampaign(postID string, loggedUserID uint) error {
+func makeCampaign(ctx context.Context, postID string, loggedUserID uint) error {
+	span := util.Tracer.StartSpanFromContext(ctx, "makeCampaign-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing post id %s for logged user id %v\n", postID, loggedUserID))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
 	postHost, postPort := util.GetPostHostAndPort()
-	resp, err := util.CrossServiceRequest(context.Background(), http.MethodPost,
+	resp, err := util.CrossServiceRequest(nextCtx, http.MethodPost,
 		util.GetCrossServiceProtocol()+"://"+postHost+":"+postPort+"/make-campaign/"+postID+"/"+util.Uint2String(loggedUserID),
 		nil, map[string]string{})
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return err
 	}
 	if resp.StatusCode != 200 {
+		util.Tracer.LogError(span, fmt.Errorf("bad post id"))
 		return fmt.Errorf("BAD_POST_ID")
 	}
 	return nil
 }
 
-func (service *CampaignService) GetCurrentlyValidInterests(campaignId uint) ([]string, error) {
+func (service *CampaignService) GetCurrentlyValidInterests(ctx context.Context, campaignId uint) ([]string, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "GetCurrentlyValidInterests-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing campaign id %v\n", campaignId))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
 	var ret []string
-	parameters, err := service.CampaignRepository.GetParametersByCampaignId(campaignId)
+	parameters, err := service.CampaignRepository.GetParametersByCampaignId(nextCtx, campaignId)
+
+	if err != nil{
+		util.Tracer.LogError(span, err)
+	}
 
 	for _, i := range parameters.Interests {
 		ret = append(ret, i.Name)
@@ -163,20 +219,29 @@ func (service *CampaignService) GetCurrentlyValidInterests(campaignId uint) ([]s
 	return ret, err
 }
 
-func (service *CampaignService) GetLastActiveParametersForCampaign(id uint) (model.CampaignParameters, error) {
-	return service.CampaignRepository.GetLastActiveParametersForCampaign(id)
+func (service *CampaignService) GetLastActiveParametersForCampaign(ctx context.Context, id uint) (model.CampaignParameters, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "GetLastActiveParametersForCampaign-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing id %v\n", id))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
+	return service.CampaignRepository.GetLastActiveParametersForCampaign(nextCtx, id)
 }
 
-func (service *CampaignService) GetCampaignByIdForMonitoring(campaignId uint) (dto.CampaignMonitoringDTO, error) {
+func (service *CampaignService) GetCampaignByIdForMonitoring(ctx context.Context, campaignId uint) (dto.CampaignMonitoringDTO, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "GetCampaignByIdForMonitoring-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing campaign id %v\n", campaignId))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
 
 	var ret dto.CampaignMonitoringDTO
 	var retParams []dto.CampaignParametersMonitoringDTO
 
-	campaign, err := service.CampaignRepository.GetCampaignById(campaignId)
+	campaign, err := service.CampaignRepository.GetCampaignById(nextCtx, campaignId)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return ret, err
 	}
-	fmt.Println("kampanja ", campaign)
 
 	for _, param := range campaign.CampaignParameters {
 		var paramDto dto.CampaignParametersMonitoringDTO
@@ -212,13 +277,21 @@ func (service *CampaignService) GetCampaignByIdForMonitoring(campaignId uint) (d
 	return ret, nil
 }
 
-func (service *CampaignService) GetAvailableCampaignsForUser(loggedUserID uint, followingProfiles []util.FollowingProfileDTO) ([]string, []uint, []uint, error) {
-	interests, err := getProfileInterests(loggedUserID)
+func (service *CampaignService) GetAvailableCampaignsForUser(ctx context.Context, loggedUserID uint, followingProfiles []util.FollowingProfileDTO) ([]string, []uint, []uint, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "GetAvailableCampaignsForUser-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing logged user id  %v\n", loggedUserID))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing get all interests for profile %v\n",loggedUserID))
+	interests, err := getProfileInterests(nextCtx, loggedUserID)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, nil, nil, err
 	}
-	allActiveParams, err := service.CampaignRepository.GetAllActiveParameters()
+	allActiveParams, err := service.CampaignRepository.GetAllActiveParameters(nextCtx)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, nil, nil, err
 	}
 	potentialInfluencers := make([]uint, 0)
@@ -229,10 +302,12 @@ func (service *CampaignService) GetAvailableCampaignsForUser(loggedUserID uint, 
 	retInfluencerIDs := make([]uint, 0)
 	var wg sync.WaitGroup
 	for _, params := range allActiveParams {
+		util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing check if campaign with inserted params is active\n"))
 		if campaignIsAvailableNow(params) {
 			wg.Add(2)
 			go func() {
 				defer wg.Done()
+				util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing if inserted campaign paramters contains some of inserted interests\n"))
 				if campaignParamsContainsInterest(params, interests) {
 					campaignIDs = append(campaignIDs, params.CampaignID)
 					retInfluencerIDs = append(retInfluencerIDs, 0)
@@ -240,6 +315,7 @@ func (service *CampaignService) GetAvailableCampaignsForUser(loggedUserID uint, 
 			}()
 			go func() {
 				defer wg.Done()
+				util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing search for active influencers in campaign parameters from list of inserted profile ids\n"))
 				test, influencerIDs := campaignParamsContainsInfluencerIDs(params, potentialInfluencers)
 				if test {
 					for _, influencerID := range influencerIDs {
@@ -254,18 +330,25 @@ func (service *CampaignService) GetAvailableCampaignsForUser(loggedUserID uint, 
 	if len(campaignIDs) == 0 {
 		return make([]string, 0), make([]uint, 0), make([]uint, 0), nil
 	}
-	postIDs, err := service.CampaignRepository.GetPostIDsFromCampaignIDs(campaignIDs)
+	postIDs, err := service.CampaignRepository.GetPostIDsFromCampaignIDs(nextCtx, campaignIDs)
 	return postIDs, retInfluencerIDs, campaignIDs, err
 }
 
-func (service *CampaignService) GetAcceptedCampaignsForInfluencer(influencerID uint) ([]string, []uint, []uint, error) {
-	allActiveParams, err := service.CampaignRepository.GetAllActiveParameters()
+func (service *CampaignService) GetAcceptedCampaignsForInfluencer(ctx context.Context, influencerID uint) ([]string, []uint, []uint, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "GetAcceptedCampaignsForInfluencer-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing influencer id %v\n", influencerID))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
+	allActiveParams, err := service.CampaignRepository.GetAllActiveParameters(nextCtx)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, nil, nil, err
 	}
 	campaignIDs := make([]uint, 0)
 	retInfluencerIDs := make([]uint, 0)
 	for _, params := range allActiveParams {
+		util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing search for active influencers in campaign parameters from list of inserted profile ids "))
 		test, _ := campaignParamsContainsInfluencerIDs(params, []uint{influencerID})
 		if test {
 			campaignIDs = append(campaignIDs, params.CampaignID)
@@ -275,25 +358,38 @@ func (service *CampaignService) GetAcceptedCampaignsForInfluencer(influencerID u
 	if len(campaignIDs) == 0 {
 		return make([]string, 0), make([]uint, 0), make([]uint, 0), nil
 	}
-	postIDs, err := service.CampaignRepository.GetPostIDsFromCampaignIDs(campaignIDs)
+	postIDs, err := service.CampaignRepository.GetPostIDsFromCampaignIDs(nextCtx, campaignIDs)
 	return postIDs, retInfluencerIDs, campaignIDs, err
 }
 
-func (service *CampaignService) UpdateCampaignRequest(loggedUserId uint, requestId string, status model.RequestStatus) error {
-	if service.CampaignRepository.GetCampaignRequestInfluencerId(util.String2Uint(requestId)) != loggedUserId {
+func (service *CampaignService) UpdateCampaignRequest(ctx context.Context, loggedUserId uint, requestId string, status model.RequestStatus) error {
+	span := util.Tracer.StartSpanFromContext(ctx, "UpdateCampaignRequest-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing logged user id  %v, request id %s, status %v\n", loggedUserId, requestId, status))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
+	if service.CampaignRepository.GetCampaignRequestInfluencerId(nextCtx, util.String2Uint(requestId)) != loggedUserId {
+		util.Tracer.LogError(span, fmt.Errorf("not allowed, logged user id and influencer id not match"))
 		return fmt.Errorf("not allowed")
 	}
-	return service.CampaignRepository.UpdateCampaignRequest(requestId, status)
+	return service.CampaignRepository.UpdateCampaignRequest(nextCtx, requestId, status)
 }
 
-func (service *CampaignService) GetActiveCampaignsRequestsForProfileId(profileId uint) ([]dto.CampaignRequestForInfluencerDTO, error) {
-	allActiveParams, err := service.CampaignRepository.GetAllActiveParameters()
+func (service *CampaignService) GetActiveCampaignsRequestsForProfileId(ctx context.Context, profileId uint) ([]dto.CampaignRequestForInfluencerDTO, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "GetActiveCampaignsRequestsForProfileId-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing profile id %v\n", profileId))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
+	allActiveParams, err := service.CampaignRepository.GetAllActiveParameters(nextCtx)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 	ret := make([]dto.CampaignRequestForInfluencerDTO, 0)
 	campaignIDs := make([]uint, 0)
 	for _, params := range allActiveParams {
+		util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing campaign params that contains request for profile id  %v\n", profileId))
 		test, requestID := campaignParamsContainsRequestForProfileID(params, profileId)
 		if test {
 			timestamps := make([]time.Time, 0)
@@ -305,15 +401,19 @@ func (service *CampaignService) GetActiveCampaignsRequestsForProfileId(profileId
 				Post: dto.PostDTO{}, Timestamps: timestamps, Start: params.Start, End: params.End})
 		}
 	}
-	postIDs, err := service.CampaignRepository.GetPostIDsFromCampaignIDs(campaignIDs)
+	postIDs, err := service.CampaignRepository.GetPostIDsFromCampaignIDs(nextCtx, campaignIDs)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
-	posts, err := getPostsByPostsIds(postIDs)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing get posts for post ids\n"))
+	posts, err := getPostsByPostsIds(nextCtx, postIDs)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 	if len(posts) != len(ret) {
+		util.Tracer.LogError(span, fmt.Errorf("bad list sizes"))
 		return nil, fmt.Errorf("BAD LIST SIZES")
 	}
 	for i, post := range posts {
@@ -322,11 +422,20 @@ func (service *CampaignService) GetActiveCampaignsRequestsForProfileId(profileId
 	return ret, nil
 }
 
-func (service *CampaignService) GetCampaignRequestInfluencerId(requestId uint) uint {
-	return service.CampaignRepository.GetCampaignRequestInfluencerId(requestId)
+func (service *CampaignService) GetCampaignRequestInfluencerId(ctx context.Context, requestId uint) uint {
+	span := util.Tracer.StartSpanFromContext(ctx, "GetCampaignRequestInfluencerId-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing request id %v\n", requestId))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
+	return service.CampaignRepository.GetCampaignRequestInfluencerId(nextCtx, requestId)
 }
 
-func getPostsByPostsIds(postsIds []string) ([]dto.PostDTO, error) {
+func getPostsByPostsIds(ctx context.Context, postsIds []string) ([]dto.PostDTO, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "getPostsByPostsIds-service")
+	defer util.Tracer.FinishSpan(span)
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
 	var ret []dto.PostDTO
 	type data struct {
 		Ids []string `json:"ids"`
@@ -334,19 +443,22 @@ func getPostsByPostsIds(postsIds []string) ([]dto.PostDTO, error) {
 	bodyData := data{Ids: postsIds}
 	jsonBody, err := json.Marshal(bodyData)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 	postHost, postPort := util.GetPostHostAndPort()
-	resp, err := util.CrossServiceRequest(context.Background(), http.MethodPost,
+	resp, err := util.CrossServiceRequest(nextCtx, http.MethodPost,
 		util.GetCrossServiceProtocol()+"://"+postHost+":"+postPort+"/posts",
 		jsonBody, map[string]string{})
 
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 
@@ -355,23 +467,31 @@ func getPostsByPostsIds(postsIds []string) ([]dto.PostDTO, error) {
 	}(resp.Body)
 
 	if err = json.Unmarshal(body, &ret); err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 	return ret, nil
 }
 
-func getProfileInterests(loggedUserID uint) ([]string, error) {
+func getProfileInterests(ctx context.Context, loggedUserID uint) ([]string, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "getProfileInterests-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing logged user id %v\n", loggedUserID))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
 	profileHost, profilePort := util.GetProfileHostAndPort()
-	resp, err := util.CrossServiceRequest(context.Background(), http.MethodGet,
+	resp, err := util.CrossServiceRequest(nextCtx, http.MethodGet,
 		util.GetCrossServiceProtocol()+"://"+profileHost+":"+profilePort+"/profile-interests/"+util.Uint2String(loggedUserID),
 		nil, map[string]string{})
 
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 
@@ -380,6 +500,7 @@ func getProfileInterests(loggedUserID uint) ([]string, error) {
 	}(resp.Body)
 	var ret []string
 	if err = json.Unmarshal(body, &ret); err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 	return ret, nil
@@ -425,6 +546,7 @@ func campaignParamsContainsInfluencerIDs(params model.CampaignParameters, influe
 }
 
 func campaignParamsContainsRequestForProfileID(params model.CampaignParameters, profileID uint) (bool, uint) {
+
 	for _, campaignRequest := range params.CampaignRequests {
 		if campaignRequest.InfluencerID == profileID && campaignRequest.RequestStatus == model.SENT {
 			return true, campaignRequest.ID
