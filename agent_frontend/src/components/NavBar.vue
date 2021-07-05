@@ -19,6 +19,7 @@
           <router-link :to="{ name: 'MyCampaigns'}">Campaigns</router-link> 
         </v-col>
         <v-col cols="12" sm="4" class="d-flex justify-end">
+          <v-btn @click="compareCampaigns()" class="mx-2">Compare campaigns</v-btn>
           <APITokenModal />
           <v-btn @click="goToNewProduct()" class="mx-2">
             <v-icon large>
@@ -39,6 +40,7 @@
 
 <script>
 import * as comm from '../configuration/communication.js'
+import axios from 'axios'
 import APITokenModal from '../modals/APITokenModal.vue'
 import { bus } from '../main'
 export default {
@@ -63,7 +65,16 @@ export default {
      },
      goToNewProduct(){
        this.$router.push({name: "NewProduct"})
-     }
+     },
+     compareCampaigns() {
+        axios({
+          method: "get",
+          url: comm.protocol + "://" + comm.server + "/report/pdf",
+          headers: comm.getHeader(),
+        }).then(response => {
+          console.log(response);
+        });
+     },
     }
 }
 </script>

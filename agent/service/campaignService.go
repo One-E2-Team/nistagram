@@ -21,23 +21,18 @@ type CampaignService struct {
 }
 
 func (service *CampaignService) SaveCampaignReport(campaignId uint) error {
-	fmt.Println("send req ", campaignId)
 	resp, err := util.NistagramRequest(http.MethodGet, "/agent-api/monitoring/statistics/"+util.Uint2String(campaignId),
 		nil, map[string]string{})
 
 	if err != nil {
-		fmt.Println("err1")
 		return err
 	}
 
 	var stat dto.StatisticsDTO
-	fmt.Println("body ", resp.Body)
 	err = json.NewDecoder(resp.Body).Decode(&stat)
 	if err != nil {
-		fmt.Println("err2")
 		return err
 	}
-	fmt.Println("stat dto ", stat)
 	var report model.CampaignReport
 	var basicInfo model.BasicInformation
 	var overallStat model.OverallStatistics
@@ -81,7 +76,7 @@ func (service *CampaignService) SaveCampaignReport(campaignId uint) error {
 
 		var infNotAccepted []string
 		for _, req := range params.CampaignRequests {
-			if strings.ToLower(req.RequestStatus) == "declined" {
+			if strings.ToLower(req.RequestStatus) != "accepted" {
 				infNotAccepted = append(infNotAccepted, req.InfluencerUsername)
 			}
 		}
@@ -93,7 +88,6 @@ func (service *CampaignService) SaveCampaignReport(campaignId uint) error {
 				} else if len(event.Interests) != 0 {
 					ps.AddEventForInterest(event.Interests, event.EventType, event.WebSite)
 				} else {
-					fmt.Println("direct")
 					//TODO: direct event
 				}
 			}
@@ -102,10 +96,6 @@ func (service *CampaignService) SaveCampaignReport(campaignId uint) error {
 		ps.InfluencerWhoDidNotAccept = infNotAccepted
 		paramStat = append(paramStat, ps)
 	}
-	fmt.Println("stats ", oStats)
-	fmt.Println("basic ", basicInfo)
-	fmt.Println("params ", paramStat)
-	fmt.Println("overall ", overallStat)
 
 	overallStat.Stats = oStats
 	report.BasicInformation = basicInfo
@@ -116,7 +106,6 @@ func (service *CampaignService) SaveCampaignReport(campaignId uint) error {
 	if err != nil {
 		return err
 	}
-
 	campIdString := util.Uint2String(report.BasicInformation.CampaignId)
 	resp, err = util.ExistDBRequest(http.MethodPut, "/exist/rest/collection/report"+campIdString+".xml", output, map[string]string{})
 	if err != nil {
@@ -508,11 +497,13 @@ func (service *CampaignService) GeneratePdfForSortedCampaigns() error {
 		return err
 	}
 
-	var reports []model.CampaignReport
-	err = xml.Unmarshal(body, &reports)
+	var result model.MonitoringResult
+	err = xml.Unmarshal(body, &result)
 	if err != nil {
 		return err
 	}
+	reports := result.Results
+
 	/*
 		expr, err := xpath.Compile("//basic_information | //overall_statistics")
 		if err != nil {
