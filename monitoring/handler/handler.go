@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -15,8 +16,13 @@ type Handler struct {
 }
 
 func (handler *Handler) CreateEventInfluencer(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("CreateEventInfluencer-handler", r)
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "handler", fmt.Sprintf("handling %s\n", r.URL.Path))
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
 	var eventDto dto.EventDTO
 	if err := json.NewDecoder(r.Body).Decode(&eventDto); err != nil{
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
@@ -25,8 +31,9 @@ func (handler *Handler) CreateEventInfluencer(w http.ResponseWriter, r *http.Req
 
 	fmt.Println(eventDto)
 
-	err := handler.MonitoringService.CreateEventInfluencer(eventDto)
+	err := handler.MonitoringService.CreateEventInfluencer(ctx, eventDto)
 	if err != nil{
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
@@ -39,8 +46,13 @@ func (handler *Handler) CreateEventInfluencer(w http.ResponseWriter, r *http.Req
 }
 
 func (handler *Handler) CreateEventTargetGroup(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("CreateEventTargetGroup-handler", r)
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "handler", fmt.Sprintf("handling %s\n", r.URL.Path))
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
 	var eventDto dto.EventDTO
 	if err := json.NewDecoder(r.Body).Decode(&eventDto); err != nil{
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
@@ -49,8 +61,9 @@ func (handler *Handler) CreateEventTargetGroup(w http.ResponseWriter, r *http.Re
 
 	fmt.Println(eventDto)
 
-	err := handler.MonitoringService.CreateEventTargetGroup(eventDto)
+	err := handler.MonitoringService.CreateEventTargetGroup(ctx, eventDto)
 	if err != nil{
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
@@ -63,6 +76,10 @@ func (handler *Handler) CreateEventTargetGroup(w http.ResponseWriter, r *http.Re
 }
 
 func (handler *Handler) VisitSite(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("VisitSite-handler", r)
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "handler", fmt.Sprintf("handling %s\n", r.URL.Path))
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
 	vars := mux.Vars(r)
 	campaignId := util.String2Uint(vars["campaignId"])
 	influencerId := util.String2Uint(vars["influencerId"])
@@ -70,8 +87,9 @@ func (handler *Handler) VisitSite(w http.ResponseWriter, r *http.Request) {
 
 	loggedUserId := util.GetLoggedUserIDFromToken(r)
 
-	website, err := handler.MonitoringService.VisitSite(campaignId, influencerId, loggedUserId, mediaId)
+	website, err := handler.MonitoringService.VisitSite(ctx, campaignId, influencerId, loggedUserId, mediaId)
 	if err != nil{
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
@@ -82,11 +100,16 @@ func (handler *Handler) VisitSite(w http.ResponseWriter, r *http.Request) {
 }
 
 func (handler *Handler) GetCampaignStatistics(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("GetCampaignStatistics-handler", r)
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "handler", fmt.Sprintf("handling %s\n", r.URL.Path))
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
 	vars := mux.Vars(r)
 	campaignId := util.String2Uint(vars["campaignId"])
 
-	result, err := handler.MonitoringService.GetCampaignStatistics(campaignId)
+	result, err := handler.MonitoringService.GetCampaignStatistics(ctx, campaignId)
 	if err != nil{
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
