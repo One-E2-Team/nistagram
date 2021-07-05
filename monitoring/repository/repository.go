@@ -2,9 +2,11 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"nistagram/monitoring/model"
+	"nistagram/util"
 )
 
 const monitoringCollectionName = "events"
@@ -14,13 +16,19 @@ type MonitoringRepository struct {
 	Client *mongo.Client
 }
 
-func (repo *MonitoringRepository) Create(event *model.Event) error {
+func (repo *MonitoringRepository) Create(ctx context.Context, event *model.Event) error {
+	span := util.Tracer.StartSpanFromContext(ctx, "Create-repository")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "repository", fmt.Sprintf("repository call for event creation"))
 	collection := repo.getCollection()
 	_, err := collection.InsertOne(context.TODO(), event)
 	return err
 }
 
-func (repo *MonitoringRepository) GetEventsByCampaignId(campaignId uint) ([]model.Event,error) {
+func (repo *MonitoringRepository) GetEventsByCampaignId(ctx context.Context, campaignId uint) ([]model.Event,error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "GetEventsByCampaignId-repository")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "repository", fmt.Sprintf("repository call for id %v\n", campaignId))
 	collection := repo.getCollection()
 	filter := bson.D{{"campaignid", campaignId}}
 	cursor, err := collection.Find(context.TODO(), filter)
@@ -32,6 +40,7 @@ func (repo *MonitoringRepository) GetEventsByCampaignId(campaignId uint) ([]mode
 
 		err = cursor.Decode(&event)
 		if err != nil{
+			util.Tracer.LogError(span, err)
 			return events,err
 		}
 
