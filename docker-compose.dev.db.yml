@@ -112,6 +112,16 @@ services:
     #            - cache_rbac_
 
 
+    message_broker:
+        container_name: redis
+        image: redis
+        restart: always
+        networks:
+            - net_apigateway
+        volumes:
+            - ./conf/redis.conf:/usr/local/etc/redis/redis.conf
+        command:  redis-server /usr/local/etc/redis/redis.conf
+
 networks: 
     net_db_relational:
     net_db_graph:
