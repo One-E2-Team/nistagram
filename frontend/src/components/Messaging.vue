@@ -81,10 +81,10 @@
           </v-card-text>
           
         </v-card>
-        <v-card v-if="this.user.messageApproved == true">
+        <v-card>
 
-          <v-card-text>
-            <v-textarea v-if="user.messageApproved != false"
+          <v-card-text v-if="this.user.messageApproved == true || this.newUser == true">
+            <v-textarea 
               v-model="message.text"
               no-resize
               rows="1"
@@ -92,17 +92,19 @@
               label="Enter message here.."
             ></v-textarea>
           </v-card-text>
-          <v-file-input v-if="user.messageApproved != false"
+          <v-file-input v-if="this.user.messageApproved == true || this.newUser == true"
             v-model="message.file"
             label="Input picture.."
           ></v-file-input>
-              <v-btn v-if="user.messageApproved != false"
+              <v-btn v-if="this.user.messageApproved == true || this.newUser == true"
             class="ma-2"
             color="secondary"
             @click="sendMessage()"
           >
             Send
           </v-btn>
+          <p v-if="this.user.messageApproved == false"> You need to approve message request to answer</p>
+          <v-btn class="ma-2" color="secondary" @click="deleteMessages()" v-if="this.user.messageApproved == false">Delete messages</v-btn>
         </v-card>
       </v-col>
       <v-col md="2">
@@ -150,9 +152,7 @@ export default {
       return {
         messages: [],
         loggedUserId: 0,
-        user : {
-          newUser : false,
-        },
+        user : {},
         post : null,
         file : null,
         usersToChat: [],
@@ -162,6 +162,7 @@ export default {
         messagingSenderWS: null,
         protocol: comm.protocol,
         server: comm.server,
+        newUser : false,
         message: {
           senderId : 0,
           receiverId : 0,
@@ -205,7 +206,19 @@ export default {
                           }}).catch(reason => {
                               console.log(reason);
                           });
-                })
+                });
+          axios({
+                  method: "post",
+                  url: comm.protocol + "://" + comm.server +"/api/connection/messaging/request/" + this.user.profileId,
+                  headers: comm.getHeader(),
+              }).then((response) => {
+                  if(response.status == 200) {
+                      this.$emit('messageRequestSended',response.data)
+                  }
+              })
+              .catch((error) => {
+                  console.log(error);
+              });
     },
     methods : {
       addMessage(data){
@@ -248,6 +261,7 @@ export default {
       },
 
         getAllMessages(user){
+          this.newUser = false;
           this.user = user;
             axios({
             method: "get",
@@ -285,6 +299,20 @@ export default {
             });
          },
          sendMessage(){
+           if (this.newUser == true){
+              axios({
+                  method: "post",
+                  url: comm.protocol + "://" + comm.server +"/api/connection/messaging/request/" + this.user.profileId,
+                  headers: comm.getHeader(),
+              }).then((response) => {
+                  if(response.status == 200) {
+                      this.$emit('messageRequestSended',response.data)
+                  }
+              })
+              .catch((error) => {
+                  console.log(error);
+              });
+            }
             if (this.message.file != null){
                  const data = new FormData();
                  data.append("file", this.message.file);
@@ -346,7 +374,7 @@ export default {
                   if(response.status==200){
                         let selectedUser = {"profileId" : response.data.ID, "username" : response.data.username};
                         this.user = selectedUser;
-                        this.user.newUser = true;
+                        this.newUser = true;
                         axios({
                         method: "get",
                         url: comm.protocol + '://' + comm.server + '/api/messaging/message/' + response.data.ID,
@@ -363,6 +391,19 @@ export default {
                 this.searchedUsernames = [];
               }
             });
+        },
+        deleteMessages(){
+            for(let mess of this.messages){
+               axios({
+              method: "delete",
+              url: comm.protocol + '://' + comm.server + '/api/messaging/message/' + mess.id,
+              headers: comm.getHeader(),
+            }).then(response => {
+              if(response.status==200){
+                this.messages = [];
+              }
+            });
+            }
         }
     }
 }

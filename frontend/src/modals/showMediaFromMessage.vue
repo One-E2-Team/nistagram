@@ -51,11 +51,7 @@ export default {
     isMyPost() {
       return comm.getLoggedUserID() == this.post.publisherId;
     },
-    show(){
-      if(this.medias.seen == true){
-        return;
-      }
-      this.$root.$emit('seen');
+    async show(){
       this.post = {
               medias: [
                 {
@@ -63,6 +59,7 @@ export default {
                 }
               ]
           }
+          await new Promise(r => setTimeout(r, 4000));
             axios({
             method: "put",
             url: comm.protocol + '://' + comm.server + '/api/messaging/seen/' + this.medias.id,
@@ -74,6 +71,7 @@ export default {
         }).catch(reason => {
             console.log(reason);
         });
+        this.$root.$emit('seen');
     }
   },
 }
