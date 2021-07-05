@@ -52,7 +52,7 @@ func (handler *Handler) DeleteProfile(w http.ResponseWriter, r *http.Request) {
 }
 
 func (handler *Handler) ReActivateProfile(w http.ResponseWriter, r *http.Request) {
-	span := util.Tracer.StartSpanFromRequest("AddProfile-handler", r)
+	span := util.Tracer.StartSpanFromRequest("ReActivateProfile-handler", r)
 	defer util.Tracer.FinishSpan(span)
 	util.Tracer.LogFields(span, "handler", fmt.Sprintf("handling %s\n", r.URL.Path))
 	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
