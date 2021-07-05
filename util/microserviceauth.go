@@ -44,32 +44,32 @@ func SetupMSAuth(ms string) error {
 	return err
 }
 
-func ValidateMSToken(r *http.Request, ms []string) bool {
+func ValidateMSToken(r *http.Request, ms []string) (bool, string) {
 	if MSTokenSecret == "" {
 		initMSToken()
 	}
 	tokenString, err := getToken(r.Header)
 	if err != nil {
 		fmt.Println(err)
-		return false
+		return false, ""
 	}
 	token, err := jwt.ParseWithClaims(tokenString, &MSTokenClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(MSTokenSecret), nil
 	})
 	if err != nil {
 		fmt.Println(err)
-		return false
+		return false, ""
 	}
 	if claims, ok := token.Claims.(*MSTokenClaims); ok && token.Valid {
 		for _, value := range ms {
 			if claims.Microservice == value {
-				return true
+				return true, claims.Microservice
 			}
 		}
-		return false
+		return false, ""
 	} else {
 		fmt.Println(err)
-		return false
+		return false, ""
 	}
 }
 
@@ -111,9 +111,11 @@ func MSAuth(handler func(http.ResponseWriter, *http.Request), microservices []st
 	}
 
 	return func(writer http.ResponseWriter, request *http.Request) {
-		if ValidateMSToken(request, microservices) {
+		if check, ms := ValidateMSToken(request, microservices); check {
+			writer.Header().Set("initiator", ms)
 			finalHandler(true)(writer, request)
 		} else {
+			writer.Header().Set("initiator", "MS_UNAUTHORIZED")
 			finalHandler(false)(writer, request)
 		}
 	}

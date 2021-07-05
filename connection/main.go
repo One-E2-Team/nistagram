@@ -66,6 +66,8 @@ func initHandler(service *service.Service) *handler.Handler {
 
 func handleFunc(handler *handler.Handler) {
 	router := mux.NewRouter().StrictSlash(true)
+	util.InitMonitoring("connection", router)
+
 	router.HandleFunc("/profile/{id}", util.MSAuth(handler.AddProfile, []string{"profile"})).Methods("POST")
 
 	router.HandleFunc("/profile/{id}", util.MSAuth(handler.DeleteProfile, []string{"profile"})).Methods("DELETE")

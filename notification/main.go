@@ -60,6 +60,7 @@ func initHandler(service *service.Service) *handler.Handler {
 
 func handleFunc(handler *handler.Handler) {
 	router := mux.NewRouter().StrictSlash(true)
+	util.InitMonitoring("notification", router)
 
 	router.HandleFunc("/messaging", util.RBAC(handler.MessagingWebSocket, "MESSAGING", false)).Methods("GET")
 
@@ -69,7 +70,9 @@ func handleFunc(handler *handler.Handler) {
 
 	router.HandleFunc("/message/{id}", util.RBAC(handler.GetAllMesssages, "MESSAGING", true)).Methods("GET")
 
-	router.HandleFunc("/file", util.RBAC(handler.SaveFile, "MESSAGING", true)).Methods("POST")
+	router.HandleFunc("/file", util.RBAC(handler.SaveFile, "MESSAGING", false)).Methods("POST")
+
+	router.HandleFunc("/seen/{id}", util.RBAC(handler.Seen, "MESSAGING", false)).Methods("PUT")
 
 
 	fmt.Println("Starting server..")

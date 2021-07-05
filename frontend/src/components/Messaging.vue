@@ -67,13 +67,10 @@
                       <strong>{{user.username}}: </strong> {{ m.text }}
                     </div>
                     <div class="font-weight-normal" v-if="m.postId != ''">
-                      <strong> {{ m.postId }} </strong>
+                      <show-post-from-message-modal :postId="m.postId"/>
                     </div>
-                    <div v-if="m.mediaPath != ''">
-                       <video autoplay loop width="100px"  height="120px" :src=" protocol + '://' + server + '/static/data/' + m.mediaPath" v-if="m.mediaPath.includes('mp4')">
-                        Your browser does not support the video tag.
-                        </video>
-                        <img width="100px"  height="120px" :src=" protocol + '://' + server + '/static/data/' + m.mediaPath" v-if="!m.mediaPath.includes('mp4')">
+                    <div class="font-weight-normal" v-if="m.mediaPath != '' && m.seen == false">
+                      <show-media-from-message :medias="m"/>
                     </div>
                   <!--<div>@{{ message.timestamp }}</div>-->
                   </div>
@@ -97,7 +94,6 @@
           </v-card-text>
           <v-file-input v-if="user.messageApproved != false"
             v-model="message.file"
-            accept="image/*"
             label="Input picture.."
           ></v-file-input>
               <v-btn v-if="user.messageApproved != false"
@@ -145,7 +141,10 @@
 <script>
 import axios from 'axios'
 import * as comm from '../configuration/communication.js'
+import ShowPostFromMessageModal from '../modals/showPostFromMessageModal.vue'
+import ShowMediaFromMessage from '../modals/showMediaFromMessage.vue'
 export default {
+  components: { ShowPostFromMessageModal, ShowMediaFromMessage },
     name: "Messaging",
     data() {
       return {
@@ -168,7 +167,8 @@ export default {
           receiverId : 0,
           text : '',
           mediaPath : '',
-          file : null
+          file : null,
+          postId : ''
         }
       }
     },
@@ -176,6 +176,36 @@ export default {
       this.loggedUserId = comm.getLoggedUserID();
       this.getMessageConnections();
       this.startMessagingWebSocket();
+      
+      this.$root.$on('seen', ()=>{
+        console.log('seen');
+        this.getAllMessages(this.user);
+      });
+
+      this.$root.$on('privateContent', () =>{
+          alert("Content is private!");
+      });
+
+      this.$root.$on('sharePost', (data) =>{
+        console.log(data);
+          axios({
+                  method: "get",
+                  url: comm.protocol + '://' + comm.server + '/api/profile/get/' + data.username,
+                }).then(response => {
+                  if(response.status==200){
+                        console.log(response.data);
+                        let m = {
+                        senderId : this.loggedUserId,
+                        receiverId : response.data.ID,
+                        text : '',
+                        mediaPath : '',
+                        postId : data.postId
+                      }
+                      this.sendWS("SendMessage", m);
+                          }}).catch(reason => {
+                              console.log(reason);
+                          });
+                })
     },
     methods : {
       addMessage(data){
@@ -288,7 +318,8 @@ export default {
                   senderId : this.loggedUserId,
                   receiverId : this.user.profileId,
                   text : this.message.text,
-                  mediaPath : this.message.mediaPath
+                  mediaPath : this.message.mediaPath,
+                  postId : this.message.postId
                 }
                 console.log(this.messagingSenderWS);
                 this.sendWS("SendMessage", data);

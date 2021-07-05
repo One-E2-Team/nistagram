@@ -2,9 +2,9 @@
   <v-row justify="space-around">
     <v-col cols="auto">
       <v-dialog transition="dialog-bottom-transition" width="900">
-        <template v-slot:activator="{ on, attrs }" v-if="post.postType==2">
+        <template v-slot:activator="{ on, attrs }">
             <span v-bind="attrs"  v-on="on" >
-                <post-media :width="width" :height="height" :post="post" :campaignData="campaignData"/>
+                <v-btn @click="loadPost()">Show post</v-btn>
             </span>
         </template>
         <template v-slot:default="dialog">
@@ -20,14 +20,14 @@
                 <v-container>
                     <v-row justify="center">
                         <v-col cols="12" sm="6">
-                           <post-media :width="width" :height="height" :post="post" :campaignData="campaignData"/>
+                           <post-media :width="width" :height="height" :post="post"/>
                         </v-col>
                     <v-col cols="12" sm="6">
                         <v-row> <v-col>Location: {{post.location}} </v-col></v-row>
                         <v-row><v-col> {{post.description}} </v-col></v-row>
                         <v-row>
                             <v-col class="d-flex justify-space-around ">
-                                <v-btn-toggle v-if="isUserLogged" v-model="newReaction" color="primary" group dense>
+                                <v-btn-toggle v-if="isUserLogged" v-model="reaction" color="primary" group dense>
                                 <v-btn :value="'like'" class="ma-2" text icon @click="react('like')">
                                     <v-icon>mdi-thumb-up</v-icon>
                                 </v-btn>
@@ -80,7 +80,7 @@
             </v-container>
             </v-card-text>
             <v-card-actions class="justify-end">
-              <v-btn
+              <v-btn  :id="'closeButton' + postId"
                 text
                 @click="dialog.value = false"
               >Close</v-btn>
@@ -99,22 +99,39 @@ import * as comm from '../configuration/communication.js'
 import axios from 'axios'
 export default {
   components: { PostMedia, PostReactionsModal },
-  name: 'ShowPostModal',
-  props: ['width','height','post','reaction', 'campaignData'],
+  props: ['postId'],
   data(){
       return{
           isUserLogged: comm.isUserLogged(),
           comment: '',
-          newReaction: this.reaction,
+          reaction: null,
           searchedTaggedUsers : [],
           cursorStart: -1,
           cursorEnd: -1,
+          width: 300,
+          height: 400,
+          post: {
+              medias: []
+          }
       }
   },
   methods:{
-      react(newReaction){
-          this.$emit('reactionChanged',newReaction)
-          this.newReaction = newReaction
+      loadPost(){
+           axios({
+        method: 'get',
+        url: comm.protocol + '://' + comm.server + '/api/post/read-post/' + this.postId,
+        headers: comm.getHeader(),
+      }).then(response => {
+        if (response.status == 500){
+          console.log("Private content.");
+        }
+        console.log(response.data);
+        this.post = response.data;
+      }) .catch( () => {
+          console.log("Private content");
+          document.getElementById('closeButton' + this.postId).click();
+          this.$root.$emit('privateContent');
+        });
       },
       preventActionIfUnauthorized() {
       if(!comm.isUserLogged()){
@@ -131,10 +148,7 @@ export default {
       if (this.preventActionIfUnauthorized()) {
         return;
       }
-      let campaignId = this.campaignData == undefined ? 0 : this.campaignData.campaignId;
-      let influencerID = this.campaignData == undefined ? 0 : this.campaignData.influencerId;
-      let influencerUsername = this.campaignData == undefined ? '' : this.campaignData.influencerUsername;
-      let dto = {'postId' : this.post.id, 'content' : this.comment, 'campaignId': campaignId, 'influencerID': influencerID, 'influencerUsername': influencerUsername};
+      let dto = {'postId' : this.post.id, 'content' : this.comment}
       axios({
         method: 'post',
         url: comm.protocol + '://' + comm.server + '/api/postreaction/comment',
@@ -179,11 +193,12 @@ export default {
         this.searchedTaggedUsers = [];
       }
   },
-
   watch:{
-    reaction: function(){
-      this.newReaction = this.reaction
-    }
+      medias: function(){
+          this.post = {
+              medias: this.medias
+          }
+      }
   }
 }
 </script>

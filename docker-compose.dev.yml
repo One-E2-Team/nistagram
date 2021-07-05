@@ -359,17 +359,17 @@ services:
               target: /data/db
 
     #exist:
-     #   image: existdb/existdb:release
-      #  container_name: exist-db
-       # restart: always
+       # image: existdb/existdb:release
+       # container_name: exist-db
+        #restart: always
         #ports:
-         #   - 8666:8080
+          #  - 8666:8080
         #volumes:
-         #   - type: volume
+          #  - type: volume
           #    source: data_exist
-           #   target: /exist-data
-        #networks:
-         #   - net_exist
+          #    target: /exist-data
+       # networks:
+          #  - net_exist
 
     mongo-express:
         image: mongo-express

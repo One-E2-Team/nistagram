@@ -17,12 +17,15 @@
     </v-list-item>
 
     
-      <post-media v-if="!showMoreDetailsOnClick"  :width="width" :height="height" :post="post"/>
-      <show-post-modal v-else  :width="width" :height="height" :post="post" :reaction="reaction" v-on:reactionChanged="react($event)"/>
+      <post-media v-if="!showMoreDetailsOnClick"  :width="width" :height="height" :post="post" :campaignData="campaignData"/>
+      <show-post-modal v-else  :width="width" :height="height" :post="post" :reaction="reaction" v-on:reactionChanged="react($event)" :campaignData="campaignData"/>
     <v-card-text class="text--primary">
        <v-container>
          <v-row v-if="isSponsored() && usage=='Profile'">
           <v-col>Sponsored</v-col>
+         </v-row>
+         <v-row>
+          <v-col> <share-post-modal :postId="post.id"></share-post-modal> </v-col>
          </v-row>
          <v-row>
           <v-col>Location: {{post.location}} </v-col>
@@ -60,9 +63,10 @@ import PostModal from '../../modals/PostModal.vue'
 import * as comm from '../../configuration/communication.js'
 import PostMedia from './PostMedia.vue'
 import ShowPostModal from '../../modals/showPostModal.vue'
+import SharePostModal from '../../modals/SharePostModal.vue'
 import axios from 'axios'
 export default {
-  components: { PostModal, PostMedia, ShowPostModal },
+  components: { PostModal, PostMedia, ShowPostModal, SharePostModal },
   name: 'Post',
   props: ['post','usage', 'myReaction', 'campaignData'],
   data() {
@@ -114,17 +118,21 @@ export default {
       if (this.preventActionIfUnauthorized()) {
         return;
       }
+      let campData = this.returnCampaignData();
       if (reactionType == this.reaction){
+        let dto = {'postId' : this.post.id, 'campaignId': campData.campaignId, 'influencerID': campData.influencerId, 'influencerUsername': campData.influencerUsername};
         axios({
           method: 'delete',
-          url: comm.protocol + '://' + comm.server + '/api/postreaction/react/' + this.post.id,
+          url: comm.protocol + '://' + comm.server + '/api/postreaction/react',
           headers: comm.getHeader(),
+          data: JSON.stringify(dto),
         }).then(response => {
           console.log(response.data);
           this.reaction = null;
         });
       } else {
-        let dto = {'postId' : this.post.id, 'reactionType' : reactionType}
+        let dto = {'postId' : this.post.id, 'reactionType' : reactionType, 'campaignId': campData.campaignId, 
+          'influencerID': campData.influencerId, 'influencerUsername': campData.influencerUsername};
         axios({
           method: 'post',
           url: comm.protocol + '://' + comm.server + '/api/postreaction/react',
@@ -168,7 +176,14 @@ export default {
     },
     isSponsored() {
       return this.campaignData != undefined && this.campaignData.campaignId != 0;
-    }
+    },
+    returnCampaignData(){
+      let ret = {};
+      ret.campaignId = this.campaignData == undefined ? 0 : this.campaignData.campaignId;
+      ret.influencerId = this.campaignData == undefined ? 0 : this.campaignData.influencerId;
+      ret.influencerUsername = this.campaignData == undefined ? '' : this.campaignData.influencerUsername;
+      return ret;
+    },
   },
   watch: {
     usage(){

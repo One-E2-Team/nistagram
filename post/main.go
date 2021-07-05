@@ -74,6 +74,8 @@ func initHandler(postService *service.PostService) *handler.Handler {
 
 func handleFunc(handler *handler.Handler) {
 	router := mux.NewRouter().StrictSlash(true)
+	util.InitMonitoring("post", router)
+
 	router.HandleFunc("/profile/{username}", handler.GetProfilesPosts).Methods("GET")            // frontend func
 	router.HandleFunc("/public", handler.GetPublic).Methods("GET")                               // frontend func
 	router.HandleFunc("/public/location/{value}", handler.SearchPublicByLocation).Methods("GET") // frontend func
@@ -93,6 +95,8 @@ func handleFunc(handler *handler.Handler) {
 		util.MSAuth(handler.ChangeUsername, []string{"profile"})).Methods("PUT")
 	router.HandleFunc("/post/{id}",
 		util.MSAuth(handler.GetPost, []string{"postreaction"})).Methods("GET")
+	router.HandleFunc("/read-post/{id}",
+		util.RBAC(handler.GetPostById, "READ_NOT_ONLY_PUBLIC_POSTS", false)).Methods("GET") // frontend func
 	router.HandleFunc("/posts",
 		util.MSAuth(handler.GetPosts, []string{"postreaction", "campaign"})).Methods("POST")
 	router.HandleFunc("/make-campaign/{id}/{agentID}",

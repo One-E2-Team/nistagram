@@ -1329,7 +1329,7 @@
       ]
     },
     {
-      "endpoint": "/api/postreaction/react/{postID}",
+      "endpoint": "/api/postreaction/react",
       "method": "DELETE",
       "output_encoding": "json",
       "extra_config": {},
@@ -1338,7 +1338,7 @@
       ],
       "backend": [
         {
-          "url_pattern": "/react/{postID}",
+          "url_pattern": "/react",
           "encoding": "json",
           "sd": "static",
           "method": "DELETE",
@@ -2362,6 +2362,50 @@
           "extra_config": {},
           "host": [
             "https://notification:8080"
+          ],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/messaging/seen/{id}",
+      "method": "PUT",
+      "output_encoding": "json",
+      "extra_config": {},
+      "headers_to_pass": [
+        "Authorization"
+      ],
+      "backend": [
+        {
+          "url_pattern": "/seen/{id}",
+          "encoding": "json",
+          "sd": "static",
+          "method": "PUT",
+          "extra_config": {},
+          "host": [
+            "https://notification:8080"
+          ],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/post/read-post/{id}",
+      "method": "GET",
+      "output_encoding": "json",
+      "extra_config": {},
+      "headers_to_pass": [
+        "Authorization"
+      ],
+      "backend": [
+        {
+          "url_pattern": "/read-post/{id}",
+          "encoding": "json",
+          "sd": "static",
+          "method": "GET",
+          "extra_config": {},
+          "host": [
+            "https://post:8080"
           ],
           "disable_host_sanitize": false
         }

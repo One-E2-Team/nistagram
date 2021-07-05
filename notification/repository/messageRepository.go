@@ -25,20 +25,13 @@ func (repo *Repository) Seen(messageId string) error {
 		return err
 	}
 	filter := bson.D{{"_id", idPrimitive}}
-
-	cursor, err := collection.Find(context.TODO(), filter)
-	if err != nil {
-		return err
+	update := bson.D{
+		{"$set", bson.D{
+			{"seen", true},
+		}},
 	}
 
-	for cursor.Next(context.TODO()) {
-		var message model.Message
-		err = cursor.Decode(&message)
-		if err != nil{
-			return err
-		}
-		message.Seen = true
-	}
+	_, err = collection.UpdateOne(context.TODO(), filter, update)
 
 	return err
 }
