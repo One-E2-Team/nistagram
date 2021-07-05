@@ -17,7 +17,7 @@
     </v-list-item>
 
     
-      <post-media v-if="!showMoreDetailsOnClick"  :width="width" :height="height" :post="post"/>
+      <post-media v-if="!showMoreDetailsOnClick"  :width="width" :height="height" :post="post" :campaignData="campaignData"/>
       <show-post-modal v-else  :width="width" :height="height" :post="post" :reaction="reaction" v-on:reactionChanged="react($event)" :campaignData="campaignData"/>
     <v-card-text class="text--primary">
        <v-container>
@@ -179,7 +179,7 @@ export default {
       ret.influencerId = this.campaignData == undefined ? 0 : this.campaignData.influencerId;
       ret.influencerUsername = this.campaignData == undefined ? '' : this.campaignData.influencerUsername;
       return ret;
-    }
+    },
   },
   watch: {
     usage(){

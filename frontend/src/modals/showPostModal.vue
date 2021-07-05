@@ -4,7 +4,7 @@
       <v-dialog transition="dialog-bottom-transition" width="900">
         <template v-slot:activator="{ on, attrs }" v-if="post.postType==2">
             <span v-bind="attrs"  v-on="on" >
-                <post-media :width="width" :height="height" :post="post"/>
+                <post-media :width="width" :height="height" :post="post" :campaignData="campaignData"/>
             </span>
         </template>
         <template v-slot:default="dialog">
@@ -20,7 +20,7 @@
                 <v-container>
                     <v-row justify="center">
                         <v-col cols="12" sm="6">
-                           <post-media :width="width" :height="height" :post="post"/>
+                           <post-media :width="width" :height="height" :post="post" :campaignData="campaignData"/>
                         </v-col>
                     <v-col cols="12" sm="6">
                         <v-row> <v-col>Location: {{post.location}} </v-col></v-row>
