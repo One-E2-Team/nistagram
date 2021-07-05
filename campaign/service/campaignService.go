@@ -176,6 +176,7 @@ func (service *CampaignService) GetCampaignByIdForMonitoring(campaignId uint) (d
 	if err != nil {
 		return ret, err
 	}
+	fmt.Println("kampanja ", campaign)
 
 	for _, param := range campaign.CampaignParameters {
 		var paramDto dto.CampaignParametersMonitoringDTO

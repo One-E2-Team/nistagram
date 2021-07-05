@@ -21,20 +21,23 @@ type CampaignService struct {
 }
 
 func (service *CampaignService) SaveCampaignReport(campaignId uint) error {
-	resp, err := util.NistagramRequest(http.MethodGet, "/agent-api/statistics/"+util.Uint2String(campaignId),
+	fmt.Println("send req ", campaignId)
+	resp, err := util.NistagramRequest(http.MethodGet, "/agent-api/campaign/monitoring/"+util.Uint2String(campaignId),
 		nil, map[string]string{})
 
 	if err != nil {
+		fmt.Println("err1")
 		return err
 	}
 
 	var stat dto.StatisticsDTO
-
+	fmt.Println("body ", resp.Body)
 	err = json.NewDecoder(resp.Body).Decode(&stat)
 	if err != nil {
+		fmt.Println("err2")
 		return err
 	}
-
+	fmt.Println("stat dto ", stat)
 	var report model.CampaignReport
 	var basicInfo model.BasicInformation
 	var overallStat model.OverallStatistics
@@ -63,6 +66,8 @@ func (service *CampaignService) SaveCampaignReport(campaignId uint) error {
 		case "visit":
 			oStats.TotalSiteVisits += 1
 			oStats.AddSpecificSite(event.WebSite)
+		default:
+			return fmt.Errorf("BAD_TYPE")
 		}
 	}
 
@@ -88,6 +93,7 @@ func (service *CampaignService) SaveCampaignReport(campaignId uint) error {
 				} else if len(event.Interests) != 0 {
 					ps.AddEventForInterest(event.Interests, event.EventType, event.WebSite)
 				} else {
+					fmt.Println("direct")
 					//TODO: direct event
 				}
 			}
@@ -96,6 +102,10 @@ func (service *CampaignService) SaveCampaignReport(campaignId uint) error {
 		ps.InfluencerWhoDidNotAccept = infNotAccepted
 		paramStat = append(paramStat, ps)
 	}
+	fmt.Println("stats ", oStats)
+	fmt.Println("basic ", basicInfo)
+	fmt.Println("params ", paramStat)
+	fmt.Println("overall ", overallStat)
 
 	overallStat.Stats = oStats
 	report.BasicInformation = basicInfo
