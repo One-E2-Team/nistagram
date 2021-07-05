@@ -20,45 +20,61 @@ type PostService struct {
 	PostRepository *repository.PostRepository
 }
 
-func (service *PostService) GetPublic(loggedUserID uint) ([]dto.ResponsePostDTO, error) {
-	blockedRelationships, err := getProfilesBlockedRelationships(loggedUserID)
+func (service *PostService) GetPublic(ctx context.Context, loggedUserID uint) ([]dto.ResponsePostDTO, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "GetPublic-service")
+	defer util.Tracer.FinishSpan(span)
+
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
+	blockedRelationships, err := getProfilesBlockedRelationships(nextCtx, loggedUserID)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
-	posts, err := service.PostRepository.GetPublic(blockedRelationships)
+	posts, err := service.PostRepository.GetPublic(nextCtx, blockedRelationships)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
-	responseDTO, err := getReactionsForPosts(posts, loggedUserID)
+	responseDTO, err := getReactionsForPosts(nextCtx, posts, loggedUserID)
 	return responseDTO, err
 }
 
-func (service *PostService) GetProfilesPosts(followingProfiles []util.FollowingProfileDTO, targetUsername string, loggedUserID uint) ([]dto.ResponsePostDTO, error) {
-	profileID, err := getProfileIDByUsername(targetUsername)
+func (service *PostService) GetProfilesPosts(ctx context.Context, followingProfiles []util.FollowingProfileDTO, targetUsername string, loggedUserID uint) ([]dto.ResponsePostDTO, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "GetProfilesPosts-service")
+	defer util.Tracer.FinishSpan(span)
+
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
+	profileID, err := getProfileIDByUsername(nextCtx, targetUsername)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
-	sponsoredPostsDTO, err := getCampaignsWhereUserIsInfluencer(profileID)
+	sponsoredPostsDTO, err := getCampaignsWhereUserIsInfluencer(nextCtx, profileID)
 	campaignPosts := make([]model.Post, 0)
 	influencerIDs := make([]uint, 0)
 	for _, sponsoredPostDTO := range sponsoredPostsDTO {
 		primitiveID, err := primitive.ObjectIDFromHex(sponsoredPostDTO.PostID)
 		if err != nil {
+			util.Tracer.LogError(span, err)
 			return nil, err
 		}
-		post, err := service.PostRepository.Read(primitiveID)
+		post, err := service.PostRepository.Read(nextCtx, primitiveID)
 		if err != nil {
+			util.Tracer.LogError(span, err)
 			return nil, err
 		}
 		influencerIDs = append(influencerIDs, sponsoredPostDTO.InfluencerID)
 		campaignPosts = append(campaignPosts, post)
 	}
-	initialSponsoredPosts, err := getReactionsForPosts(campaignPosts, loggedUserID)
+	initialSponsoredPosts, err := getReactionsForPosts(nextCtx, campaignPosts, loggedUserID)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 	ret := make([]dto.ResponsePostDTO, 0)
-	influencerUsernames, err := getProfileUsernamesByIDs(influencerIDs)
+	influencerUsernames, err := getProfileUsernamesByIDs(nextCtx, influencerIDs)
 	for i, initial := range initialSponsoredPosts {
 		ret = append(ret, dto.ResponsePostDTO{
 			Post:               initial.Post,
@@ -68,12 +84,14 @@ func (service *PostService) GetProfilesPosts(followingProfiles []util.FollowingP
 			InfluencerUsername: influencerUsernames[i],
 		})
 	}
-	posts, err := service.PostRepository.GetProfilesPosts(followingProfiles, targetUsername)
+	posts, err := service.PostRepository.GetProfilesPosts(nextCtx, followingProfiles, targetUsername)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
-	postsDTO, err := getReactionsForPosts(posts, loggedUserID)
+	postsDTO, err := getReactionsForPosts(nextCtx, posts, loggedUserID)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 	for _, post := range postsDTO {
@@ -82,54 +100,82 @@ func (service *PostService) GetProfilesPosts(followingProfiles []util.FollowingP
 	return ret, err
 }
 
-func (service *PostService) GetPublicPostByLocation(location string, loggedUserID uint) ([]dto.ResponsePostDTO, error) {
-	blockedRelationships, err := getProfilesBlockedRelationships(loggedUserID)
+func (service *PostService) GetPublicPostByLocation(ctx context.Context, location string, loggedUserID uint) ([]dto.ResponsePostDTO, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "GetPublicPostByLocation-service")
+	defer util.Tracer.FinishSpan(span)
+
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
+	blockedRelationships, err := getProfilesBlockedRelationships(nextCtx, loggedUserID)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
-	posts, err := service.PostRepository.GetPublicPostByLocation(location, blockedRelationships)
+	posts, err := service.PostRepository.GetPublicPostByLocation(nextCtx, location, blockedRelationships)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
-	responseDTO, err := getReactionsForPosts(posts, loggedUserID)
+	responseDTO, err := getReactionsForPosts(nextCtx, posts, loggedUserID)
 	return responseDTO, err
 }
 
-func (service *PostService) GetPublicPostByHashTag(hashTag string, loggedUserID uint) ([]dto.ResponsePostDTO, error) {
-	blockedRelationships, err := getProfilesBlockedRelationships(loggedUserID)
+func (service *PostService) GetPublicPostByHashTag(ctx context.Context, hashTag string, loggedUserID uint) ([]dto.ResponsePostDTO, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "GetPublicPostByHashTag-service")
+	defer util.Tracer.FinishSpan(span)
+
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
+	blockedRelationships, err := getProfilesBlockedRelationships(nextCtx, loggedUserID)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
-	posts, err := service.PostRepository.GetPublicPostByHashTag(hashTag, blockedRelationships)
+	posts, err := service.PostRepository.GetPublicPostByHashTag(nextCtx, hashTag, blockedRelationships)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
-	responseDTO, err := getReactionsForPosts(posts, loggedUserID)
+	responseDTO, err := getReactionsForPosts(nextCtx, posts, loggedUserID)
 	return responseDTO, err
 }
 
-func (service *PostService) GetMyPosts(loggedUserID uint) ([]dto.ResponsePostDTO, error) {
-	sponsoredPostsDTO, err := getCampaignsWhereUserIsInfluencer(loggedUserID)
+func (service *PostService) GetMyPosts(ctx context.Context, loggedUserID uint) ([]dto.ResponsePostDTO, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "GetMyPosts-service")
+	defer util.Tracer.FinishSpan(span)
+
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
+	sponsoredPostsDTO, err := getCampaignsWhereUserIsInfluencer(nextCtx, loggedUserID)
+	if err != nil {
+		util.Tracer.LogError(span, err)
+	}
 	campaignPosts := make([]model.Post, 0)
 	influencerIDs := make([]uint, 0)
 	for _, sponsoredPostDTO := range sponsoredPostsDTO {
 		primitiveID, err := primitive.ObjectIDFromHex(sponsoredPostDTO.PostID)
 		if err != nil {
+			util.Tracer.LogError(span, err)
 			return nil, err
 		}
-		post, err := service.PostRepository.Read(primitiveID)
+		post, err := service.PostRepository.Read(nextCtx, primitiveID)
 		if err != nil {
+			util.Tracer.LogError(span, err)
 			return nil, err
 		}
 		influencerIDs = append(influencerIDs, sponsoredPostDTO.InfluencerID)
 		campaignPosts = append(campaignPosts, post)
 	}
-	initialSponsoredPosts, err := getReactionsForPosts(campaignPosts, loggedUserID)
+	initialSponsoredPosts, err := getReactionsForPosts(nextCtx, campaignPosts, loggedUserID)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 	ret := make([]dto.ResponsePostDTO, 0)
-	influencerUsernames, err := getProfileUsernamesByIDs(influencerIDs)
+	influencerUsernames, err := getProfileUsernamesByIDs(nextCtx, influencerIDs)
+	if err != nil {
+		util.Tracer.LogError(span, err)
+	}
 	for i, initial := range initialSponsoredPosts {
 		ret = append(ret, dto.ResponsePostDTO{
 			Post:               initial.Post,
@@ -139,12 +185,14 @@ func (service *PostService) GetMyPosts(loggedUserID uint) ([]dto.ResponsePostDTO
 			InfluencerUsername: influencerUsernames[i],
 		})
 	}
-	posts, err := service.PostRepository.GetMyPosts(loggedUserID)
+	posts, err := service.PostRepository.GetMyPosts(nextCtx, loggedUserID)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
-	postsDTO, err := getReactionsForPosts(posts, loggedUserID)
+	postsDTO, err := getReactionsForPosts(nextCtx, posts, loggedUserID)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 	for _, post := range postsDTO {
@@ -153,18 +201,26 @@ func (service *PostService) GetMyPosts(loggedUserID uint) ([]dto.ResponsePostDTO
 	return ret, err
 }
 
-func (service *PostService) GetPostsForHomePage(followingProfiles []util.FollowingProfileDTO, loggedUserID uint) ([]dto.ResponsePostDTO, error) {
-	posts, err := service.PostRepository.GetPostsForHomePage(followingProfiles)
+func (service *PostService) GetPostsForHomePage(ctx context.Context, followingProfiles []util.FollowingProfileDTO, loggedUserID uint) ([]dto.ResponsePostDTO, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "GetPostsForHomePage-service")
+	defer util.Tracer.FinishSpan(span)
+
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
+	posts, err := service.PostRepository.GetPostsForHomePage(nextCtx, followingProfiles)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 	ret := make([]dto.ResponsePostDTO, 0)
-	ret, err = getReactionsForPosts(posts, loggedUserID)
+	ret, err = getReactionsForPosts(nextCtx, posts, loggedUserID)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
-	sponsoredPostsDTO, err := getCampaigns(loggedUserID, followingProfiles)
+	sponsoredPostsDTO, err := getCampaigns(nextCtx, loggedUserID, followingProfiles)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 	campaignPosts := make([]model.Post, 0)
@@ -172,20 +228,23 @@ func (service *PostService) GetPostsForHomePage(followingProfiles []util.Followi
 	for _, sponsoredPostDTO := range sponsoredPostsDTO {
 		primitiveID, err := primitive.ObjectIDFromHex(sponsoredPostDTO.PostID)
 		if err != nil {
+			util.Tracer.LogError(span, err)
 			return nil, err
 		}
-		post, err := service.PostRepository.Read(primitiveID)
+		post, err := service.PostRepository.Read(nextCtx, primitiveID)
 		if err != nil {
+			util.Tracer.LogError(span, err)
 			return nil, err
 		}
 		influencerIDs = append(influencerIDs, sponsoredPostDTO.InfluencerID)
 		campaignPosts = append(campaignPosts, post)
 	}
-	initialSponsoredPosts, err := getReactionsForPosts(campaignPosts, loggedUserID)
+	initialSponsoredPosts, err := getReactionsForPosts(nextCtx, campaignPosts, loggedUserID)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
-	influencerUsernames, err := getProfileUsernamesByIDs(influencerIDs)
+	influencerUsernames, err := getProfileUsernamesByIDs(nextCtx, influencerIDs)
 	for i, initial := range initialSponsoredPosts {
 		ret = append(ret, dto.ResponsePostDTO{
 			Post:               initial.Post,
@@ -198,7 +257,12 @@ func (service *PostService) GetPostsForHomePage(followingProfiles []util.Followi
 	return ret, err
 }
 
-func (service *PostService) CreatePost(postType model.PostType, post dto.PostDto, mediaNames []string, profile dto.ProfileDto) error {
+func (service *PostService) CreatePost(ctx context.Context, postType model.PostType, post dto.PostDto, mediaNames []string, profile dto.ProfileDto) error {
+	span := util.Tracer.StartSpanFromContext(ctx, "CreatePost-service")
+	defer util.Tracer.FinishSpan(span)
+
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
 	var medias []model.Media
 	for i := 0; i < len(mediaNames); i++ {
 		m := model.Media{
@@ -210,8 +274,9 @@ func (service *PostService) CreatePost(postType model.PostType, post dto.PostDto
 	}
 
 	if strings.Contains(post.Description, "@") {
-		err := canUsersBeTagged(post.Description, profile.ProfileId)
+		err := canUsersBeTagged(nextCtx, post.Description, profile.ProfileId)
 		if err != nil {
+			util.Tracer.LogError(span, err)
 			return err
 		}
 	}
@@ -222,86 +287,141 @@ func (service *PostService) CreatePost(postType model.PostType, post dto.PostDto
 		IsCloseFriendsOnly: post.IsCloseFriendsOnly, Location: post.Location,
 		HashTags: post.HashTags, IsPrivate: profile.ProfileSettings.IsPrivate, IsDeleted: false}
 
-	return service.PostRepository.Create(&newPost)
+	return service.PostRepository.Create(nextCtx, &newPost)
 }
 
-func (service *PostService) ReadPost(id primitive.ObjectID) (model.Post, error) {
-	return service.PostRepository.Read(id)
+func (service *PostService) ReadPost(ctx context.Context, id primitive.ObjectID) (model.Post, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "ReadPost-service")
+	defer util.Tracer.FinishSpan(span)
+
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
+	return service.PostRepository.Read(nextCtx, id)
 }
 
-func (service *PostService) DeletePost(id primitive.ObjectID) error {
-	err := service.PostRepository.Delete(id)
+func (service *PostService) DeletePost(ctx context.Context, id primitive.ObjectID) error {
+	span := util.Tracer.StartSpanFromContext(ctx, "DeletePost-service")
+	defer util.Tracer.FinishSpan(span)
+
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
+	err := service.PostRepository.Delete(nextCtx, id)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return err
 	}
 
-	err = deletePostsReports(id)
+	err = deletePostsReports(nextCtx, id)
 	return err
 }
 
-func (service *PostService) UpdatePost(id primitive.ObjectID, post dto.PostDto) error {
-	return service.PostRepository.Update(id, post)
+func (service *PostService) UpdatePost(ctx context.Context, id primitive.ObjectID, post dto.PostDto) error {
+	span := util.Tracer.StartSpanFromContext(ctx, "UpdatePost-service")
+	defer util.Tracer.FinishSpan(span)
+
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
+	return service.PostRepository.Update(nextCtx, id, post)
 }
 
-func (service *PostService) DeleteUserPosts(profileId uint) error {
-	posts, err := service.PostRepository.GetMyPosts(profileId)
+func (service *PostService) DeleteUserPosts(ctx context.Context, profileId uint) error {
+	span := util.Tracer.StartSpanFromContext(ctx, "DeleteUserPosts-service")
+	defer util.Tracer.FinishSpan(span)
+
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
+	posts, err := service.PostRepository.GetMyPosts(nextCtx, profileId)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return err
 	}
 	for i := 0; i < len(posts); i++ {
-		err = service.DeletePost(posts[i].ID)
+		err = service.DeletePost(nextCtx, posts[i].ID)
 		if err != nil {
+			util.Tracer.LogError(span, err)
 			return err
 		}
 	}
 	return nil
 }
 
-func (service *PostService) ChangeUsername(profileId uint, username string) error {
-	return service.PostRepository.ChangeUsername(profileId, username)
+func (service *PostService) ChangeUsername(ctx context.Context, profileId uint, username string) error {
+	span := util.Tracer.StartSpanFromContext(ctx, "ChangeUsername-service")
+	defer util.Tracer.FinishSpan(span)
+
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
+	return service.PostRepository.ChangeUsername(nextCtx, profileId, username)
 }
 
-func (service *PostService) ChangePrivacy(profileId uint, isPrivate bool) error {
-	return service.PostRepository.ChangePrivacy(profileId, isPrivate)
+func (service *PostService) ChangePrivacy(ctx context.Context, profileId uint, isPrivate bool) error {
+	span := util.Tracer.StartSpanFromContext(ctx, "ChangePrivacy-service")
+	defer util.Tracer.FinishSpan(span)
+
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+	return service.PostRepository.ChangePrivacy(nextCtx, profileId, isPrivate)
 }
 
-func (service *PostService) MakeCampaign(postID string, agentID uint) error {
+func (service *PostService) MakeCampaign(ctx context.Context, postID string, agentID uint) error {
+	span := util.Tracer.StartSpanFromContext(ctx, "MakeCampaign-service")
+	defer util.Tracer.FinishSpan(span)
+
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
 	id, err := primitive.ObjectIDFromHex(postID)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return err
 	}
-	post, err := service.PostRepository.Read(id)
+	post, err := service.PostRepository.Read(nextCtx, id)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return err
 	}
 	if post.PublisherId != agentID {
+		util.Tracer.LogError(span, fmt.Errorf("bad agent id"))
 		return fmt.Errorf("BAD_AGENT_ID")
 	}
-	return service.PostRepository.MakeCampaign(id)
+	return service.PostRepository.MakeCampaign(nextCtx, id)
 }
 
-func (service *PostService) GetMediaById(mediaId string) (model.Media, error) {
-	return service.PostRepository.GetMediaById(mediaId)
+func (service *PostService) GetMediaById(ctx context.Context, mediaId string) (model.Media, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "GetMediaById-service")
+	defer util.Tracer.FinishSpan(span)
+
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+	return service.PostRepository.GetMediaById(nextCtx, mediaId)
 }
 
-func deletePostsReports(postId primitive.ObjectID) error {
+func deletePostsReports(ctx context.Context, postId primitive.ObjectID) error {
+	span := util.Tracer.StartSpanFromContext(ctx, "deletePostsReports-service")
+	defer util.Tracer.FinishSpan(span)
+
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
 	postReactionHost, postReactionPort := util.GetPostReactionHostAndPort()
-	_, err := util.CrossServiceRequest(context.Background(), http.MethodDelete,
+	_, err := util.CrossServiceRequest(nextCtx, http.MethodDelete,
 		util.GetCrossServiceProtocol()+"://"+postReactionHost+":"+postReactionPort+"/report/"+util.GetStringIDFromMongoID(postId),
 		nil, map[string]string{})
 	return err
 }
 
-func canUsersBeTagged(description string, publisherId uint) error {
+func canUsersBeTagged(ctx context.Context, description string, publisherId uint) error {
+	span := util.Tracer.StartSpanFromContext(ctx, "canUsersBeTagged-service")
+	defer util.Tracer.FinishSpan(span)
+
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
 	var followingProfiles []uint
 
-	resp, err := getUserFollowers(publisherId)
+	resp, err := getUserFollowers(nextCtx, publisherId)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return err
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return err
 	}
 	defer func(Body io.ReadCloser) {
@@ -309,6 +429,7 @@ func canUsersBeTagged(description string, publisherId uint) error {
 	}(resp.Body)
 
 	if err = json.Unmarshal(body, &followingProfiles); err != nil {
+		util.Tracer.LogError(span, err)
 		return err
 	}
 
@@ -317,7 +438,8 @@ func canUsersBeTagged(description string, publisherId uint) error {
 		if strings.Contains(descriptionParts[i], "@") {
 			taggedUsername := descriptionParts[i][1:len(descriptionParts[i])]
 			var taggedProfile dto.ProfileDto
-			if resp, err := getProfileByUsername(taggedUsername); err != nil {
+			if resp, err := getProfileByUsername(nextCtx, taggedUsername); err != nil {
+				util.Tracer.LogError(span, err)
 				return err
 			} else {
 				body, _ := io.ReadAll(resp.Body)
@@ -325,15 +447,18 @@ func canUsersBeTagged(description string, publisherId uint) error {
 					_ = Body.Close()
 				}(resp.Body)
 				if err := json.Unmarshal(body, &taggedProfile); err != nil {
+					util.Tracer.LogError(span, err)
 					return err
 				}
 			}
 
 			if !taggedProfile.ProfileSettings.CanBeTagged {
+				util.Tracer.LogError(span, fmt.Errorf("%s can't be tagged",taggedProfile.Username))
 				return errors.New(taggedProfile.Username + " can't be tagged!")
 			}
 
 			if !util.Contains(followingProfiles, taggedProfile.ProfileId) {
+				util.Tracer.LogError(span, fmt.Errorf("%s is not followed by this profile",taggedProfile.Username))
 				return errors.New(taggedProfile.Username + " is not followed by this profile!")
 			}
 		}
@@ -341,23 +466,38 @@ func canUsersBeTagged(description string, publisherId uint) error {
 	return nil
 }
 
-func getUserFollowers(loggedUserId uint) (*http.Response, error) {
+func getUserFollowers(ctx context.Context, loggedUserId uint) (*http.Response, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "getUserFollowers-service")
+	defer util.Tracer.FinishSpan(span)
+
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
 	connHost, connPort := util.GetConnectionHostAndPort()
-	resp, err := util.CrossServiceRequest(context.Background(), http.MethodGet,
+	resp, err := util.CrossServiceRequest(nextCtx, http.MethodGet,
 		util.GetCrossServiceProtocol()+"://"+connHost+":"+connPort+"/connection/following/show/"+util.Uint2String(loggedUserId),
 		nil, map[string]string{})
 	return resp, err
 }
 
-func getProfileByUsername(username string) (*http.Response, error) {
+func getProfileByUsername(ctx context.Context, username string) (*http.Response, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "getProfileByUsername-service")
+	defer util.Tracer.FinishSpan(span)
+
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
 	profileHost, profilePort := util.GetProfileHostAndPort()
-	resp, err := util.CrossServiceRequest(context.Background(), http.MethodGet,
+	resp, err := util.CrossServiceRequest(nextCtx, http.MethodGet,
 		util.GetCrossServiceProtocol()+"://"+profileHost+":"+profilePort+"/get/"+username,
 		nil, map[string]string{})
 	return resp, err
 }
 
-func getReactionsForPosts(posts []model.Post, profileID uint) ([]dto.ResponsePostDTO, error) {
+func getReactionsForPosts(ctx context.Context, posts []model.Post, profileID uint) ([]dto.ResponsePostDTO, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "getReactionsForPosts-service")
+	defer util.Tracer.FinishSpan(span)
+
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
 	if len(posts) == 0 {
 		return make([]dto.ResponsePostDTO, 0), nil
 	}
@@ -377,20 +517,23 @@ func getReactionsForPosts(posts []model.Post, profileID uint) ([]dto.ResponsePos
 	postBody, _ := json.Marshal(map[string][]string{
 		"ids": postIDs,
 	})
-	resp, err := util.CrossServiceRequest(context.Background(), http.MethodPost,
+	resp, err := util.CrossServiceRequest(nextCtx, http.MethodPost,
 		util.GetCrossServiceProtocol()+"://"+postReactionHost+":"+postReactionPort+"/get-reaction-types/"+util.Uint2String(profileID),
 		postBody, map[string]string{"Content-Type": "application/json;"})
 
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 
 	if resp.StatusCode != 200 {
+		util.Tracer.LogError(span, fmt.Errorf("bad post id"))
 		return nil, fmt.Errorf("BAD_POST_ID")
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 	defer func(Body io.ReadCloser) {
@@ -399,9 +542,11 @@ func getReactionsForPosts(posts []model.Post, profileID uint) ([]dto.ResponsePos
 
 	var reactions []string
 	if err = json.Unmarshal(body, &reactions); err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 	if len(posts) != len(reactions) {
+		util.Tracer.LogError(span, fmt.Errorf("bad lists"))
 		return nil, fmt.Errorf("BAD_LISTS")
 	}
 	ret := make([]dto.ResponsePostDTO, 0)
@@ -415,18 +560,25 @@ func getReactionsForPosts(posts []model.Post, profileID uint) ([]dto.ResponsePos
 	return ret, nil
 }
 
-func getProfilesBlockedRelationships(loggedProfileId uint) ([]uint, error) {
+func getProfilesBlockedRelationships(ctx context.Context, loggedProfileId uint) ([]uint, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "getProfilesBlockedRelationships-service")
+	defer util.Tracer.FinishSpan(span)
+
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
 	connectionHost, connectionPort := util.GetConnectionHostAndPort()
-	resp, err := util.CrossServiceRequest(context.Background(), http.MethodGet,
+	resp, err := util.CrossServiceRequest(nextCtx, http.MethodGet,
 		util.GetCrossServiceProtocol()+"://"+connectionHost+":"+connectionPort+"/connection/block/relationships/"+util.Uint2String(loggedProfileId),
 		nil, map[string]string{})
 
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 	defer func(Body io.ReadCloser) {
@@ -435,31 +587,41 @@ func getProfilesBlockedRelationships(loggedProfileId uint) ([]uint, error) {
 
 	var blockedRelationships []uint
 	if err = json.Unmarshal(body, &blockedRelationships); err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 
 	return blockedRelationships, err
 }
 
-func getCampaigns(loggedUserID uint, followingProfiles []util.FollowingProfileDTO) ([]dto.SponsoredPostsDTO, error) {
+func getCampaigns(ctx context.Context, loggedUserID uint, followingProfiles []util.FollowingProfileDTO) ([]dto.SponsoredPostsDTO, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "getCampaigns-service")
+	defer util.Tracer.FinishSpan(span)
+
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
 	postBody, err := json.Marshal(followingProfiles)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		return nil, err
 	}
 	campaignHost, campaignPort := util.GetCampaignHostAndPort()
-	resp, err := util.CrossServiceRequest(context.Background(), http.MethodPost,
+	resp, err := util.CrossServiceRequest(nextCtx, http.MethodPost,
 		util.GetCrossServiceProtocol()+"://"+campaignHost+":"+campaignPort+"/available-for-profile/"+util.Uint2String(loggedUserID),
 		postBody, map[string]string{"Content-Type": "application/json"})
 
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 	if resp.StatusCode != 200 {
+		util.Tracer.LogError(span, fmt.Errorf("bad request"))
 		return nil, fmt.Errorf("BAD_REQUEST")
 	}
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 	defer func(Body io.ReadCloser) {
@@ -467,25 +629,34 @@ func getCampaigns(loggedUserID uint, followingProfiles []util.FollowingProfileDT
 	}(resp.Body)
 	var ret []dto.SponsoredPostsDTO
 	if err = json.Unmarshal(body, &ret); err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 	return ret, nil
 }
 
-func getCampaignsWhereUserIsInfluencer(userID uint) ([]dto.SponsoredPostsDTO, error) {
+func getCampaignsWhereUserIsInfluencer(ctx context.Context, userID uint) ([]dto.SponsoredPostsDTO, error){
+	span := util.Tracer.StartSpanFromContext(ctx, "getCampaignsWhereUserIsInfluencer-service")
+	defer util.Tracer.FinishSpan(span)
+
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
 	campaignHost, campaignPort := util.GetCampaignHostAndPort()
-	resp, err := util.CrossServiceRequest(context.Background(), http.MethodGet,
+	resp, err := util.CrossServiceRequest(nextCtx, http.MethodGet,
 		util.GetCrossServiceProtocol()+"://"+campaignHost+":"+campaignPort+"/accepted-by-influencer/"+util.Uint2String(userID),
 		nil, map[string]string{})
 
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 	if resp.StatusCode != 200 {
+		util.Tracer.LogError(span, fmt.Errorf("bad request"))
 		return nil, fmt.Errorf("BAD_REQUEST")
 	}
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 	defer func(Body io.ReadCloser) {
@@ -493,12 +664,18 @@ func getCampaignsWhereUserIsInfluencer(userID uint) ([]dto.SponsoredPostsDTO, er
 	}(resp.Body)
 	var ret []dto.SponsoredPostsDTO
 	if err = json.Unmarshal(body, &ret); err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 	return ret, nil
 }
 
-func getProfileUsernamesByIDs(profileIDs []uint) ([]string, error) {
+func getProfileUsernamesByIDs(ctx context.Context, profileIDs []uint) ([]string, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "getProfileUsernamesByIDs-service")
+	defer util.Tracer.FinishSpan(span)
+
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
 	type data struct {
 		Ids []string `json:"ids"`
 	}
@@ -509,13 +686,15 @@ func getProfileUsernamesByIDs(profileIDs []uint) ([]string, error) {
 	bodyData := data{Ids: req}
 	jsonBody, err := json.Marshal(bodyData)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 	profileHost, profilePort := util.GetProfileHostAndPort()
-	resp, err := util.CrossServiceRequest(context.Background(), http.MethodPost,
+	resp, err := util.CrossServiceRequest(nextCtx, http.MethodPost,
 		util.GetCrossServiceProtocol()+"://"+profileHost+":"+profilePort+"/get-by-ids",
 		jsonBody, map[string]string{"Content-Type": "application/json;"})
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 
@@ -523,6 +702,7 @@ func getProfileUsernamesByIDs(profileIDs []uint) ([]string, error) {
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 
@@ -531,22 +711,29 @@ func getProfileUsernamesByIDs(profileIDs []uint) ([]string, error) {
 	}(resp.Body)
 
 	if err = json.Unmarshal(body, &ret); err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 
 	return ret, nil
 }
 
-func getProfileIDByUsername(username string) (uint, error) {
+func getProfileIDByUsername(ctx context.Context, username string) (uint, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "getProfileIDByUsername-service")
+	defer util.Tracer.FinishSpan(span)
+
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
 	profileHost, profilePort := util.GetProfileHostAndPort()
-	resp, err := util.CrossServiceRequest(context.Background(), http.MethodGet,
+	resp, err := util.CrossServiceRequest(nextCtx, http.MethodGet,
 		util.GetCrossServiceProtocol()+"://"+profileHost+":"+profilePort+"/get-by-username/" + username,
 		nil, map[string]string{})
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return 0, err
 	}
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return 0, err
 	}
 	defer func(Body io.ReadCloser) {
@@ -557,6 +744,7 @@ func getProfileIDByUsername(username string) (uint, error) {
 	}
 	var ret ProfileDTO
 	if err = json.Unmarshal(body, &ret); err != nil {
+		util.Tracer.LogError(span, err)
 		return 0, err
 	}
 

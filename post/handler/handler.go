@@ -27,14 +27,20 @@ type Handler struct {
 }
 
 func (handler Handler) GetPublic(w http.ResponseWriter, r *http.Request) {
-	result, err := handler.PostService.GetPublic(util.GetLoggedUserIDFromToken(r))
+	span := util.Tracer.StartSpanFromRequest("GetPublic-handler", r)
+	defer util.Tracer.FinishSpan(span)
+
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
+	result, err := handler.PostService.GetPublic(ctx, util.GetLoggedUserIDFromToken(r))
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	if js, err := json.Marshal(result); err != nil {
+		util.Tracer.LogError(span, err)
 		w.WriteHeader(http.StatusInternalServerError)
 	} else {
 		w.WriteHeader(http.StatusOK)
@@ -44,17 +50,23 @@ func (handler Handler) GetPublic(w http.ResponseWriter, r *http.Request) {
 }
 
 func (handler Handler) GetMyPosts(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("GetMyPosts-handler", r)
+	defer util.Tracer.FinishSpan(span)
+
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
 
 	w.Header().Set("Content-Type", "application/json")
 
 	loggedUserID := util.GetLoggedUserIDFromToken(r)
 	if loggedUserID == 0 {
+		util.Tracer.LogError(span, fmt.Errorf("user is not logged in"))
 		http.Error(w, "user is not logged in", http.StatusForbidden)
 		return
 	}
 
-	result, err := handler.PostService.GetMyPosts(loggedUserID)
+	result, err := handler.PostService.GetMyPosts(ctx, loggedUserID)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -62,6 +74,7 @@ func (handler Handler) GetMyPosts(w http.ResponseWriter, r *http.Request) {
 
 	js, err := json.Marshal(result)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -70,30 +83,38 @@ func (handler Handler) GetMyPosts(w http.ResponseWriter, r *http.Request) {
 }
 
 func (handler Handler) GetPostsForHomePage(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("GetPostsForHomePage-handler", r)
+	defer util.Tracer.FinishSpan(span)
+
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
 
 	w.Header().Set("Content-Type", "application/json")
 
 	loggedUserID := util.GetLoggedUserIDFromToken(r)
 	if loggedUserID == 0 {
+		util.Tracer.LogError(span, fmt.Errorf("user is not logged in"))
 		http.Error(w, "user is not logged in", http.StatusForbidden)
 		return
 	}
 
-	followingProfiles, err := getFollowingProfiles(loggedUserID)
+	followingProfiles, err := getFollowingProfiles(ctx, loggedUserID)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	result, err := handler.PostService.GetPostsForHomePage(followingProfiles, loggedUserID)
+	result, err := handler.PostService.GetPostsForHomePage(ctx, followingProfiles, loggedUserID)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	if js, err := json.Marshal(result); err != nil {
+		util.Tracer.LogError(span, err)
 		w.WriteHeader(http.StatusInternalServerError)
 	} else {
 		w.WriteHeader(http.StatusOK)
@@ -103,28 +124,35 @@ func (handler Handler) GetPostsForHomePage(w http.ResponseWriter, r *http.Reques
 }
 
 func (handler Handler) GetProfilesPosts(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("GetProfilesPosts-handler", r)
+	defer util.Tracer.FinishSpan(span)
+
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
 	params := mux.Vars(r)
 	targetUsername := template.HTMLEscapeString(params["username"])
 	loggedUserId := util.GetLoggedUserIDFromToken(r)
 	var followingProfiles []util.FollowingProfileDTO
 	var err error
 	if loggedUserId != 0 {
-		followingProfiles, err = getFollowingProfiles(loggedUserId)
+		followingProfiles, err = getFollowingProfiles(ctx, loggedUserId)
 		if err != nil {
+			util.Tracer.LogError(span, err)
 			fmt.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 	}
 
-	result, err := handler.PostService.GetProfilesPosts(followingProfiles, targetUsername, loggedUserId)
+	result, err := handler.PostService.GetProfilesPosts(ctx, followingProfiles, targetUsername, loggedUserId)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	if js, err := json.Marshal(result); err != nil {
+		util.Tracer.LogError(span, err)
 		w.WriteHeader(http.StatusInternalServerError)
 	} else {
 		_, _ = w.Write(js)
@@ -134,16 +162,22 @@ func (handler Handler) GetProfilesPosts(w http.ResponseWriter, r *http.Request) 
 }
 
 func (handler *Handler) SearchPublicByLocation(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("SearchPublicByLocation-handler", r)
+	defer util.Tracer.FinishSpan(span)
+
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
 	params := mux.Vars(r)
 	location := template.HTMLEscapeString(params["value"])
 
-	result, err := handler.PostService.GetPublicPostByLocation(location, util.GetLoggedUserIDFromToken(r))
+	result, err := handler.PostService.GetPublicPostByLocation(ctx, location, util.GetLoggedUserIDFromToken(r))
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	if err = json.NewEncoder(w).Encode(&result); err != nil {
+		util.Tracer.LogError(span, err)
 		w.WriteHeader(http.StatusInternalServerError)
 	} else {
 		w.WriteHeader(http.StatusOK)
@@ -152,16 +186,22 @@ func (handler *Handler) SearchPublicByLocation(w http.ResponseWriter, r *http.Re
 }
 
 func (handler *Handler) SearchPublicByHashTag(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("SearchPublicByHashTag-handler", r)
+	defer util.Tracer.FinishSpan(span)
+
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
 	params := mux.Vars(r)
 	hashTag := template.HTMLEscapeString(params["value"])
 
-	result, err := handler.PostService.GetPublicPostByHashTag(hashTag, util.GetLoggedUserIDFromToken(r))
+	result, err := handler.PostService.GetPublicPostByHashTag(ctx, hashTag, util.GetLoggedUserIDFromToken(r))
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	if err = json.NewEncoder(w).Encode(&result); err != nil {
+		util.Tracer.LogError(span, err)
 		w.WriteHeader(http.StatusInternalServerError)
 	} else {
 		w.WriteHeader(http.StatusOK)
@@ -170,9 +210,14 @@ func (handler *Handler) SearchPublicByHashTag(w http.ResponseWriter, r *http.Req
 }
 
 func (handler *Handler) Create(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("Create-handler", r)
+	defer util.Tracer.FinishSpan(span)
+
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
 	profileId := util.GetLoggedUserIDFromToken(r)
 	methodPath := "nistagram/post/handler.Create"
 	if err := r.ParseMultipartForm(0); err != nil {
+		util.Tracer.LogError(span, err)
 		util.Logging(util.ERROR, methodPath, "", err.Error(), "post")
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -182,6 +227,7 @@ func (handler *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	data := r.MultipartForm.Value["data"]
 
 	if err := json.Unmarshal([]byte(data[0]), &postDto); err != nil {
+		util.Tracer.LogError(span, err)
 		util.Logging(util.ERROR, methodPath, "", err.Error(), "post")
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -200,22 +246,25 @@ func (handler *Handler) Create(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println(postDto)
 
-	switch err := handler.createPost(profileId, postDto, mediaNames); err {
+	switch err := handler.createPost(ctx, profileId, postDto, mediaNames); err {
 	case nil:
 		w.WriteHeader(http.StatusCreated)
 		util.Logging(util.SUCCESS, methodPath, util.GetIPAddress(r), "Success in creating post, "+util.GetLoggingStringFromID(profileId), "post")
 	case errors.InvalidArgumentError("input value"):
+		util.Tracer.LogError(span, err)
 		util.Logging(util.ERROR, methodPath, util.GetIPAddress(r), "Wrong post type", "post")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	default:
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		util.Logging(util.ERROR, methodPath, util.GetIPAddress(r), "Wrong post type", "post")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	if err := insertIntoFiles(files, mediaNames); err != nil {
+	if err := insertIntoFiles(ctx, files, mediaNames); err != nil {
+		util.Tracer.LogError(span, err)
 		util.Logging(util.ERROR, methodPath, "", err.Error(), "post")
 		w.WriteHeader(http.StatusInternalServerError)
 	}
@@ -223,41 +272,55 @@ func (handler *Handler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (handler *Handler) GetPost(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("GetPost-handler", r)
+	defer util.Tracer.FinishSpan(span)
+
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
 	params := mux.Vars(r)
 
 	id, err := primitive.ObjectIDFromHex(params["id"])
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	switch result, err := handler.PostService.ReadPost(id); err {
+	switch result, err := handler.PostService.ReadPost(ctx, id); err {
 	case mongo.ErrNoDocuments:
+		util.Tracer.LogError(span, err)
 		w.WriteHeader(http.StatusNotFound)
 	case nil:
 		w.WriteHeader(http.StatusOK)
 		err = json.NewEncoder(w).Encode(&result)
 		if err != nil {
+			util.Tracer.LogError(span, err)
 			return
 		}
 	default:
+		util.Tracer.LogError(span, err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 	w.Header().Set("Content-Type", "application/json")
 }
 
 func (handler *Handler) DeletePost(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("DeletePost-handler", r)
+	defer util.Tracer.FinishSpan(span)
+
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
 	params := mux.Vars(r)
 	id, err := primitive.ObjectIDFromHex(params["id"])
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
 		return
 	}
 
-	err = handler.PostService.DeletePost(id)
+	err = handler.PostService.DeletePost(ctx, id)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
@@ -269,45 +332,63 @@ func (handler *Handler) DeletePost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (handler *Handler) UpdatePost(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("UpdatePost-handler", r)
+	defer util.Tracer.FinishSpan(span)
+
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
 	params := mux.Vars(r)
 	id, err := primitive.ObjectIDFromHex(params["id"])
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	var postDto dto.PostDto
 	if err = json.NewDecoder(r.Body).Decode(&postDto); err != nil {
+		util.Tracer.LogError(span, err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	postDto = safePostDto(postDto)
 
-	switch err = handler.PostService.UpdatePost(id, postDto); err {
+	switch err = handler.PostService.UpdatePost(ctx, id, postDto); err {
 	case mongo.ErrNoDocuments:
+		util.Tracer.LogError(span, err)
 		w.WriteHeader(http.StatusNotFound)
 	case nil:
 		w.WriteHeader(http.StatusOK)
 	default:
+		util.Tracer.LogError(span, err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
 
 func (handler *Handler) DeleteUserPosts(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("DeleteUserPosts-handler", r)
+	defer util.Tracer.FinishSpan(span)
+
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
 	params := mux.Vars(r)
 	profileId := util.String2Uint(params["id"])
-	switch err := handler.PostService.DeleteUserPosts(profileId); err {
+	switch err := handler.PostService.DeleteUserPosts(ctx, profileId); err {
 	case mongo.ErrNoDocuments:
+		util.Tracer.LogError(span, err)
 		w.WriteHeader(http.StatusNotFound)
 	case nil:
 		w.WriteHeader(http.StatusOK)
 	default:
+		util.Tracer.LogError(span, err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
 
 func (handler *Handler) ChangeUsername(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("ChangeUsername-handler", r)
+	defer util.Tracer.FinishSpan(span)
+
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
 	params := mux.Vars(r)
 	publisherId := util.String2Uint(params["loggedUserId"])
 
@@ -316,23 +397,30 @@ func (handler *Handler) ChangeUsername(w http.ResponseWriter, r *http.Request) {
 	}
 	var input data
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		util.Tracer.LogError(span, err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	input.Username = template.HTMLEscapeString(input.Username)
 
-	switch err := handler.PostService.ChangeUsername(publisherId, input.Username); err {
+	switch err := handler.PostService.ChangeUsername(ctx, publisherId, input.Username); err {
 	case mongo.ErrNoDocuments:
+		util.Tracer.LogError(span, err)
 		w.WriteHeader(http.StatusNotFound)
 	case nil:
 		w.WriteHeader(http.StatusOK)
 	default:
+		util.Tracer.LogError(span, err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
 
 func (handler *Handler) ChangePrivacy(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("ChangePrivacy-handler", r)
+	defer util.Tracer.FinishSpan(span)
+
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
 	type data struct {
 		IsPrivate bool `json:"IsPrivate"`
 	}
@@ -341,26 +429,34 @@ func (handler *Handler) ChangePrivacy(w http.ResponseWriter, r *http.Request) {
 
 	var input data
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		util.Tracer.LogError(span, err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	switch err := handler.PostService.ChangePrivacy(publisherId, input.IsPrivate); err {
+	switch err := handler.PostService.ChangePrivacy(ctx, publisherId, input.IsPrivate); err {
 	case mongo.ErrNoDocuments:
+		util.Tracer.LogError(span, err)
 		w.WriteHeader(http.StatusNotFound)
 	case nil:
 		w.WriteHeader(http.StatusOK)
 	default:
+		util.Tracer.LogError(span, err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
 
 func (handler *Handler) GetPosts(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("GetPosts-handler", r)
+	defer util.Tracer.FinishSpan(span)
+
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
 	type data struct {
 		Ids []string `json:"ids"`
 	}
 	var input data
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		util.Tracer.LogError(span, err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -369,21 +465,25 @@ func (handler *Handler) GetPosts(w http.ResponseWriter, r *http.Request) {
 	for _, value := range input.Ids {
 		postID, err := primitive.ObjectIDFromHex(value)
 		if err != nil {
+			util.Tracer.LogError(span, err)
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 
-		switch result, err := handler.PostService.ReadPost(postID); err {
+		switch result, err := handler.PostService.ReadPost(ctx, postID); err {
 		case mongo.ErrNoDocuments:
+			util.Tracer.LogError(span, fmt.Errorf("post not found"))
 			continue //escaping deleted posts
 		case nil:
 			posts = append(posts, result)
 		default:
+			util.Tracer.LogError(span, err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 	}
 	if js, err := json.Marshal(posts); err != nil {
+		util.Tracer.LogError(span, err)
 		w.WriteHeader(http.StatusInternalServerError)
 	} else {
 		w.WriteHeader(http.StatusOK)
@@ -392,9 +492,14 @@ func (handler *Handler) GetPosts(w http.ResponseWriter, r *http.Request) {
 }
 
 func (handler *Handler) MakeCampaign(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("MakeCampaign-handler", r)
+	defer util.Tracer.FinishSpan(span)
+
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
 	params := mux.Vars(r)
-	err := handler.PostService.MakeCampaign(params["id"], util.String2Uint(params["agentID"]))
+	err := handler.PostService.MakeCampaign(ctx, params["id"], util.String2Uint(params["agentID"]))
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -405,11 +510,17 @@ func (handler *Handler) MakeCampaign(w http.ResponseWriter, r *http.Request) {
 }
 
 func (handler Handler) GetMediaById(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("GetMediaById-handler", r)
+	defer util.Tracer.FinishSpan(span)
+
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
+
 	params := mux.Vars(r)
 	mediaId := template.HTMLEscapeString(params["id"])
 
-	result, err := handler.PostService.GetMediaById(mediaId)
+	result, err := handler.PostService.GetMediaById(ctx, mediaId)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -417,6 +528,7 @@ func (handler Handler) GetMediaById(w http.ResponseWriter, r *http.Request) {
 
 	err = json.NewEncoder(w).Encode(result)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -427,23 +539,33 @@ func (handler Handler) GetMediaById(w http.ResponseWriter, r *http.Request) {
 }
 
 func (handler *Handler) GetPostById(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("GetPostById-handler", r)
+	defer util.Tracer.FinishSpan(span)
+
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
+
 	params := mux.Vars(r)
 	id, err := primitive.ObjectIDFromHex(params["id"])
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	loggedUserId := util.GetLoggedUserIDFromToken(r)
-	followingProfiles,err := getFollowingProfiles(loggedUserId)
+	followingProfiles,err := getFollowingProfiles(ctx, loggedUserId)
 	if err != nil{
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	result, err := handler.PostService.ReadPost(id)
+	result, err := handler.PostService.ReadPost(ctx, id)
+	if err != nil {
+		util.Tracer.LogError(span, err)
+	}
 
 	if result.IsPrivate {
 		if !util.IsFollowed(followingProfiles, result.PublisherId) {
@@ -465,13 +587,19 @@ func safePostDto(postDto dto.PostDto) dto.PostDto {
 	return postDto
 }
 
-func getFollowingProfiles(loggedUserId uint) ([]util.FollowingProfileDTO, error) {
+func getFollowingProfiles(ctx context.Context, loggedUserId uint) ([]util.FollowingProfileDTO, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "getFollowingProfiles-handler")
+	defer util.Tracer.FinishSpan(span)
+
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
 	connHost, connPort := util.GetConnectionHostAndPort()
-	resp, err := util.CrossServiceRequest(context.Background(), http.MethodGet,
+	resp, err := util.CrossServiceRequest(nextCtx, http.MethodGet,
 		util.GetCrossServiceProtocol()+"://"+connHost+":"+connPort+"/connection/following/show/"+util.Uint2String(loggedUserId),
 		nil, map[string]string{})
 
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 
@@ -479,6 +607,7 @@ func getFollowingProfiles(loggedUserId uint) ([]util.FollowingProfileDTO, error)
 
 	err = json.NewDecoder(resp.Body).Decode(&followingProfiles)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 
@@ -493,14 +622,21 @@ func getProfileByProfileId(profileId uint) (*http.Response, error) {
 	return resp, err
 }
 
-func (handler *Handler) createPost(profileId uint, postDto dto.PostDto, mediaNames []string) error {
+func (handler *Handler) createPost(ctx context.Context, profileId uint, postDto dto.PostDto, mediaNames []string) error {
+	span := util.Tracer.StartSpanFromContext(ctx, "createPost-handler")
+	defer util.Tracer.FinishSpan(span)
+
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+
 	postType := model.GetPostType(postDto.PostType)
 	if postType == model.NONE {
+		util.Tracer.LogError(span, fmt.Errorf("invalid post type value"))
 		return errors.InvalidArgumentError("input value")
 	}
 
 	var profile dto.ProfileDto
 	if resp, err := getProfileByProfileId(profileId); err != nil {
+		util.Tracer.LogError(span, err)
 		return err
 	} else {
 		body, _ := io.ReadAll(resp.Body)
@@ -508,12 +644,14 @@ func (handler *Handler) createPost(profileId uint, postDto dto.PostDto, mediaNam
 			_ = Body.Close()
 		}(resp.Body)
 		if err := json.Unmarshal(body, &profile); err != nil {
+			util.Tracer.LogError(span, err)
 			return err
 		}
 	}
 
 	profile.ProfileId = profileId
-	if err := handler.PostService.CreatePost(postType, postDto, mediaNames, profile); err != nil {
+	if err := handler.PostService.CreatePost(nextCtx, postType, postDto, mediaNames, profile); err != nil {
+		util.Tracer.LogError(span, err)
 		return err
 	}
 	return nil
@@ -529,24 +667,32 @@ func generateMediaNames(files []*multipart.FileHeader) []string {
 	return mediaNames
 }
 
-func insertIntoFiles(files []*multipart.FileHeader, mediaNames []string) error {
+func insertIntoFiles(ctx context.Context, files []*multipart.FileHeader, mediaNames []string) error {
+	span := util.Tracer.StartSpanFromContext(ctx, "insertIntoFiles-handler")
+	defer util.Tracer.FinishSpan(span)
+
 	for i := 0; i < len(files); i++ {
 		file, err := files[i].Open()
 		if err != nil {
+			util.Tracer.LogError(span, err)
 			return err
 		}
 
 		f, err := os.OpenFile("../../nistagramstaticdata/data/"+mediaNames[i], os.O_WRONLY|os.O_CREATE, 0666)
 		if err != nil {
+			util.Tracer.LogError(span, err)
 			return err
 		}
 		if _, err = io.Copy(f, file); err != nil {
+			util.Tracer.LogError(span, err)
 			return err
 		}
 		if err = f.Close(); err != nil {
+			util.Tracer.LogError(span, err)
 			return err
 		}
 		if err = file.Close(); err != nil {
+			util.Tracer.LogError(span, err)
 			return err
 		}
 	}

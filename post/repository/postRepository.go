@@ -102,6 +102,7 @@ func (repo *PostRepository) GetPublic(ctx context.Context, blockedRelationships 
 func (repo *PostRepository) GetPublicPostByLocation(ctx context.Context, location string, blockedRelationships []uint) ([]model.Post, error) {
 	span := util.Tracer.StartSpanFromContext(ctx, "GetPublicPostByLocation-repository")
 	defer util.Tracer.FinishSpan(span)
+
 	collection := repo.getCollection()
 
 	filter := bson.D{{"isdeleted", false}, {"isprivate", false}}
@@ -141,6 +142,7 @@ func (repo *PostRepository) GetPublicPostByLocation(ctx context.Context, locatio
 func (repo *PostRepository) GetPublicPostByHashTag(ctx context.Context, hashTag string, blockedRelationships []uint) ([]model.Post, error) {
 	span := util.Tracer.StartSpanFromContext(ctx, "GetPublicPostByHashTag-repository")
 	defer util.Tracer.FinishSpan(span)
+
 	collection := repo.getCollection()
 
 	filter := bson.D{{"isdeleted", false}, {"isprivate", false}}
@@ -248,6 +250,7 @@ func (repo *PostRepository) GetPostsForHomePage(ctx context.Context, followingPr
 func (repo *PostRepository) Create(ctx context.Context, post *model.Post) error {
 	span := util.Tracer.StartSpanFromContext(ctx, "Create-repository")
 	defer util.Tracer.FinishSpan(span)
+
 	collection := repo.getCollection()
 	_, err := collection.InsertOne(context.TODO(), post)
 	return err
@@ -256,6 +259,7 @@ func (repo *PostRepository) Create(ctx context.Context, post *model.Post) error 
 func (repo *PostRepository) Read(ctx context.Context, id primitive.ObjectID) (model.Post, error) {
 	span := util.Tracer.StartSpanFromContext(ctx, "Read-repository")
 	defer util.Tracer.FinishSpan(span)
+
 	collection := repo.getCollection()
 	filter := bson.D{{"_id", id}, {"isdeleted", false}}
 	var result model.Post
@@ -266,6 +270,7 @@ func (repo *PostRepository) Read(ctx context.Context, id primitive.ObjectID) (mo
 func (repo *PostRepository) Delete(ctx context.Context, id primitive.ObjectID) error {
 	span := util.Tracer.StartSpanFromContext(ctx, "Delete-repository")
 	defer util.Tracer.FinishSpan(span)
+
 	collection := repo.getCollection()
 	filter := bson.D{{"_id", id}}
 	update := bson.D{
@@ -284,6 +289,7 @@ func (repo *PostRepository) Delete(ctx context.Context, id primitive.ObjectID) e
 func (repo *PostRepository) Update(ctx context.Context, id primitive.ObjectID, post dto.PostDto) error {
 	span := util.Tracer.StartSpanFromContext(ctx, "Update-repository")
 	defer util.Tracer.FinishSpan(span)
+
 	collection := repo.getCollection()
 	filter := bson.D{{"_id", id}}
 	update := bson.D{
@@ -304,6 +310,7 @@ func (repo *PostRepository) Update(ctx context.Context, id primitive.ObjectID, p
 func (repo *PostRepository) DeleteUserPosts(ctx context.Context, id uint) error {
 	span := util.Tracer.StartSpanFromContext(ctx, "DeleteUserPosts-repository")
 	defer util.Tracer.FinishSpan(span)
+
 	filter := bson.D{{"publisherid", id}}
 	update := bson.D{
 		{"$set", bson.D{
@@ -317,6 +324,7 @@ func (repo *PostRepository) DeleteUserPosts(ctx context.Context, id uint) error 
 func (repo *PostRepository) ChangeUsername(ctx context.Context, id uint, username string) error {
 	span := util.Tracer.StartSpanFromContext(ctx, "ChangeUsername-repository")
 	defer util.Tracer.FinishSpan(span)
+
 	filter := bson.D{{"publisherid", id}}
 	update := bson.D{
 		{"$set", bson.D{
@@ -343,6 +351,7 @@ func (repo *PostRepository) ChangePrivacy(ctx context.Context, id uint, isPrivat
 func (repo *PostRepository) MakeCampaign(ctx context.Context, id primitive.ObjectID) error {
 	span := util.Tracer.StartSpanFromContext(ctx, "MakeCampaign-repository")
 	defer util.Tracer.FinishSpan(span)
+
 	collection := repo.getCollection()
 	filter := bson.D{{"_id", id}}
 	update := bson.D{
@@ -382,6 +391,9 @@ func (repo *PostRepository) GetMediaById(ctx context.Context, id string) (model.
 
 	for cursor.Next(context.TODO()) {
 		err = cursor.Decode(&post)
+		if err != nil{
+			util.Tracer.LogError(span, err)
+		}
 	}
 
 
