@@ -41,11 +41,11 @@ func (handler *Handler) Register(w http.ResponseWriter, r *http.Request) {
 
 	v := validator.New()
 
-	handler.checkCommonPass(w, v)
+	handler.checkCommonPass(ctx, w, v)
 
-	handler.checkWeakPass(v, err)
+	handler.checkWeakPass(ctx, v, err)
 
-	handler.checkUsername(v)
+	handler.checkUsername(ctx, v)
 
 	err = v.Struct(req)
 
@@ -96,11 +96,11 @@ func (handler *Handler) RegisterAgent(w http.ResponseWriter, r *http.Request) {
 
 	v := validator.New()
 
-	handler.checkCommonPass(w, v)
+	handler.checkCommonPass(ctx, w, v)
 
-	handler.checkWeakPass(v, err)
+	handler.checkWeakPass(ctx, v, err)
 
-	handler.checkUsername(v)
+	handler.checkUsername(ctx, v)
 
 	err = v.Struct(req)
 
@@ -133,40 +133,50 @@ func (handler *Handler) RegisterAgent(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (handler *Handler) checkUsername(v *validator.Validate) {
+func (handler *Handler) checkUsername(ctx context.Context, v *validator.Validate) {
+	span := util.Tracer.StartSpanFromContext(ctx, "checkUsername-handler")
+	defer util.Tracer.FinishSpan(span)
 	_ = v.RegisterValidation("bad_username", func(fl validator.FieldLevel) bool {
 		if len(fl.Field().String()) < 3 || len(fl.Field().String()) > 15 {
+			util.Tracer.LogError(span, fmt.Errorf("not valide username length"))
 			return false
 		}
 		ret, _ := regexp.MatchString("([*!@#$%^&(){}\\[:;\\]<>,.?~+\\-\\\\=|/ ])", fl.Field().String())
 		if ret {
+			util.Tracer.LogError(span, fmt.Errorf("username contains illegal caracters"))
 			return false
 		}
 		return true
 	})
 }
 
-func (handler *Handler) checkWeakPass(v *validator.Validate, err error) {
-
+func (handler *Handler) checkWeakPass(ctx context.Context, v *validator.Validate, err error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "checkWeakPass-handler")
+	defer util.Tracer.FinishSpan(span)
 	_ = v.RegisterValidation("weak_pass", func(fl validator.FieldLevel) bool {
 		//^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[*.!@#$%^&(){}\\[\\]:;<>,.?~_+-=|\\/])[A-Za-z0-9*.!@#$%^&(){}\\[\\]:;<>,.?~_+-=|\\/]{8,}$
 		if len(fl.Field().String()) < 8 {
+			util.Tracer.LogError(span, fmt.Errorf("password length is less than 8"))
 			return false
 		}
 		ret, _ := regexp.MatchString("(.*[a-z].*)", fl.Field().String())
 		if ret == false {
+			util.Tracer.LogError(span, fmt.Errorf("password doesn't contain lowercase letters  "))
 			return false
 		}
 		ret, _ = regexp.MatchString("(.*[A-Z].*)", fl.Field().String())
 		if ret == false {
+			util.Tracer.LogError(span, fmt.Errorf("password doesn't contain uppercase letters  "))
 			return false
 		}
 		ret, _ = regexp.MatchString("(.*[0-9].*)", fl.Field().String())
 		if ret == false {
+			util.Tracer.LogError(span, fmt.Errorf("password doesn't contain numbers  "))
 			return false
 		}
 		ret, _ = regexp.MatchString("(.*[*!@#$%^&(){}\\[:;\\]<>,.?~_+\\-\\\\=|/].*)", fl.Field().String())
 		if err != nil {
+			util.Tracer.LogError(span, fmt.Errorf("password doesn't contain special characters"))
 			fmt.Println(err)
 			return false
 		}
@@ -174,11 +184,13 @@ func (handler *Handler) checkWeakPass(v *validator.Validate, err error) {
 	})
 }
 
-func (handler *Handler) checkCommonPass(w http.ResponseWriter, v *validator.Validate) {
-
+func (handler *Handler) checkCommonPass(ctx context.Context, w http.ResponseWriter, v *validator.Validate) {
+	span := util.Tracer.StartSpanFromContext(ctx, "checkCommonPass-handler")
+	defer util.Tracer.FinishSpan(span)
 	_ = v.RegisterValidation("common_pass", func(fl validator.FieldLevel) bool {
 		f, err := os.Open("../common_pass.txt")
 		if err != nil {
+			util.Tracer.LogError(span, err)
 			fmt.Println(err)
 			w.WriteHeader(http.StatusOK)
 			return false
@@ -189,6 +201,7 @@ func (handler *Handler) checkCommonPass(w http.ResponseWriter, v *validator.Vali
 		scanner := bufio.NewScanner(f)
 		for scanner.Scan() {
 			if strings.Contains(fl.Field().String(), scanner.Text()) {
+				util.Tracer.LogError(span, fmt.Errorf("common password error"))
 				return false
 			}
 		}
