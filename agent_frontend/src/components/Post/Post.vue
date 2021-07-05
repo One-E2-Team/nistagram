@@ -12,6 +12,7 @@
           <v-row>
             <v-col v-if="campaign == undefined"><make-campaign-modal :postId="post.id"/></v-col>
             <template v-else>
+              <v-col><v-btn @click="generatePdf(campaign.ID)">GENERATE PDF</v-btn></v-col>
               <v-col><update-campaign-parameters-modal :campaignId="campaign.ID"/></v-col>
               <v-col><v-btn @click="deleteCampaign(campaign.ID)">DELETE CAMPAIGN</v-btn></v-col>
             </template>
@@ -46,6 +47,27 @@ export default {
       }).then((response) => {
         if(response.status == 200){
           alert("Successfully deleted campaign!");
+        }
+      });
+    },
+    generatePdf(id){
+      axios({
+        method: 'post',
+        url: comm.protocol + '://' + comm.server +'/report/campaign/' + id,
+        headers: comm.getHeader(),
+      }).then((response) => {
+        if(response.status == 200){
+          console.log(response.data);
+            axios({
+            method: 'get',
+            url: comm.protocol + '://' + comm.server +'/report/pdf/' + id,
+            headers: comm.getHeader(),
+          }).then((response) => {
+            if(response.status == 200){
+              console.log('success');
+              console.log(response.data);
+            }
+          });
         }
       });
     }

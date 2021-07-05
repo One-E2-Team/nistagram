@@ -2454,6 +2454,28 @@
           "disable_host_sanitize": false
         }
       ]
+    },
+    {
+      "endpoint": "/agent-api/statistics/{campaignId}",
+      "method": "GET",
+      "output_encoding": "json",
+      "extra_config": {},
+      "backend": [
+        {
+          "url_pattern": "/statistics/{campaignId}",
+          "encoding": "json",
+          "sd": "static",
+          "method": "GET",
+          "extra_config": {},
+          "host": [
+            "https://monitoring:8080"
+          ],
+          "disable_host_sanitize": false
+        }
+      ],
+      "headers_to_pass": [
+        "Authorization"
+      ]
     }
   ],
   "read_timeout": "0s",

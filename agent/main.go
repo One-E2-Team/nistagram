@@ -167,7 +167,8 @@ func handlerFunc(authHandler *handler.AuthHandler, productHandler *handler.Produ
 		authHandler.AuthService.RBAC(authHandler.CreateAPIToken, "CREATE_TOKEN", false)).Methods("POST")
 	router.HandleFunc("/my-posts",
 		authHandler.AuthService.RBAC(postHandler.GetMyPosts, "READ_POSTS", true)).Methods("GET")
-	router.HandleFunc("/report/campaign/{id}", campaignHandler.SaveCampaignReport).Methods("POST")
+	router.HandleFunc("/report/campaign/{id}",
+		authHandler.AuthService.RBAC(campaignHandler.SaveCampaignReport, "READ_CAMPAIGNS", false)).Methods("POST")
 	router.HandleFunc("/report/pdf/{id}", campaignHandler.GeneratePdfForCampaign).Methods("GET")
 	router.HandleFunc("/report/pdf", campaignHandler.GeneratePdfForSortedCampaigns).Methods("GET")
 	router.HandleFunc("/my-campaigns",
@@ -226,7 +227,19 @@ func main() {
 }
 
 func ProofOfConceptXMLDatabaseExistDB() {
-	resp, err := util.ExistDBRequest(http.MethodPut, "/exist/rest/collection/document.xml", []byte("<root>\n  <fuel>-176916974.97817087</fuel>\n  <they as=\"radio\">801833596.2181821</they>\n  <taken partly=\"tip\">-1771145293.1620789</taken>\n  <afraid>involved</afraid>\n  <moon>\n    <window where=\"life\">340945322</window>\n    <list>percent</list>\n    <open wrong=\"club\">\n      <when radio=\"date\">growth</when>\n      <family>1174444784.414483</family>\n      <largest finger=\"answer\">throat</largest>\n      <strength do=\"him\">coast</strength>\n      <total>gate</total>\n      <tropical>although</tropical>\n    </open>\n    <minerals>1464602803.2550406</minerals>\n    <in>\n      <weight frog=\"powder\">science</weight>\n      <construction pull=\"shells\">-1501341086</construction>\n      <consider theory=\"science\">smoke</consider>\n      <actual perfect=\"nearby\">420013962</actual>\n      <help cold=\"student\">home</help>\n      <combine lack=\"flow\">1762325905.5516014</combine>\n    </in>\n    <single alone=\"actually\">569743812</single>\n  </moon>\n  <curve adjective=\"carbon\">1868724166.2018332</curve>\n</root>"), map[string]string{})
+	/*resp, err := util.ExistDBRequest(http.MethodPut, "/exist/rest/collection/document.xml", []byte("<root>\n  <fuel>-176916974.97817087</fuel>\n  <they as=\"radio\">801833596.2181821</they>\n  <taken partly=\"tip\">-1771145293.1620789</taken>\n  <afraid>involved</afraid>\n  <moon>\n    <window where=\"life\">340945322</window>\n    <list>percent</list>\n    <open wrong=\"club\">\n      <when radio=\"date\">growth</when>\n      <family>1174444784.414483</family>\n      <largest finger=\"answer\">throat</largest>\n      <strength do=\"him\">coast</strength>\n      <total>gate</total>\n      <tropical>although</tropical>\n    </open>\n    <minerals>1464602803.2550406</minerals>\n    <in>\n      <weight frog=\"powder\">science</weight>\n      <construction pull=\"shells\">-1501341086</construction>\n      <consider theory=\"science\">smoke</consider>\n      <actual perfect=\"nearby\">420013962</actual>\n      <help cold=\"student\">home</help>\n      <combine lack=\"flow\">1762325905.5516014</combine>\n    </in>\n    <single alone=\"actually\">569743812</single>\n  </moon>\n  <curve adjective=\"carbon\">1868724166.2018332</curve>\n</root>"), map[string]string{})
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(resp.StatusCode)
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			fmt.Println(err)
+		}
+		fmt.Println(string(body))
+	}
+	fmt.Println()*/
+	resp, err := util.ExistDBRequest(http.MethodGet, "/exist/rest/collection/campaign1.xml", []byte(""), map[string]string{})
 	if err != nil {
 		fmt.Println(err)
 	} else {
@@ -238,18 +251,7 @@ func ProofOfConceptXMLDatabaseExistDB() {
 		fmt.Println(string(body))
 	}
 	fmt.Println()
-	resp, err = util.ExistDBRequest(http.MethodGet, "/exist/rest/collection/document.xml", []byte(""), map[string]string{})
-	if err != nil {
-		fmt.Println(err)
-	} else {
-		fmt.Println(resp.StatusCode)
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			fmt.Println(err)
-		}
-		fmt.Println(string(body))
-	}
-	fmt.Println()
+	/*
 	var xParhAndOrQueryEtc = map[string]string{"_query": "//single[@alone='actually']"}
 	resp, err = util.ExistDBRequest(http.MethodGet, "/exist/rest/collection/document.xml"+util.GenerateFuckingExistDBHTTPRequestParametersQuery(xParhAndOrQueryEtc), []byte(""), map[string]string{})
 	if err != nil {
@@ -262,5 +264,5 @@ func ProofOfConceptXMLDatabaseExistDB() {
 		}
 		fmt.Println(string(body))
 	}
-	fmt.Println()
+	fmt.Println()*/
 }
