@@ -2,7 +2,7 @@
   <v-row justify="space-around">
     <v-col cols="auto">
       <v-dialog transition="dialog-bottom-transition" width="900">
-        <template v-slot:activator="{ on, attrs }" v-if="post.postType==2">
+        <template v-slot:activator="{ on, attrs }">
             <span v-bind="attrs"  v-on="on" >
                 <v-btn @click="loadPost()">Show post</v-btn>
             </span>
@@ -80,7 +80,7 @@
             </v-container>
             </v-card-text>
             <v-card-actions class="justify-end">
-              <v-btn
+              <v-btn  :id="'closeButton' + postId"
                 text
                 @click="dialog.value = false"
               >Close</v-btn>
@@ -117,7 +117,21 @@ export default {
   },
   methods:{
       loadPost(){
-          //TODO: send axios to get post for postId
+           axios({
+        method: 'get',
+        url: comm.protocol + '://' + comm.server + '/api/post/read-post/' + this.postId,
+        headers: comm.getHeader(),
+      }).then(response => {
+        if (response.status == 500){
+          console.log("Private content.");
+        }
+        console.log(response.data);
+        this.post = response.data;
+      }) .catch( () => {
+          console.log("Private content");
+          document.getElementById('closeButton' + this.postId).click();
+          this.$root.$emit('privateContent');
+        });
       },
       preventActionIfUnauthorized() {
       if(!comm.isUserLogged()){

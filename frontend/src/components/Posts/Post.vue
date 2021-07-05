@@ -25,6 +25,9 @@
           <v-col>Sponsored</v-col>
          </v-row>
          <v-row>
+          <v-col> <share-post-modal :postId="post.id"></share-post-modal> </v-col>
+         </v-row>
+         <v-row>
           <v-col>Location: {{post.location}} </v-col>
          </v-row>
          <v-row>
@@ -60,9 +63,10 @@ import PostModal from '../../modals/PostModal.vue'
 import * as comm from '../../configuration/communication.js'
 import PostMedia from './PostMedia.vue'
 import ShowPostModal from '../../modals/showPostModal.vue'
+import SharePostModal from '../../modals/SharePostModal.vue'
 import axios from 'axios'
 export default {
-  components: { PostModal, PostMedia, ShowPostModal },
+  components: { PostModal, PostMedia, ShowPostModal, SharePostModal },
   name: 'Post',
   props: ['post','usage', 'myReaction', 'campaignData'],
   data() {

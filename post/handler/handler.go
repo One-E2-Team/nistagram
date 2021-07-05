@@ -426,6 +426,38 @@ func (handler Handler) GetMediaById(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 }
 
+func (handler *Handler) GetPostById(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	id, err := primitive.ObjectIDFromHex(params["id"])
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	loggedUserId := util.GetLoggedUserIDFromToken(r)
+	followingProfiles,err := getFollowingProfiles(loggedUserId)
+	if err != nil{
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	result, err := handler.PostService.ReadPost(id)
+
+	if result.IsPrivate {
+		if !util.IsFollowed(followingProfiles, result.PublisherId) {
+			fmt.Println("Publisher is not followed by logged user!")
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(result)
+	w.Header().Set("Content-Type", "application/json")
+}
+
 func safePostDto(postDto dto.PostDto) dto.PostDto {
 	postDto.Description = template.HTMLEscapeString(postDto.Description)
 	postDto.HashTags = template.HTMLEscapeString(postDto.HashTags)

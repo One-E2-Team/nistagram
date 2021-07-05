@@ -216,7 +216,7 @@ services:
             - net_exist
         depends_on:
             - db_relational
-            - exist
+            #- exist
 
     campaign:
         container_name: campaign_ms
@@ -358,18 +358,18 @@ services:
               source: data3
               target: /data/db
 
-    exist:
-        image: existdb/existdb:release
-        container_name: exist-db
-        restart: always
-        ports:
-            - 8666:8080
-        volumes:
-            - type: volume
-              source: data_exist
-              target: /exist-data
-        networks:
-            - net_exist
+    #exist:
+       # image: existdb/existdb:release
+       # container_name: exist-db
+        #restart: always
+        #ports:
+          #  - 8666:8080
+        #volumes:
+          #  - type: volume
+          #    source: data_exist
+          #    target: /exist-data
+       # networks:
+          #  - net_exist
 
     mongo-express:
         image: mongo-express

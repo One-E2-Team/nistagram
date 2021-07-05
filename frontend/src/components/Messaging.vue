@@ -167,7 +167,8 @@ export default {
           receiverId : 0,
           text : '',
           mediaPath : '',
-          file : null
+          file : null,
+          postId : ''
         }
       }
     },
@@ -180,6 +181,31 @@ export default {
         console.log('seen');
         this.getAllMessages(this.user);
       });
+
+      this.$root.$on('privateContent', () =>{
+          alert("Content is private!");
+      });
+
+      this.$root.$on('sharePost', (data) =>{
+        console.log(data);
+          axios({
+                  method: "get",
+                  url: comm.protocol + '://' + comm.server + '/api/profile/get/' + data.username,
+                }).then(response => {
+                  if(response.status==200){
+                        console.log(response.data);
+                        let m = {
+                        senderId : this.loggedUserId,
+                        receiverId : response.data.ID,
+                        text : '',
+                        mediaPath : '',
+                        postId : data.postId
+                      }
+                      this.sendWS("SendMessage", m);
+                          }}).catch(reason => {
+                              console.log(reason);
+                          });
+                })
     },
     methods : {
       addMessage(data){
@@ -292,7 +318,8 @@ export default {
                   senderId : this.loggedUserId,
                   receiverId : this.user.profileId,
                   text : this.message.text,
-                  mediaPath : this.message.mediaPath
+                  mediaPath : this.message.mediaPath,
+                  postId : this.message.postId
                 }
                 console.log(this.messagingSenderWS);
                 this.sendWS("SendMessage", data);
