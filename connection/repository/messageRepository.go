@@ -1,13 +1,18 @@
 package repository
 
 import (
+	"context"
 	"fmt"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j/dbtype"
 	"nistagram/connection/model"
+	"nistagram/util"
 )
 
-func (repo *Repository) CreateOrUpdateMessageRelationship(message model.MessageEdge) (*model.MessageEdge, bool) {
+func (repo *Repository) CreateOrUpdateMessageRelationship(ctx context.Context, message model.MessageEdge) (*model.MessageEdge, bool) {
+	span := util.Tracer.StartSpanFromContext(ctx, "CreateOrUpdateMessageRelationship-repository")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "repository", fmt.Sprintf("repository call for id %v\n", message.PrimaryProfile))
 	session := (*repo.DatabaseDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close()
 	resultingBlock, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
@@ -21,10 +26,12 @@ func (repo *Repository) CreateOrUpdateMessageRelationship(message model.MessageE
 			message.ToMap())
 		var record *neo4j.Record
 		if err != nil {
+			util.Tracer.LogError(span, err)
 			return nil, err
 		} else {
 			record, err = result.Single()
 			if err != nil {
+				util.Tracer.LogError(span, err)
 				return nil, err
 			}
 		}
@@ -39,6 +46,7 @@ func (repo *Repository) CreateOrUpdateMessageRelationship(message model.MessageE
 		return ret, err
 	})
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err.Error())
 		return nil, false
 	}
@@ -46,7 +54,10 @@ func (repo *Repository) CreateOrUpdateMessageRelationship(message model.MessageE
 	return &ret, true
 }
 
-func (repo *Repository) SelectMessage(id1, id2 uint) (*model.MessageEdge, bool) {
+func (repo *Repository) SelectMessage(ctx context.Context, id1, id2 uint) (*model.MessageEdge, bool) {
+	span := util.Tracer.StartSpanFromContext(ctx, "SelectMessage-repository")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "repository", fmt.Sprintf("repository call for ids %v %v\n", id1, id2))
 	session := (*repo.DatabaseDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close()
 	block := model.MessageEdge{
@@ -61,10 +72,12 @@ func (repo *Repository) SelectMessage(id1, id2 uint) (*model.MessageEdge, bool) 
 			block.ToMap())
 		var record *neo4j.Record
 		if err != nil {
+			util.Tracer.LogError(span, err)
 			return nil, err
 		} else {
 			record, err = result.Single()
 			if err != nil {
+				util.Tracer.LogError(span, err)
 				return nil, err
 			}
 		}
@@ -79,6 +92,7 @@ func (repo *Repository) SelectMessage(id1, id2 uint) (*model.MessageEdge, bool) 
 		return ret, err
 	})
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err.Error())
 		return nil, false
 	}
@@ -86,9 +100,14 @@ func (repo *Repository) SelectMessage(id1, id2 uint) (*model.MessageEdge, bool) 
 	return &ret, true
 }
 
-func (repo *Repository) DeleteMessage(followerId, profileId uint) (*model.MessageEdge, bool) {
-	message, ok := repo.SelectMessage(followerId, profileId)
+func (repo *Repository) DeleteMessage(ctx context.Context, followerId, profileId uint) (*model.MessageEdge, bool) {
+	span := util.Tracer.StartSpanFromContext(ctx, "DeleteMessage-repository")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "repository", fmt.Sprintf("repository call for ids %v %v\n", followerId, profileId))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+	message, ok := repo.SelectMessage(nextCtx, followerId, profileId)
 	if !ok {
+		util.Tracer.LogError(span, fmt.Errorf("select message did not return a result"))
 		return nil, false
 	}
 	session := (*repo.DatabaseDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
@@ -101,12 +120,16 @@ func (repo *Repository) DeleteMessage(followerId, profileId uint) (*model.Messag
 			message.ToMap())
 	})
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, false
 	}
 	return message, true
 }
 
-func (repo *Repository) GetAllMessageRequests(id uint) *[]uint {
+func (repo *Repository) GetAllMessageRequests(ctx context.Context, id uint) *[]uint {
+	span := util.Tracer.StartSpanFromContext(ctx, "GetAllMessageRequests-repository")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "repository", fmt.Sprintf("repository call for id %v\n", id))
 	conn := model.MessageEdge{
 		PrimaryProfile:    0,
 		SecondaryProfile:  id,
@@ -122,6 +145,7 @@ func (repo *Repository) GetAllMessageRequests(id uint) *[]uint {
 			conn.ToMap())
 		var ret []uint = make([]uint, 0)
 		if err != nil {
+			util.Tracer.LogError(span, err)
 			fmt.Println(err.Error())
 			return ret, err
 		}
@@ -133,6 +157,7 @@ func (repo *Repository) GetAllMessageRequests(id uint) *[]uint {
 		return ret, err
 	})
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err.Error())
 	}
 	ret := profileIDs.([]uint)

@@ -12,20 +12,28 @@ import (
 	"nistagram/util"
 )
 
-func (service *Service) GetConnection(followerId, profileId uint) *model.ConnectionEdge {
-	connection, _ := service.ConnectionRepository.SelectConnection(followerId, profileId, false)
+func (service *Service) GetConnection(ctx context.Context, followerId, profileId uint) *model.ConnectionEdge {
+	span := util.Tracer.StartSpanFromContext(ctx, "GetConnection-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing id %v %v\n", followerId, profileId))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+	connection, _ := service.ConnectionRepository.SelectConnection(nextCtx, followerId, profileId, false)
 	return connection
 }
 
-func (service *Service) GetConnectedProfiles(conn model.ConnectionEdge, excludeMuted, excludeBlocked bool) *[]dto.ConnectedProfileDTO {
-	profiles := service.ConnectionRepository.GetConnectedProfiles(conn, excludeMuted, true)
+func (service *Service) GetConnectedProfiles(ctx context.Context, conn model.ConnectionEdge, excludeMuted, excludeBlocked bool) *[]dto.ConnectedProfileDTO {
+	span := util.Tracer.StartSpanFromContext(ctx, "GetConnectedProfiles-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing ids %v %v\n", conn.PrimaryProfile, conn.SecondaryProfile))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+	profiles := service.ConnectionRepository.GetConnectedProfiles(nextCtx, conn, excludeMuted, true)
 	if profiles == nil {
 		temp := make([]uint, 0)
 		profiles = &temp
 	}
 	if !excludeBlocked {
 		var final []uint
-		blocking := service.ConnectionRepository.GetBlockedProfiles(conn.PrimaryProfile, false)
+		blocking := service.ConnectionRepository.GetBlockedProfiles(nextCtx, conn.PrimaryProfile, false)
 		for _, val := range *profiles {
 			if !contains(blocking, val) {
 				final = append(final, val)
@@ -36,7 +44,7 @@ func (service *Service) GetConnectedProfiles(conn model.ConnectionEdge, excludeM
 	ret := make([]dto.ConnectedProfileDTO, 0)
 	for _, val := range *profiles {
 		var closeFriend bool
-		invConnection, ok := service.ConnectionRepository.SelectConnection(val, conn.PrimaryProfile, false)
+		invConnection, ok := service.ConnectionRepository.SelectConnection(nextCtx, val, conn.PrimaryProfile, false)
 		if !ok || invConnection == nil {
 			closeFriend = false
 		} else {
@@ -50,8 +58,12 @@ func (service *Service) GetConnectedProfiles(conn model.ConnectionEdge, excludeM
 	return &ret
 }
 
-func (service *Service) GetProfilesInFollowRelationship(conn model.ConnectionEdge, excludeMuted, excludeBlocked bool, following bool) *[]dto.UserDTO {
-	profiles := service.ConnectionRepository.GetConnectedProfiles(conn, excludeMuted, following)
+func (service *Service) GetProfilesInFollowRelationship(ctx context.Context,conn model.ConnectionEdge, excludeMuted, excludeBlocked bool, following bool) *[]dto.UserDTO {
+	span := util.Tracer.StartSpanFromContext(ctx, "GetProfilesInFollowRelationship-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing ids %v %v\n", conn.PrimaryProfile, conn.SecondaryProfile))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+	profiles := service.ConnectionRepository.GetConnectedProfiles(nextCtx, conn, excludeMuted, following)
 	if profiles == nil {
 		temp := make([]uint, 0)
 		profiles = &temp
@@ -62,7 +74,7 @@ func (service *Service) GetProfilesInFollowRelationship(conn model.ConnectionEdg
 		if !following {
 			blockId = conn.SecondaryProfile
 		}
-		blocking := service.ConnectionRepository.GetBlockedProfiles(blockId, false)
+		blocking := service.ConnectionRepository.GetBlockedProfiles(nextCtx, blockId, false)
 		for _, val := range *profiles {
 			if !contains(blocking, val) {
 				final = append(final, val)
@@ -72,7 +84,7 @@ func (service *Service) GetProfilesInFollowRelationship(conn model.ConnectionEdg
 	}
 	ret := make([]dto.UserDTO, 0)
 	for _, val := range *profiles {
-		p := util.GetProfile(context.Background(), val)
+		p := util.GetProfile(nextCtx, val)
 		if p == nil {
 			continue
 		}
@@ -84,33 +96,45 @@ func (service *Service) GetProfilesInFollowRelationship(conn model.ConnectionEdg
 	return &ret
 }
 
-func (service *Service) UpdateConnection(id uint, conn model.ConnectionEdge) (*model.ConnectionEdge, bool) {
+func (service *Service) UpdateConnection(ctx context.Context, id uint, conn model.ConnectionEdge) (*model.ConnectionEdge, bool) {
+	span := util.Tracer.StartSpanFromContext(ctx, "UpdateConnection-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing ids %v %v\n", conn.PrimaryProfile, conn.SecondaryProfile))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
 	if id == conn.PrimaryProfile {
-		return service.ConnectionRepository.UpdateConnection(&conn)
+		return service.ConnectionRepository.UpdateConnection(nextCtx, &conn)
 	} else {
 		return nil, false
 	}
 }
 
-func (service *Service) DeleteConnection(followerId, profileId uint) (*model.ConnectionEdge, bool) {
-	return service.ConnectionRepository.DeleteConnection(followerId, profileId)
+func (service *Service) DeleteConnection(ctx context.Context, followerId, profileId uint) (*model.ConnectionEdge, bool) {
+	span := util.Tracer.StartSpanFromContext(ctx, "DeleteConnection-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing id %v %v\n", followerId, profileId))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+	return service.ConnectionRepository.DeleteConnection(nextCtx, followerId, profileId)
 }
 
-func (service *Service) FollowRequest(followerId, profileId uint) (*model.ConnectionEdge, bool) {
-	if service.IsInBlockingRelationship(followerId, profileId) {
+func (service *Service) FollowRequest(ctx context.Context, followerId, profileId uint) (*model.ConnectionEdge, bool) {
+	span := util.Tracer.StartSpanFromContext(ctx, "FollowRequest-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing id %v %v\n", followerId, profileId))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+	if service.IsInBlockingRelationship(nextCtx, followerId, profileId) {
 		return nil, false
 	}
-	connection := service.ConnectionRepository.SelectOrCreateConnection(followerId, profileId)
+	connection := service.ConnectionRepository.SelectOrCreateConnection(nextCtx, followerId, profileId)
 	if connection.Approved {
 		return nil, false
 	}
-	profile2 := util.GetProfile(context.Background(), profileId)
+	profile2 := util.GetProfile(nextCtx, profileId)
 	if profile2 == nil {
 		return nil, false
 	}
 	if profile2.ProfileSettings.IsPrivate == false {
 		connection.Approved = true
-		service.ConnectionRepository.CreateOrUpdateMessageRelationship(model.MessageEdge{
+		service.ConnectionRepository.CreateOrUpdateMessageRelationship(nextCtx, model.MessageEdge{
 			PrimaryProfile:   profileId,
 			SecondaryProfile: followerId,
 			Approved:         true,
@@ -119,13 +143,13 @@ func (service *Service) FollowRequest(followerId, profileId uint) (*model.Connec
 	} else {
 		connection.ConnectionRequest = true
 	}
-	service.ConnectionRepository.CreateOrUpdateMessageRelationship(model.MessageEdge{
+	service.ConnectionRepository.CreateOrUpdateMessageRelationship(nextCtx, model.MessageEdge{
 		PrimaryProfile:   followerId,
 		SecondaryProfile: profileId,
 		Approved:         true,
 		NotifyMessage:    true,
 	})
-	resConnection, ok := service.ConnectionRepository.UpdateConnection(connection)
+	resConnection, ok := service.ConnectionRepository.UpdateConnection(nextCtx, connection)
 	if ok {
 		return resConnection, true
 	} else {
@@ -133,13 +157,17 @@ func (service *Service) FollowRequest(followerId, profileId uint) (*model.Connec
 	}
 }
 
-func (service *Service) ApproveConnection(followerId, profileId uint) (*model.ConnectionEdge, bool) {
-	connection, okSelect := service.ConnectionRepository.SelectConnection(followerId, profileId, false)
+func (service *Service) ApproveConnection(ctx context.Context, followerId, profileId uint) (*model.ConnectionEdge, bool) {
+	span := util.Tracer.StartSpanFromContext(ctx, "ApproveConnection-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing id %v %v\n", followerId, profileId))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+	connection, okSelect := service.ConnectionRepository.SelectConnection(nextCtx, followerId, profileId, false)
 	if okSelect && connection == nil {
 		return connection, false
 	}
-	profile1 := util.GetProfile(context.Background(), followerId)
-	profile2 := util.GetProfile(context.Background(), profileId)
+	profile1 := util.GetProfile(nextCtx, followerId)
+	profile2 := util.GetProfile(nextCtx, profileId)
 	if profile1 == nil || profile2 == nil {
 		return nil, false
 	}
@@ -148,24 +176,28 @@ func (service *Service) ApproveConnection(followerId, profileId uint) (*model.Co
 	}
 	connection.ConnectionRequest = false
 	connection.Approved = true
-	service.ConnectionRepository.CreateOrUpdateMessageRelationship(model.MessageEdge{
+	service.ConnectionRepository.CreateOrUpdateMessageRelationship(nextCtx, model.MessageEdge{
 		PrimaryProfile:   profileId,
 		SecondaryProfile: followerId,
 		Approved:         true,
 		NotifyMessage:    true,
 	})
-	return service.ConnectionRepository.UpdateConnection(connection)
+	return service.ConnectionRepository.UpdateConnection(nextCtx, connection)
 }
 
-func (service *Service) Unfollow(followerId, profileId uint) (*model.ConnectionEdge, bool) {
-	if service.IsInBlockingRelationship(followerId, profileId) {
+func (service *Service) Unfollow(ctx context.Context, followerId, profileId uint) (*model.ConnectionEdge, bool) {
+	span := util.Tracer.StartSpanFromContext(ctx, "Unfollow-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing id %v %v\n", followerId, profileId))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+	if service.IsInBlockingRelationship(nextCtx, followerId, profileId) {
 		return nil, false
 	}
-	connection, okSelect := service.ConnectionRepository.SelectConnection(followerId, profileId, false)
+	connection, okSelect := service.ConnectionRepository.SelectConnection(nextCtx, followerId, profileId, false)
 	if okSelect && connection == nil {
 		return connection, false
 	}
-	resConnection, ok := service.ConnectionRepository.DeleteConnection(followerId, profileId)
+	resConnection, ok := service.ConnectionRepository.DeleteConnection(nextCtx, followerId, profileId)
 	if ok {
 		return resConnection, true
 	} else {
@@ -173,26 +205,33 @@ func (service *Service) Unfollow(followerId, profileId uint) (*model.ConnectionE
 	}
 }
 
-func (service *Service) GetAllFollowRequests(id uint) *[]dto.UserDTO {
-	var result = service.ConnectionRepository.GetAllFollowRequests(id)
+func (service *Service) GetAllFollowRequests(ctx context.Context, id uint) *[]dto.UserDTO {
+	span := util.Tracer.StartSpanFromContext(ctx, "GetAllFollowRequests-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing id %v\n", id))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+	var result = service.ConnectionRepository.GetAllFollowRequests(nextCtx, id)
 	var ret = make([]dto.UserDTO, 0) // 0, :)
 	for _, profileId := range *result {
 		var p model2.Profile
 		profileHost, profilePort := util.GetProfileHostAndPort()
-		resp, err := util.CrossServiceRequest(context.Background(), http.MethodGet,
+		resp, err := util.CrossServiceRequest(nextCtx, http.MethodGet,
 			util.GetCrossServiceProtocol()+"://"+profileHost+":"+profilePort+"/get-by-id/"+util.Uint2String(profileId),
 			nil, map[string]string{})
 		if err != nil {
+			util.Tracer.LogError(span, err)
 			fmt.Println(err)
 			return nil
 		}
 		body, err1 := ioutil.ReadAll(resp.Body)
 		if err1 != nil {
+			util.Tracer.LogError(span, err1)
 			fmt.Println(err1)
 			return nil
 		}
 		err = json.Unmarshal(body, &p)
 		if err != nil {
+			util.Tracer.LogError(span, err)
 			fmt.Println(err)
 			return nil
 		}
@@ -205,16 +244,20 @@ func (service *Service) GetAllFollowRequests(id uint) *[]dto.UserDTO {
 	return &ret
 }
 
-func (service *Service) ToggleNotifyComment(followerId, profileId uint) (*model.ConnectionEdge, bool) {
-	if service.IsInBlockingRelationship(followerId, profileId) {
+func (service *Service) ToggleNotifyComment(ctx context.Context, followerId, profileId uint) (*model.ConnectionEdge, bool) {
+	span := util.Tracer.StartSpanFromContext(ctx, "ToggleNotifyComment-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing id %v %v\n", followerId, profileId))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+	if service.IsInBlockingRelationship(nextCtx, followerId, profileId) {
 		return nil, false
 	}
-	connection, okSelect := service.ConnectionRepository.SelectConnection(followerId, profileId, false)
+	connection, okSelect := service.ConnectionRepository.SelectConnection(nextCtx, followerId, profileId, false)
 	if okSelect && connection == nil {
 		return connection, false
 	}
 	connection.NotifyComment = !connection.NotifyComment
-	resConnection, ok := service.ConnectionRepository.UpdateConnection(connection)
+	resConnection, ok := service.ConnectionRepository.UpdateConnection(nextCtx, connection)
 	if ok {
 		return resConnection, true
 	} else {
@@ -222,16 +265,20 @@ func (service *Service) ToggleNotifyComment(followerId, profileId uint) (*model.
 	}
 }
 
-func (service *Service) ToggleNotifyStory(followerId, profileId uint) (*model.ConnectionEdge, bool) {
-	if service.IsInBlockingRelationship(followerId, profileId) {
+func (service *Service) ToggleNotifyStory(ctx context.Context, followerId, profileId uint) (*model.ConnectionEdge, bool) {
+	span := util.Tracer.StartSpanFromContext(ctx, "ToggleNotifyStory-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing id %v %v\n", followerId, profileId))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+	if service.IsInBlockingRelationship(nextCtx, followerId, profileId) {
 		return nil, false
 	}
-	connection, okSelect := service.ConnectionRepository.SelectConnection(followerId, profileId, false)
+	connection, okSelect := service.ConnectionRepository.SelectConnection(nextCtx, followerId, profileId, false)
 	if okSelect && connection == nil {
 		return connection, false
 	}
 	connection.NotifyStory = !connection.NotifyStory
-	resConnection, ok := service.ConnectionRepository.UpdateConnection(connection)
+	resConnection, ok := service.ConnectionRepository.UpdateConnection(nextCtx, connection)
 	if ok {
 		return resConnection, true
 	} else {
@@ -239,16 +286,20 @@ func (service *Service) ToggleNotifyStory(followerId, profileId uint) (*model.Co
 	}
 }
 
-func (service *Service) ToggleNotifyPost(followerId, profileId uint) (*model.ConnectionEdge, bool) {
-	if service.IsInBlockingRelationship(followerId, profileId) {
+func (service *Service) ToggleNotifyPost(ctx context.Context, followerId, profileId uint) (*model.ConnectionEdge, bool) {
+	span := util.Tracer.StartSpanFromContext(ctx, "ToggleNotifyPost-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing id %v %v\n", followerId, profileId))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+	if service.IsInBlockingRelationship(nextCtx, followerId, profileId) {
 		return nil, false
 	}
-	connection, okSelect := service.ConnectionRepository.SelectConnection(followerId, profileId, false)
+	connection, okSelect := service.ConnectionRepository.SelectConnection(nextCtx, followerId, profileId, false)
 	if okSelect && connection == nil {
 		return connection, false
 	}
 	connection.NotifyPost = !connection.NotifyPost
-	resConnection, ok := service.ConnectionRepository.UpdateConnection(connection)
+	resConnection, ok := service.ConnectionRepository.UpdateConnection(nextCtx, connection)
 	if ok {
 		return resConnection, true
 	} else {
@@ -256,16 +307,20 @@ func (service *Service) ToggleNotifyPost(followerId, profileId uint) (*model.Con
 	}
 }
 
-func (service *Service) ToggleCloseFriend(followerId, profileId uint) (*model.ConnectionEdge, bool) {
-	if service.IsInBlockingRelationship(followerId, profileId) {
+func (service *Service) ToggleCloseFriend(ctx context.Context, followerId, profileId uint) (*model.ConnectionEdge, bool) {
+	span := util.Tracer.StartSpanFromContext(ctx, "ToggleCloseFriend-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing id %v %v\n", followerId, profileId))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+	if service.IsInBlockingRelationship(nextCtx, followerId, profileId) {
 		return nil, false
 	}
-	connection, okSelect := service.ConnectionRepository.SelectConnection(followerId, profileId, false)
+	connection, okSelect := service.ConnectionRepository.SelectConnection(nextCtx, followerId, profileId, false)
 	if okSelect && connection == nil {
 		return connection, false
 	}
 	connection.CloseFriend = !connection.CloseFriend
-	resConnection, ok := service.ConnectionRepository.UpdateConnection(connection)
+	resConnection, ok := service.ConnectionRepository.UpdateConnection(nextCtx, connection)
 	if ok {
 		return resConnection, true
 	} else {
@@ -273,16 +328,20 @@ func (service *Service) ToggleCloseFriend(followerId, profileId uint) (*model.Co
 	}
 }
 
-func (service *Service) ToggleMuted(followerId, profileId uint) (*model.ConnectionEdge, bool) {
-	if service.IsInBlockingRelationship(followerId, profileId) {
+func (service *Service) ToggleMuted(ctx context.Context, followerId, profileId uint) (*model.ConnectionEdge, bool) {
+	span := util.Tracer.StartSpanFromContext(ctx, "ToggleMuted-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing id %v %v\n", followerId, profileId))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+	if service.IsInBlockingRelationship(nextCtx, followerId, profileId) {
 		return nil, false
 	}
-	connection, okSelect := service.ConnectionRepository.SelectConnection(followerId, profileId, false)
+	connection, okSelect := service.ConnectionRepository.SelectConnection(nextCtx, followerId, profileId, false)
 	if okSelect && connection == nil {
 		return connection, false
 	}
 	connection.Muted = !connection.Muted
-	resConnection, ok := service.ConnectionRepository.UpdateConnection(connection)
+	resConnection, ok := service.ConnectionRepository.UpdateConnection(nextCtx, connection)
 	if ok {
 		return resConnection, true
 	} else {

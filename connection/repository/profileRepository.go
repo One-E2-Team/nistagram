@@ -9,7 +9,10 @@ import (
 	"nistagram/util"
 )
 
-func (repo *Repository) CreateOrUpdateProfile(profile model.ProfileVertex) *model.ProfileVertex {
+func (repo *Repository) CreateOrUpdateProfile(ctx context.Context, profile model.ProfileVertex) *model.ProfileVertex {
+	span := util.Tracer.StartSpanFromContext(ctx, "CreateOrUpdateProfile-repository")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "repository", fmt.Sprintf("repository call for id %v\n", profile.ProfileID))
 	session := (*repo.DatabaseDriver).NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close()
 	profileID, err := session.WriteTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
@@ -21,6 +24,7 @@ func (repo *Repository) CreateOrUpdateProfile(profile model.ProfileVertex) *mode
 				"RETURN n", //kreira ako ne postoji
 			profile.ToMap())
 		if err != nil {
+			util.Tracer.LogError(span, err)
 			fmt.Println(err.Error())
 			return 0, err
 		}
@@ -30,6 +34,7 @@ func (repo *Repository) CreateOrUpdateProfile(profile model.ProfileVertex) *mode
 		return uint(profileID), err
 	})
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err.Error())
 	}
 	id, _ := profileID.(uint)

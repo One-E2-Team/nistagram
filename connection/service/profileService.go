@@ -9,8 +9,12 @@ import (
 	"nistagram/util"
 )
 
-func (service *Service) AddOrUpdateProfile(profile model.ProfileVertex) (*model.ProfileVertex, bool) {
-	ret := service.ConnectionRepository.CreateOrUpdateProfile(profile)
+func (service *Service) AddOrUpdateProfile(ctx context.Context, profile model.ProfileVertex) (*model.ProfileVertex, bool) {
+	span := util.Tracer.StartSpanFromContext(ctx, "AddOrUpdateProfile-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing id %v\n", profile.ProfileID))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+	ret := service.ConnectionRepository.CreateOrUpdateProfile(nextCtx, profile)
 	return ret, ret != nil && ret.ProfileID == profile.ProfileID && ret.Deleted == profile.Deleted
 }
 
