@@ -614,9 +614,12 @@ func getFollowingProfiles(ctx context.Context, loggedUserId uint) ([]util.Follow
 	return followingProfiles, err
 }
 
-func getProfileByProfileId(profileId uint) (*http.Response, error) {
+func getProfileByProfileId(ctx context.Context, profileId uint) (*http.Response, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "getProfileByProfileId-handler")
+	defer util.Tracer.FinishSpan(span)
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
 	profileHost, profilePort := util.GetProfileHostAndPort()
-	resp, err := util.CrossServiceRequest(context.Background(), http.MethodGet,
+	resp, err := util.CrossServiceRequest(nextCtx, http.MethodGet,
 		util.GetCrossServiceProtocol()+"://"+profileHost+":"+profilePort+"/get-by-id/"+util.Uint2String(profileId),
 		nil, map[string]string{})
 	return resp, err
@@ -635,7 +638,7 @@ func (handler *Handler) createPost(ctx context.Context, profileId uint, postDto 
 	}
 
 	var profile dto.ProfileDto
-	if resp, err := getProfileByProfileId(profileId); err != nil {
+	if resp, err := getProfileByProfileId(nextCtx, profileId); err != nil {
 		util.Tracer.LogError(span, err)
 		return err
 	} else {
