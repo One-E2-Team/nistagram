@@ -25,6 +25,11 @@ type Handler struct {
 }
 
 func (handler *Handler) Register(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("Register-handler", r)
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "handler", fmt.Sprintf("handling %s\n", r.URL.Path))
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
+
 	var req dto.RegistrationDto
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
@@ -36,15 +41,16 @@ func (handler *Handler) Register(w http.ResponseWriter, r *http.Request) {
 
 	v := validator.New()
 
-	handler.checkCommonPass(w, v)
+	handler.checkCommonPass(ctx, w, v)
 
-	handler.checkWeakPass(v, err)
+	handler.checkWeakPass(ctx, v, err)
 
-	handler.checkUsername(v)
+	handler.checkUsername(ctx, v)
 
 	err = v.Struct(req)
 
 	if err != nil {
+		util.Tracer.LogError(span, fmt.Errorf("invalid data"))
 		fmt.Println(err)
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("{\"message\":\"Invalid data.\",\n"))
@@ -58,9 +64,10 @@ func (handler *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	req = safeRegistrationDto(req)
-	err = handler.ProfileService.Register(req)
+	err = handler.ProfileService.Register(ctx, req)
 
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("{\"message\":\"Server error while registering.\"}"))
@@ -72,9 +79,15 @@ func (handler *Handler) Register(w http.ResponseWriter, r *http.Request) {
 }
 
 func (handler *Handler) RegisterAgent(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("RegisterAgent-handler", r)
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "handler", fmt.Sprintf("handling %s\n", r.URL.Path))
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
+
 	var req dto.RegistrationDto
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("{\"message\":\"Server error while decoding.\"}"))
@@ -83,15 +96,16 @@ func (handler *Handler) RegisterAgent(w http.ResponseWriter, r *http.Request) {
 
 	v := validator.New()
 
-	handler.checkCommonPass(w, v)
+	handler.checkCommonPass(ctx, w, v)
 
-	handler.checkWeakPass(v, err)
+	handler.checkWeakPass(ctx, v, err)
 
-	handler.checkUsername(v)
+	handler.checkUsername(ctx, v)
 
 	err = v.Struct(req)
 
 	if err != nil {
+		util.Tracer.LogError(span, fmt.Errorf("invalid data"))
 		fmt.Println(err)
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("{\"message\":\"Invalid data.\",\n"))
@@ -105,9 +119,10 @@ func (handler *Handler) RegisterAgent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	req = safeRegistrationDto(req)
-	err = handler.ProfileService.RegisterAgent(req)
+	err = handler.ProfileService.RegisterAgent(ctx, req)
 
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("{\"message\":\"Server error while registering.\"}"))
@@ -118,39 +133,50 @@ func (handler *Handler) RegisterAgent(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (handler *Handler) checkUsername(v *validator.Validate) {
+func (handler *Handler) checkUsername(ctx context.Context, v *validator.Validate) {
+	span := util.Tracer.StartSpanFromContext(ctx, "checkUsername-handler")
+	defer util.Tracer.FinishSpan(span)
 	_ = v.RegisterValidation("bad_username", func(fl validator.FieldLevel) bool {
 		if len(fl.Field().String()) < 3 || len(fl.Field().String()) > 15 {
+			util.Tracer.LogError(span, fmt.Errorf("not valide username length"))
 			return false
 		}
 		ret, _ := regexp.MatchString("([*!@#$%^&(){}\\[:;\\]<>,.?~+\\-\\\\=|/ ])", fl.Field().String())
 		if ret {
+			util.Tracer.LogError(span, fmt.Errorf("username contains illegal caracters"))
 			return false
 		}
 		return true
 	})
 }
 
-func (handler *Handler) checkWeakPass(v *validator.Validate, err error) {
+func (handler *Handler) checkWeakPass(ctx context.Context, v *validator.Validate, err error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "checkWeakPass-handler")
+	defer util.Tracer.FinishSpan(span)
 	_ = v.RegisterValidation("weak_pass", func(fl validator.FieldLevel) bool {
 		//^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[*.!@#$%^&(){}\\[\\]:;<>,.?~_+-=|\\/])[A-Za-z0-9*.!@#$%^&(){}\\[\\]:;<>,.?~_+-=|\\/]{8,}$
 		if len(fl.Field().String()) < 8 {
+			util.Tracer.LogError(span, fmt.Errorf("password length is less than 8"))
 			return false
 		}
 		ret, _ := regexp.MatchString("(.*[a-z].*)", fl.Field().String())
 		if ret == false {
+			util.Tracer.LogError(span, fmt.Errorf("password doesn't contain lowercase letters  "))
 			return false
 		}
 		ret, _ = regexp.MatchString("(.*[A-Z].*)", fl.Field().String())
 		if ret == false {
+			util.Tracer.LogError(span, fmt.Errorf("password doesn't contain uppercase letters  "))
 			return false
 		}
 		ret, _ = regexp.MatchString("(.*[0-9].*)", fl.Field().String())
 		if ret == false {
+			util.Tracer.LogError(span, fmt.Errorf("password doesn't contain numbers  "))
 			return false
 		}
 		ret, _ = regexp.MatchString("(.*[*!@#$%^&(){}\\[:;\\]<>,.?~_+\\-\\\\=|/].*)", fl.Field().String())
 		if err != nil {
+			util.Tracer.LogError(span, fmt.Errorf("password doesn't contain special characters"))
 			fmt.Println(err)
 			return false
 		}
@@ -158,10 +184,13 @@ func (handler *Handler) checkWeakPass(v *validator.Validate, err error) {
 	})
 }
 
-func (handler *Handler) checkCommonPass(w http.ResponseWriter, v *validator.Validate) {
+func (handler *Handler) checkCommonPass(ctx context.Context, w http.ResponseWriter, v *validator.Validate) {
+	span := util.Tracer.StartSpanFromContext(ctx, "checkCommonPass-handler")
+	defer util.Tracer.FinishSpan(span)
 	_ = v.RegisterValidation("common_pass", func(fl validator.FieldLevel) bool {
 		f, err := os.Open("../common_pass.txt")
 		if err != nil {
+			util.Tracer.LogError(span, err)
 			fmt.Println(err)
 			w.WriteHeader(http.StatusOK)
 			return false
@@ -172,6 +201,7 @@ func (handler *Handler) checkCommonPass(w http.ResponseWriter, v *validator.Vali
 		scanner := bufio.NewScanner(f)
 		for scanner.Scan() {
 			if strings.Contains(fl.Field().String(), scanner.Text()) {
+				util.Tracer.LogError(span, fmt.Errorf("common password error"))
 				return false
 			}
 		}
@@ -180,10 +210,16 @@ func (handler *Handler) checkCommonPass(w http.ResponseWriter, v *validator.Vali
 }
 
 func (handler *Handler) CreateVerificationRequest(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("CreateVerificationRequest-handler", r)
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "handler", fmt.Sprintf("handling %s\n", r.URL.Path))
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
+
 	profileId := util.GetLoggedUserIDFromToken(r)
 	err := r.ParseMultipartForm(0)
 	w.Header().Set("Content-Type", "application/json")
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
@@ -194,6 +230,7 @@ func (handler *Handler) CreateVerificationRequest(w http.ResponseWriter, r *http
 	err = json.Unmarshal([]byte(data[0]), &reqDto)
 
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
@@ -206,9 +243,10 @@ func (handler *Handler) CreateVerificationRequest(w http.ResponseWriter, r *http
 	fileSplitted := strings.Split(picHeader.Filename, ".")
 	fileName := uid + "." + fileSplitted[1]
 
-	err = handler.ProfileService.CreateVerificationRequest(profileId, reqDto, fileName)
+	err = handler.ProfileService.CreateVerificationRequest(ctx, profileId, reqDto, fileName)
 
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
@@ -223,6 +261,7 @@ func (handler *Handler) CreateVerificationRequest(w http.ResponseWriter, r *http
 		_ = picture.Close()
 	}(picture)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
@@ -230,6 +269,7 @@ func (handler *Handler) CreateVerificationRequest(w http.ResponseWriter, r *http
 	}
 	_, err = io.Copy(f, picture)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
@@ -241,21 +281,33 @@ func (handler *Handler) CreateVerificationRequest(w http.ResponseWriter, r *http
 }
 
 func (handler *Handler) Search(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("Search-handler", r)
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "handler", fmt.Sprintf("handling %s\n", r.URL.Path))
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
+
 	vars := mux.Vars(r)
-	result := handler.ProfileService.Search(template.HTMLEscapeString(vars["username"]))
+	result := handler.ProfileService.Search(ctx, template.HTMLEscapeString(vars["username"]))
 	w.Header().Set("Content-Type", "application/json")
 	err := json.NewEncoder(w).Encode(result)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
 }
 
 func (handler *Handler) SearchForTag(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("SearchForTag-handler", r)
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "handler", fmt.Sprintf("handling %s\n", r.URL.Path))
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
+
 	vars := mux.Vars(r)
 	loggedUserId := util.GetLoggedUserIDFromToken(r)
-	result, err := handler.ProfileService.SearchForTag(loggedUserId, template.HTMLEscapeString(vars["username"]))
+	result, err := handler.ProfileService.SearchForTag(ctx, loggedUserId, template.HTMLEscapeString(vars["username"]))
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
@@ -264,6 +316,7 @@ func (handler *Handler) SearchForTag(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(result)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
@@ -273,9 +326,15 @@ func (handler *Handler) SearchForTag(w http.ResponseWriter, r *http.Request) {
 }
 
 func (handler *Handler) GetProfileByUsername(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("GetProfileByUsername-handler", r)
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "handler", fmt.Sprintf("handling %s\n", r.URL.Path))
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
+
 	vars := mux.Vars(r)
-	result, err := handler.ProfileService.GetProfileByUsername(template.HTMLEscapeString(vars["username"]))
+	result, err := handler.ProfileService.GetProfileByUsername(ctx, template.HTMLEscapeString(vars["username"]))
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -284,22 +343,30 @@ func (handler *Handler) GetProfileByUsername(w http.ResponseWriter, r *http.Requ
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(&result)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return
 	}
 }
 
 func (handler *Handler) ChangeProfileSettings(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("ChangeProfileSettings-handler", r)
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "handler", fmt.Sprintf("handling %s\n", r.URL.Path))
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
+
 	var req dto.ProfileSettingsDTO
 	methodPath := "nistagram/profile/handler.ChangeProfileSettings"
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		util.Logging(util.ERROR, methodPath, "", err.Error(), "profile")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	userId := util.GetLoggedUserIDFromToken(r)
-	err = handler.ProfileService.ChangeProfileSettings(req, userId)
+	err = handler.ProfileService.ChangeProfileSettings(ctx, req, userId)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		util.Logging(util.ERROR, methodPath, util.GetIPAddress(r), err.Error(), "profile")
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -311,17 +378,24 @@ func (handler *Handler) ChangeProfileSettings(w http.ResponseWriter, r *http.Req
 }
 
 func (handler *Handler) UpdateVerificationRequest(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("UpdateVerificationRequest-handler", r)
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "handler", fmt.Sprintf("handling %s\n", r.URL.Path))
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
+
 	var req dto.VerifyDTO
 	w.Header().Set("Content-Type", "application/json")
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		return
 	}
 
-	err = handler.ProfileService.UpdateVerificationRequest(req)
+	err = handler.ProfileService.UpdateVerificationRequest(ctx, req)
 
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		return
 	}
@@ -330,18 +404,25 @@ func (handler *Handler) UpdateVerificationRequest(w http.ResponseWriter, r *http
 }
 
 func (handler *Handler) ChangePersonalData(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("ChangePersonalData-handler", r)
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "handler", fmt.Sprintf("handling %s\n", r.URL.Path))
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
+
 	var req dto.PersonalDataDTO
 	methodPath := "nistagram/profile/handler.ChangePersonalData"
 	err := json.NewDecoder(r.Body).Decode(&req)
 	req = safePersonalDataDto(req)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		util.Logging(util.ERROR, methodPath, "", err.Error(), "profile")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	userId := util.GetLoggedUserIDFromToken(r)
-	oldUsername, oldEmail, err := handler.ProfileService.ChangePersonalData(req, userId)
+	oldUsername, oldEmail, err := handler.ProfileService.ChangePersonalData(ctx, req, userId)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		util.Logging(util.ERROR, methodPath, util.GetIPAddress(r), err.Error(), "profile")
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -361,15 +442,22 @@ func (handler *Handler) ChangePersonalData(w http.ResponseWriter, r *http.Reques
 }
 
 func (handler *Handler) Test(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("Test-handler", r)
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "handler", fmt.Sprintf("handling %s\n", r.URL.Path))
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
+
 	var key string
 	err := json.NewDecoder(r.Body).Decode(&key)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	err = handler.ProfileService.Test(key)
+	err = handler.ProfileService.Test(ctx, key)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -377,9 +465,15 @@ func (handler *Handler) Test(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (handler *Handler) GetAllInterests(w http.ResponseWriter, _ *http.Request) {
-	interests, err := handler.ProfileService.GetAllInterests()
+func (handler *Handler) GetAllInterests(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("GetAllInterests-handler", r)
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "handler", fmt.Sprintf("handling %s\n", r.URL.Path))
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
+
+	interests, err := handler.ProfileService.GetAllInterests(ctx)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -388,13 +482,20 @@ func (handler *Handler) GetAllInterests(w http.ResponseWriter, _ *http.Request) 
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(interests)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return
 	}
 }
 
-func (handler *Handler) GetAllCategories(w http.ResponseWriter, _ *http.Request) {
-	categories, err := handler.ProfileService.GetAllCategories()
+func (handler *Handler) GetAllCategories(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("GetAllCategories-handler", r)
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "handler", fmt.Sprintf("handling %s\n", r.URL.Path))
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
+
+	categories, err := handler.ProfileService.GetAllCategories(ctx)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -403,13 +504,20 @@ func (handler *Handler) GetAllCategories(w http.ResponseWriter, _ *http.Request)
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(categories)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return
 	}
 }
 
 func (handler *Handler) GetMyProfileSettings(w http.ResponseWriter, r *http.Request) {
-	settings, err := handler.ProfileService.GetMyProfileSettings(util.GetLoggedUserIDFromToken(r))
+	span := util.Tracer.StartSpanFromRequest("GetMyProfileSettings-handler", r)
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "handler", fmt.Sprintf("handling %s\n", r.URL.Path))
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
+
+	settings, err := handler.ProfileService.GetMyProfileSettings(ctx, util.GetLoggedUserIDFromToken(r))
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -418,14 +526,21 @@ func (handler *Handler) GetMyProfileSettings(w http.ResponseWriter, r *http.Requ
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(settings)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return
 	}
 
 }
 
 func (handler *Handler) GetMyPersonalData(w http.ResponseWriter, r *http.Request) {
-	data, err := handler.ProfileService.GetMyPersonalData(util.GetLoggedUserIDFromToken(r))
+	span := util.Tracer.StartSpanFromRequest("GetMyPersonalData-handler", r)
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "handler", fmt.Sprintf("handling %s\n", r.URL.Path))
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
+
+	data, err := handler.ProfileService.GetMyPersonalData(ctx, util.GetLoggedUserIDFromToken(r))
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -434,6 +549,7 @@ func (handler *Handler) GetMyPersonalData(w http.ResponseWriter, r *http.Request
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(data)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return
 	}
 }
@@ -463,9 +579,15 @@ func (handler *Handler) GetProfileByID(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (handler *Handler) GetVerificationRequests(w http.ResponseWriter, _ *http.Request) {
-	requests, err := handler.ProfileService.GetVerificationRequests()
+func (handler *Handler) GetVerificationRequests(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("GetVerificationRequests-handler", r)
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "handler", fmt.Sprintf("handling %s\n", r.URL.Path))
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
+
+	requests, err := handler.ProfileService.GetVerificationRequests(ctx)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -473,18 +595,25 @@ func (handler *Handler) GetVerificationRequests(w http.ResponseWriter, _ *http.R
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(requests)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return
 	}
 	fmt.Println(requests, err)
 }
 
 func (handler *Handler) DeleteProfile(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("DeleteProfile-handler", r)
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "handler", fmt.Sprintf("handling %s\n", r.URL.Path))
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
+
 	w.Header().Set("Content-Type", "application/json")
 	vars := mux.Vars(r)
 	profileId := util.String2Uint(vars["id"])
-	err := handler.ProfileService.DeleteProfile(profileId)
+	err := handler.ProfileService.DeleteProfile(ctx, profileId)
 
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
@@ -497,9 +626,15 @@ func (handler *Handler) DeleteProfile(w http.ResponseWriter, r *http.Request) {
 }
 
 func (handler *Handler) SendAgentRequest(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("SendAgentRequest-handler", r)
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "handler", fmt.Sprintf("handling %s\n", r.URL.Path))
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
+
 	loggedUserID := util.GetLoggedUserIDFromToken(r)
-	err := handler.ProfileService.SendAgentRequest(loggedUserID)
+	err := handler.ProfileService.SendAgentRequest(ctx, loggedUserID)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -510,14 +645,21 @@ func (handler *Handler) SendAgentRequest(w http.ResponseWriter, r *http.Request)
 }
 
 func (handler *Handler) GetAgentRequests(w http.ResponseWriter, r *http.Request) {
-	requests, err := handler.ProfileService.GetAgentRequests()
+	span := util.Tracer.StartSpanFromRequest("GetAgentRequests-handler", r)
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "handler", fmt.Sprintf("handling %s\n", r.URL.Path))
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
+
+	requests, err := handler.ProfileService.GetAgentRequests(ctx)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	js, err := json.Marshal(requests)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -528,24 +670,32 @@ func (handler *Handler) GetAgentRequests(w http.ResponseWriter, r *http.Request)
 }
 
 func (handler *Handler) GetProfileUsernamesByIDs(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("GetProfileUsernamesByIDs-handler", r)
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "handler", fmt.Sprintf("handling %s\n", r.URL.Path))
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
+
 	type data struct {
 		Ids []string `json:"ids"`
 	}
 	var input data
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	ret, err := handler.ProfileService.GetProfileUsernamesByIDs(input.Ids)
+	ret, err := handler.ProfileService.GetProfileUsernamesByIDs(ctx, input.Ids)
 	fmt.Println(ret)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	js, err := json.Marshal(ret)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
@@ -557,23 +707,31 @@ func (handler *Handler) GetProfileUsernamesByIDs(w http.ResponseWriter, r *http.
 }
 
 func (handler *Handler) GetByInterests(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("GetByInterests-handler", r)
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "handler", fmt.Sprintf("handling %s\n", r.URL.Path))
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
+
 	type data struct {
 		Interests []string `json:"interests"`
 	}
 	var input data
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	profiles, err := handler.ProfileService.GetByInterests(input.Interests)
+	profiles, err := handler.ProfileService.GetByInterests(ctx, input.Interests)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	js, err := json.Marshal(profiles)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
@@ -585,14 +743,21 @@ func (handler *Handler) GetByInterests(w http.ResponseWriter, r *http.Request) {
 }
 
 func (handler *Handler) ProcessAgentRequest(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("ProcessAgentRequest-handler", r)
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "handler", fmt.Sprintf("handling %s\n", r.URL.Path))
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
+
 	var input dto.ProcessAgentRequest
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	err := handler.ProfileService.ProcessAgentRequest(input)
+	err := handler.ProfileService.ProcessAgentRequest(ctx, input)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -603,23 +768,31 @@ func (handler *Handler) ProcessAgentRequest(w http.ResponseWriter, r *http.Reque
 }
 
 func (handler *Handler) GetProfileIdsByUsernames(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("GetProfileIdsByUsernames-handler", r)
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "handler", fmt.Sprintf("handling %s\n", r.URL.Path))
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
+
 	type data struct {
 		Usernames []string `json:"usernames"`
 	}
 	var input data
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	ret, err := handler.ProfileService.GetProfileIdsByUsernames(input.Usernames)
+	ret, err := handler.ProfileService.GetProfileIdsByUsernames(ctx, input.Usernames)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	js, err := json.Marshal(ret)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
@@ -631,11 +804,17 @@ func (handler *Handler) GetProfileIdsByUsernames(w http.ResponseWriter, r *http.
 }
 
 func (handler *Handler) GetPersonalDataByProfileId(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("GetPersonalDataByProfileId-handler", r)
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "handler", fmt.Sprintf("handling %s\n", r.URL.Path))
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
+
 	var id uint
 	vars := mux.Vars(r)
 	id = util.String2Uint(vars["id"])
-	personalData, err := handler.ProfileService.GetPersonalDataByProfileId(id)
+	personalData, err := handler.ProfileService.GetPersonalDataByProfileId(ctx, id)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 	} else {
@@ -644,20 +823,28 @@ func (handler *Handler) GetPersonalDataByProfileId(w http.ResponseWriter, r *htt
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(*personalData)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return
 	}
 }
 
 func (handler *Handler) GetProfileInterests(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("GetProfileInterests-handler", r)
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "handler", fmt.Sprintf("handling %s\n", r.URL.Path))
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
+
 	vars := mux.Vars(r)
-	interests, err := handler.ProfileService.GetProfileInterests(util.String2Uint(vars["id"]))
+	interests, err := handler.ProfileService.GetProfileInterests(ctx, util.String2Uint(vars["id"]))
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	js, err := json.Marshal(interests)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
