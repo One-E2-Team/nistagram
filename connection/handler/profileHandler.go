@@ -13,43 +13,58 @@ import (
 )
 
 func (handler *Handler) AddProfile(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("AddProfile-handler", r)
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "handler", fmt.Sprintf("handling %s\n", r.URL.Path))
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
 	method := "nistagram/connection/handler.AddProfile"
 	vars := mux.Vars(r)
 	id, _ := strconv.ParseUint(vars["id"], 10, 32)
-	profile, ok := handler.ConnectionService.AddOrUpdateProfile(model.ProfileVertex{ProfileID: uint(id)})
+	profile, ok := handler.ConnectionService.AddOrUpdateProfile(ctx, model.ProfileVertex{ProfileID: uint(id)})
 	if ok {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(profile)
 		util.Logging(util.INFO, method, "", "Added user: "+util.Uint2String(uint(id)), "connection")
 	} else {
+		util.Tracer.LogError(span, fmt.Errorf("error in connection service"))
 		w.WriteHeader(http.StatusInternalServerError)
 		util.Logging(util.INFO, method, "", "Failed to add user: "+util.Uint2String(uint(id)), "connection")
 	}
 }
 
 func (handler *Handler) DeleteProfile(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("DeleteProfile-handler", r)
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "handler", fmt.Sprintf("handling %s\n", r.URL.Path))
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
 	vars := mux.Vars(r)
 	id, _ := strconv.ParseUint(vars["id"], 10, 32)
-	profile, ok := handler.ConnectionService.AddOrUpdateProfile(model.ProfileVertex{ProfileID: uint(id), Deleted: true})
+	profile, ok := handler.ConnectionService.AddOrUpdateProfile(ctx, model.ProfileVertex{ProfileID: uint(id), Deleted: true})
 	if ok {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(profile)
 	} else {
+		util.Tracer.LogError(span, fmt.Errorf("error in connection service"))
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
 
 func (handler *Handler) ReActivateProfile(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("AddProfile-handler", r)
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "handler", fmt.Sprintf("handling %s\n", r.URL.Path))
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
 	vars := mux.Vars(r)
 	id, _ := strconv.ParseUint(vars["id"], 10, 32)
-	profile, ok := handler.ConnectionService.AddOrUpdateProfile(model.ProfileVertex{ProfileID: uint(id), Deleted: false})
+	profile, ok := handler.ConnectionService.AddOrUpdateProfile(ctx, model.ProfileVertex{ProfileID: uint(id), Deleted: false})
 	if ok {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(profile)
 	} else {
+		util.Tracer.LogError(span, fmt.Errorf("error in connection service"))
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
