@@ -6,6 +6,10 @@ import (
 	"time"
 )
 
+type MonitoringResult struct {
+	Results []CampaignReport      				`json:"result" xml:"result"`
+}
+
 type CampaignReport struct{
 	XMLName        			xml.Name       				`json:"campaignReport" xml:"campaign_report"`
 	BasicInformation 		BasicInformation 			`json:"basicInformation" xml:"basic_information"`
@@ -56,9 +60,9 @@ type Stats struct{
 }
 
 func (stats *Stats) AddSpecificSite(site string){
-	for _, sv := range stats.SpecificSiteVisits{
-		if sv.WebSite == site{
-			sv.Visits += 1
+	for i, _ := range stats.SpecificSiteVisits{
+		if stats.SpecificSiteVisits[i].WebSite == site{
+			stats.SpecificSiteVisits[i].Visits += 1
 			return
 		}
 	}
@@ -72,22 +76,22 @@ type SiteVisit struct{
 }
 
 func (ps *ParametersStatistics) AddEventForInf(username string,eventType string, website string){
-	for _, infStat := range ps.InfluencerStats{
-		if username == infStat.Username{
+	for i, _ := range ps.InfluencerStats{
+		if username == ps.InfluencerStats[i].Username{
 			switch strings.ToLower(eventType){
 			case "like":
-				infStat.Stats.Likes += 1
+				ps.InfluencerStats[i].Stats.Likes += 1
 			case "dislike":
-				infStat.Stats.Dislikes += 1
+				ps.InfluencerStats[i].Stats.Dislikes += 1
 			case "like_reset":
-				infStat.Stats.LikeResets += 1
+				ps.InfluencerStats[i].Stats.LikeResets += 1
 			case "dislike_reset":
-				infStat.Stats.DislikeResets += 1
+				ps.InfluencerStats[i].Stats.DislikeResets += 1
 			case "comment":
-				infStat.Stats.Comments += 1
+				ps.InfluencerStats[i].Stats.Comments += 1
 			case "visit":
-				infStat.Stats.TotalSiteVisits += 1
-				infStat.Stats.AddSpecificSite(website)
+				ps.InfluencerStats[i].Stats.TotalSiteVisits += 1
+				ps.InfluencerStats[i].Stats.AddSpecificSite(website)
 			}
 			return
 		}
@@ -114,22 +118,22 @@ func (ps *ParametersStatistics) AddEventForInf(username string,eventType string,
 
 func (ps *ParametersStatistics) AddEventForInterest(interests []string, eventType string, website string){
 	for _, inter := range interests{
-		for _, tgStat := range ps.TargetGroupsStats{
-			if inter == tgStat.Interest{
+		for i, _ := range ps.TargetGroupsStats{
+			if inter == ps.TargetGroupsStats[i].Interest{
 				switch strings.ToLower(eventType){
 				case "like":
-					tgStat.Stats.Likes += 1
+					ps.TargetGroupsStats[i].Stats.Likes += 1
 				case "dislike":
-					tgStat.Stats.Dislikes += 1
+					ps.TargetGroupsStats[i].Stats.Dislikes += 1
 				case "like_reset":
-					tgStat.Stats.LikeResets += 1
+					ps.TargetGroupsStats[i].Stats.LikeResets += 1
 				case "dislike_reset":
-					tgStat.Stats.DislikeResets += 1
+					ps.TargetGroupsStats[i].Stats.DislikeResets += 1
 				case "comment":
-					tgStat.Stats.Comments += 1
+					ps.TargetGroupsStats[i].Stats.Comments += 1
 				case "visit":
-					tgStat.Stats.TotalSiteVisits += 1
-					tgStat.Stats.AddSpecificSite(website)
+					ps.TargetGroupsStats[i].Stats.TotalSiteVisits += 1
+					ps.TargetGroupsStats[i].Stats.AddSpecificSite(website)
 				}
 				return
 			}
