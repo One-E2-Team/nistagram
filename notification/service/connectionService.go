@@ -11,23 +11,30 @@ import (
 )
 
 
-func (service *Service) GetMessageConnections(loggedUserId uint) ([]dto.MessageConnectionDTO, error) {
-	profileIds, err := service.Repository.GetConnectedProfileIds(loggedUserId)
+func (service *Service) GetMessageConnections(ctx context.Context, loggedUserId uint) ([]dto.MessageConnectionDTO, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "GetMessageConnections-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing id %v\n", loggedUserId))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
+	profileIds, err := service.Repository.GetConnectedProfileIds(nextCtx, loggedUserId)
 	if err != nil{
+		util.Tracer.LogError(span, err)
 		return nil,err
 	}
 
 	fmt.Println(profileIds)
 
-	usernames, err := getProfileUsernamesByIDs(profileIds)
+	usernames, err := getProfileUsernamesByIDs(nextCtx, profileIds)
 	if err != nil{
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 
 	fmt.Println(usernames)
 
-	messageApproved, err := getMessageApprovedByIDs(loggedUserId,profileIds)
+	messageApproved, err := getMessageApprovedByIDs(nextCtx, loggedUserId,profileIds)
 	if err != nil{
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 
@@ -44,7 +51,11 @@ func (service *Service) GetMessageConnections(loggedUserId uint) ([]dto.MessageC
 }
 
 
-func getProfileUsernamesByIDs(profileIDs []uint) ([]string, error) {
+func getProfileUsernamesByIDs(ctx context.Context, profileIDs []uint) ([]string, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "getProfileUsernamesByIDs-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing id %v\n", profileIDs))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
 	type data struct {
 		Ids []string `json:"ids"`
 	}
@@ -55,13 +66,15 @@ func getProfileUsernamesByIDs(profileIDs []uint) ([]string, error) {
 	bodyData := data{Ids: req}
 	jsonBody, err := json.Marshal(bodyData)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 	profileHost, profilePort := util.GetProfileHostAndPort()
-	resp, err := util.CrossServiceRequest(context.Background(), http.MethodPost,
+	resp, err := util.CrossServiceRequest(nextCtx, http.MethodPost,
 		util.GetCrossServiceProtocol()+"://"+profileHost+":"+profilePort+"/get-by-ids",
 		jsonBody, map[string]string{"Content-Type": "application/json;"})
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 
@@ -69,6 +82,7 @@ func getProfileUsernamesByIDs(profileIDs []uint) ([]string, error) {
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 
@@ -79,13 +93,18 @@ func getProfileUsernamesByIDs(profileIDs []uint) ([]string, error) {
 	}(resp.Body)
 
 	if err = json.Unmarshal(body, &ret); err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 
 	return ret, nil
 }
 
-func getMessageApprovedByIDs(loggedUserId uint,profileIDs []uint) ([]bool, error) {
+func getMessageApprovedByIDs(ctx context.Context, loggedUserId uint,profileIDs []uint) ([]bool, error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "getMessageApprovedByIDs-service")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing id %v %v\n", loggedUserId, profileIDs))
+	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
 	type data struct {
 		FollowerId string `json:"followerId"`
 		Ids []string `json:"ids"`
@@ -97,13 +116,15 @@ func getMessageApprovedByIDs(loggedUserId uint,profileIDs []uint) ([]bool, error
 	bodyData := data{FollowerId: util.Uint2String(loggedUserId),Ids: req}
 	jsonBody, err := json.Marshal(bodyData)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 	connHost, connPort := util.GetConnectionHostAndPort()
-	resp, err := util.CrossServiceRequest(context.Background(), http.MethodPost,
+	resp, err := util.CrossServiceRequest(nextCtx, http.MethodPost,
 		util.GetCrossServiceProtocol()+"://"+connHost+":"+connPort+"/connection/messaging/my-properties",
 		jsonBody, map[string]string{"Content-Type": "application/json;"})
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 
@@ -111,6 +132,7 @@ func getMessageApprovedByIDs(loggedUserId uint,profileIDs []uint) ([]bool, error
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 
@@ -119,6 +141,7 @@ func getMessageApprovedByIDs(loggedUserId uint,profileIDs []uint) ([]bool, error
 	}(resp.Body)
 
 	if err = json.Unmarshal(body, &retDto); err != nil {
+		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 
