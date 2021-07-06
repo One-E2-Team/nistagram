@@ -7,20 +7,20 @@ import (
 	"github.com/go-redis/redis/v8"
 )
 
-
+var Orch *Orchestrator
 
 type Orchestrator struct{
 	Client *redis.Client
 	PubSub *redis.PubSub
 }
 
-func NewOrchestrator(channels []string) *Orchestrator {
+func InitOrchestrator(channels []string) {
 	client := connectToMessageBroker()
 	orch := &Orchestrator{
 		Client: client,
 		PubSub: client.Subscribe(context.TODO(), channels...),
 	}
-	return orch
+	Orch = orch
 }
 
 func (o Orchestrator) Next(channel, nextService string, message Message) {
@@ -69,10 +69,10 @@ func (o Orchestrator) Start(){
 
 			switch msg.Channel {
 			case ReplyChannel:
-				if m.Action != ActionDone{
+				if m.Action == ActionError {
 					o.Rollback(m)
 					continue
-				}else{
+				}else if m.Action == ActionDone{
 					fmt.Println("Functionality done.")
 				}
 			}

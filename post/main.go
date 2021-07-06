@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -11,6 +12,7 @@ import (
 	"nistagram/post/repository"
 	"nistagram/post/service"
 	"nistagram/util"
+	"nistagram/util/saga"
 	"os"
 	"time"
 )
@@ -129,6 +131,22 @@ func closeConnection(client *mongo.Client) {
 	fmt.Println("Connection to MongoDB closed.")
 }
 
+func initSagaHandlers(handler *handler.Handler) []saga.ChannelHandler {
+	temp := make([]saga.ChannelHandler, 0)
+	temp = append(temp, 
+		saga.ChannelHandler{
+			Channel: saga.PostChannel,
+			Handler: handler.ChangePrivacyHandler,
+		},
+		saga.ChannelHandler{
+			Channel: saga.ReplyChannel,
+			Handler: func(client *redis.Client, message saga.Message) {
+				fmt.Println("REPLY CHANNEL IN POST")
+			},
+		})
+	return temp
+}
+
 func main() {
 	util.TracerInit("post")
 	client := initDB()
@@ -136,6 +154,7 @@ func main() {
 	postRepo := initPostRepo(client)
 	postService := initService(postRepo)
 	postHandler := initHandler(postService)
+	go saga.SubscribeAndRunPubSubHandlers(nil, initSagaHandlers(postHandler)...)
 	_ = util.SetupMSAuth("post")
 	handleFunc(postHandler)
 }

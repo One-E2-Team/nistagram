@@ -10,6 +10,7 @@ import (
 	"nistagram/profile/model"
 	"nistagram/profile/repository"
 	"nistagram/util"
+	"nistagram/util/saga"
 )
 
 type ProfileService struct {
@@ -207,18 +208,30 @@ func (service *ProfileService) ChangeProfileSettings(ctx context.Context, dto dt
 		return err
 	}
 	profileSettings := profile.ProfileSettings
+	var privacyChanged = false
 	if profileSettings.IsPrivate != dto.IsPrivate {
-		err = service.changePrivacyInPostService(nextCtx, dto.IsPrivate, loggedUserId)
+		privacyChanged = true
+		/*err = service.changePrivacyInPostService(nextCtx, dto.IsPrivate, loggedUserId)
 		if err != nil {
 			util.Tracer.LogError(span, err)
 			return err
-		}
+		}*/
 	}
 	profileSettings.IsPrivate = dto.IsPrivate
 	profileSettings.CanBeTagged = dto.CanBeTagged
 	profileSettings.CanReceiveMessageFromUnknown = dto.CanReceiveMessageFromUnknown
 	err = service.ProfileRepository.UpdateProfileSettings(nextCtx, profileSettings)
-	return err
+	if err != nil{
+		return err
+	}
+
+	if privacyChanged {
+		profile.ProfileSettings.IsPrivate = profileSettings.IsPrivate
+		m := saga.Message{NextService: saga.PostService, SenderService: saga.ProfileService,
+			Action: saga.ActionStart, Functionality: saga.ChangeProfilesPrivacy, Profile: profile}
+		saga.Orch.Next(saga.PostChannel, saga.PostService, m)
+	}
+	return nil
 }
 
 func (service *ProfileService) ChangePersonalData(ctx context.Context, dto dto.PersonalDataDTO, loggedUserId uint) (string, string, error) {

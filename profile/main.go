@@ -9,6 +9,7 @@ import (
 	"nistagram/profile/repository"
 	"nistagram/profile/service"
 	"nistagram/util"
+	"nistagram/util/saga"
 	"os"
 	"time"
 
@@ -168,6 +169,22 @@ func handleFunc(handler *handler.Handler) {
 	}
 }
 
+func initSagaHandlers(handler *handler.Handler) []saga.ChannelHandler {
+	temp := make([]saga.ChannelHandler, 0)
+	temp = append(temp,
+		saga.ChannelHandler{
+			Channel: saga.ProfileChannel,
+			Handler: handler.ChangePrivacyRollbackHandler,
+		},
+		saga.ChannelHandler{
+			Channel: saga.ReplyChannel,
+			Handler: func(client *redis.Client, message saga.Message) {
+				fmt.Println("REPLY CHANNEL IN PROFILE")
+			},
+		})
+	return temp
+}
+
 func main() {
 	util.TracerInit("profile")
 	db, client := initDBs()
@@ -175,5 +192,8 @@ func main() {
 	profileService := initService(profileRepo)
 	profileHandler := initHandler(profileService)
 	_ = util.SetupMSAuth("profile")
+	saga.InitOrchestrator([]string{saga.ProfileChannel, saga.AuthChannel, saga.ConnectionChannel, saga.PostChannel, saga.ReplyChannel})
+	go saga.Orch.Start()
+	go saga.SubscribeAndRunPubSubHandlers(saga.Orch.Client, initSagaHandlers(profileHandler)...)
 	handleFunc(profileHandler)
 }

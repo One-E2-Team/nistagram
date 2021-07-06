@@ -13,7 +13,7 @@ type Message struct {
 	Profile			*model.Profile   `json:"profile"`
 }
 
-func (m Message) MarshalMessage() ([]byte, error) {
+func (m Message) MarshalBinary() ([]byte, error) {
 	return json.Marshal(m)
 }
 

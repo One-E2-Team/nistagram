@@ -26,7 +26,7 @@ func connectToMessageBroker() *redis.Client {
 	for {
 		client = redis.NewClient(&redis.Options{
 			Addr:     redisHost + ":" + redisPort,
-			Password: "",
+			Password: "helloworld",
 			DB:       0,
 		})
 

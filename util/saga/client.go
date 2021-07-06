@@ -12,7 +12,7 @@ type ChannelHandler struct {
 	Handler func(*redis.Client, Message)
 }
 
-func RunPubSubHandlers(client *redis.Client, handlers ...ChannelHandler) {
+func SubscribeAndRunPubSubHandlers(client *redis.Client, handlers ...ChannelHandler) {
 	if client == nil {
 		client = connectToMessageBroker()
 	}
@@ -52,19 +52,7 @@ func RunHandlersOnPubSub(client *redis.Client, pubsub *redis.PubSub, handlers ..
 }
 
 /*
-func rndHandler(client *redis.Client, m Message) {
-	if m.Action == ActionStart {
-		switch m.Functionality {
-		case ChangeProfilesPrivacy:
-			err := service.ChangePrivacy(m.Profile.ID, m.Profile.ProfileSettings.IsPrivate)
-			if err != nil{
-				sendToReplyChannel(client, &m, ActionError, ProfileService, PostService)
-			}else{
-				sendToReplyChannel(client, &m, ActionDone, ProfileService, PostService)
-			}
-		}
-	}
-}
+
 */
 func SendToReplyChannel(client *redis.Client, m *Message, action string, nextService string, senderService string){
 	var err error
