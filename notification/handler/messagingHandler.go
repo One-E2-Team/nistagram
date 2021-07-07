@@ -37,6 +37,7 @@ func (handler *Handler) SendMessage(ctx context.Context, senderId uint, object [
 	}else{
 		handler.Service.CreateMessage(nextCtx, &message)
 		TrySendMessage(nextCtx, message.ReceiverId, "message", object)
+		TrySendMessage(nextCtx, message.ReceiverId, "notify", object)
 	}
 	return []byte("Sent"), true
 }
@@ -183,8 +184,14 @@ func (handler *Handler) GetNotifications(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	type data struct {
+		Usernames []string `json:"usernames"`
+	}
+
+	ret := data{Usernames: result}
+
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(result)
+	json.NewEncoder(w).Encode(ret)
 	w.Header().Set("Content-Type", "application/json")
 }
 

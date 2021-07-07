@@ -66,10 +66,10 @@
                     <div class="font-weight-normal" v-else>
                       <strong>{{user.username}}: </strong> {{ m.text }}
                     </div>
-                    <div class="font-weight-normal" v-if="m.postId != ''">
+                    <div class="font-weight-normal" v-if="m.postId != undefined && m.postId != ''">
                       <show-post-from-message-modal :postId="m.postId"/>
                     </div>
-                    <div class="font-weight-normal" v-if="m.mediaPath != '' && m.seen == false">
+                    <div class="font-weight-normal" v-if="m.mediaPath != undefined && m.mediaPath != '' && m.seen == false">
                       <show-media-from-message :medias="m"/>
                     </div>
                   <!--<div>@{{ message.timestamp }}</div>-->
@@ -148,6 +148,9 @@ import ShowMediaFromMessage from '../modals/showMediaFromMessage.vue'
 export default {
   components: { ShowPostFromMessageModal, ShowMediaFromMessage },
     name: "Messaging",
+    props : [
+      'username'
+    ],
     data() {
       return {
         messages: [],
@@ -207,20 +210,27 @@ export default {
                               console.log(reason);
                           });
                 });
-          axios({
-                  method: "post",
-                  url: comm.protocol + "://" + comm.server +"/api/connection/messaging/request/" + this.user.profileId,
-                  headers: comm.getHeader(),
-              }).then((response) => {
-                  if(response.status == 200) {
-                      this.$emit('messageRequestSended',response.data)
-                  }
-              })
-              .catch((error) => {
-                  console.log(error);
-              });
+      this.$root.$on('requestAccepted', (id) =>{
+          if (this.user.profileId == id){
+            this.user.messageApproved = true;
+          }else{
+            this.getMessageConnections();
+          }          
+      });
+      this.getMessagesByUsername();
     },
     methods : {
+      async getMessagesByUsername(){
+          if (this.username != undefined){
+          await new Promise(r => setTimeout(r, 1000));
+          for(let user of this.usersToChat){
+             if (user.username == this.username){
+               this.getAllMessages(user);
+               return;
+             }
+          }
+        }
+      },
       addMessage(data){
         let d = JSON.parse(data);
         if (d.senderId == this.user.profileId)
@@ -269,9 +279,8 @@ export default {
             headers: comm.getHeader(),
         }).then(response => {
             if(response.status==200) {
-                console.log(response.data.collection);
                 this.messages = response.data.collection;
-                console.log(this.messages);
+                this.$root.$emit('messageSeen', this.user.profileId);
             }
         }).catch(reason => {
             console.log(reason);
@@ -405,6 +414,21 @@ export default {
             });
             }
         }
+    },
+    watch :{
+      username: function(){
+        console.log("kitica1");
+        if (this.username != undefined){
+          console.log("kitica2");
+          //await new Promise(r => setTimeout(r, 2000));
+          for(let user of this.usersToChat){
+             if (user.username == this.username){
+               this.getAllMessages(user);
+               return;
+             }
+          }
+        }
+      }
     }
 }
 </script>

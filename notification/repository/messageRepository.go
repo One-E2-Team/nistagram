@@ -188,7 +188,7 @@ func (repo *Repository) GetUnseenMessages(ctx context.Context, receiverId uint) 
 	var ret []model.Message
 
 	collection := repo.getCollection()
-	filter := bson.D{{"receiverid", receiverId}, {"seenmessage", false}}
+	filter := bson.D{{"receiverid", receiverId}, {"messageseen", false}}
 
 	cursor, err := collection.Find(context.TODO(), filter)
 	if err != nil {

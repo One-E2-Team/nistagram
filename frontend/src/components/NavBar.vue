@@ -37,13 +37,16 @@
           <v-col cols="12" sm="1" class="float-right">
               <v-spacer/>
           </v-col>
-          <v-col cols="12" sm="2" class="float-right">
+          <v-col cols="12" sm="1" class="float-right">
             <v-row>
               <v-col><campaign-requests-notification v-if="isUserLogged"/></v-col>
               <v-col><message-requests-modal v-if="isUserLogged"/></v-col>
               <v-col><follow-requests v-if="isUserLogged"/></v-col>
               <v-col><connection-recommendation-modal v-if="isUserLogged"/></v-col>
             </v-row>
+          </v-col>
+          <v-col cols="12" sm="1" class="float-right">
+              <notification-modal v-if="isUserLogged"/>
           </v-col>
           <v-col cols="12" sm="1" class="float-right">
               <settings v-if="isUserLogged"/>
@@ -60,6 +63,7 @@ import FollowRequests from '../components/FollowRequests.vue'
 import MessageRequestsModal from '../modals/MessageRequestsModal.vue'
 import ConnectionRecommendationModal from '../modals/ConnectionRecommendationModal.vue'
 import CampaignRequestsNotification from '../modals/CampaignRequestsNotification.vue'
+import NotificationModal from '../modals/NotificationModal.vue'
 export default {
     name: "NavBar",
     components: {
@@ -68,6 +72,7 @@ export default {
       ConnectionRecommendationModal,
       Settings,
       CampaignRequestsNotification,
+      NotificationModal
     },
     data(){
       return {
@@ -78,11 +83,48 @@ export default {
       this.$root.$on('loggedUser', () => {
         this.isUserLogged = comm.getLoggedUserUsername() != null;
       })
+      this.startMessagingWebSocket();
     },
     methods: {
       hasRole(role){
         return comm.hasRole(role);
       },
+      addNotification(data){
+        console.log(data);
+        this.$root.$emit('newNotification');
+      },
+       handler(response, data) {
+          switch (response) {
+            case "notify":
+              this.addNotification(data);
+              break;
+            default:
+              break;
+          }
+       },
+        startMessagingWebSocket(){
+        let ws = new WebSocket(comm.wsProtocol + '://' + comm.wsNotificationServer + '/messaging' + "?token=" + comm.getJWTToken().token)
+        let reload = function(event) {
+          console.log(event);
+          window.location.reload()
+        }
+        ws.onerror = reload
+        ws.onclose = reload
+        let h = this.handler
+        ws.onmessage = function(event) {
+          let temp = JSON.parse(event.data)
+          h(temp.response, temp.data)
+        }
+        this.messagingSenderWS = ws
+      },
+      sendWS(request, data){
+        let req = {
+          jwt: comm.getJWTToken().token, 
+          request: request,
+          data: JSON.stringify(data)
+        }
+        this.messagingSenderWS.send(JSON.stringify(req))
+      }
     }
 }
 </script>

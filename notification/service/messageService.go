@@ -37,6 +37,9 @@ func (service *Service) GetAllMessages(ctx context.Context, firstId uint, second
 		util.Tracer.LogError(span, err)
 		return nil,err
 	}
+	if len(messages) == 0{
+		return messages, nil
+	}
 
 	ejectSeenOneOf(&messages)
 
@@ -77,6 +80,8 @@ func (service *Service) GetNotifications(ctx context.Context, receiverId uint) (
 		return nil,err
 	}
 
+	fmt.Println("unseen messages: ", messages)
+
 	senderIds := make([]uint, 0)
 	for _, msg := range messages{
 		if !util.Contains(senderIds, msg.SenderId){
@@ -84,13 +89,15 @@ func (service *Service) GetNotifications(ctx context.Context, receiverId uint) (
 		}
 	}
 
+	fmt.Println("Sender ids: ", senderIds)
+
 	senderUsernames, err := getProfileUsernamesByIDs(nextCtx, senderIds)
 	if err != nil{
 		util.Tracer.LogError(span, err)
 		return nil, err
 	}
 
-	fmt.Println(senderUsernames)
+	fmt.Println("Sender usernames: ", senderUsernames)
 
 	return senderUsernames, nil
 }

@@ -54,7 +54,7 @@
     }
   },
   "timeout": "5000ms",
-  "cache_ttl": "300s",
+  "cache_ttl": "0s",
   "output_encoding": "json",
   "name": "test",
   "port": 80,
@@ -2474,7 +2474,6 @@
             "https://notification:8080"
           ],
           "disable_host_sanitize": false,
-          "is_collection": true,
           "target": ""
         }
       ]

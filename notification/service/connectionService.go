@@ -23,6 +23,9 @@ func (service *Service) GetMessageConnections(ctx context.Context, loggedUserId 
 	}
 
 	fmt.Println(profileIds)
+	if len(profileIds) == 0{
+		return nil, nil
+	}
 
 	usernames, err := getProfileUsernamesByIDs(nextCtx, profileIds)
 	if err != nil{
