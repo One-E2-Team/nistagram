@@ -15,4 +15,5 @@ type Message struct{
 	OneOf			bool		`json:"oneOf"`
 	Seen			bool		`json:"seen"`
 	PostId			string		`json:"postId"`
+	MessageSeen		bool		`json:"messageSeen"`
 }

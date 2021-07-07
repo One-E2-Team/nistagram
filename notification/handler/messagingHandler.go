@@ -164,3 +164,48 @@ func (handler *Handler) Seen(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write([]byte("{\"message\":\"ok\"}"))
 	w.Header().Set("Content-Type", "application/json")
 }
+
+func (handler *Handler) GetNotifications(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("GetNotifications-handler", r)
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "handler", fmt.Sprintf("handling %s\n", r.URL.Path))
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
+
+	loggedUserId := util.GetLoggedUserIDFromToken(r)
+	fmt.Println("Logged user id: ", loggedUserId)
+
+	result, err := handler.Service.GetNotifications(ctx, loggedUserId)
+	if err != nil{
+		util.Tracer.LogError(span, err)
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(result)
+	w.Header().Set("Content-Type", "application/json")
+}
+
+func (handler *Handler) SeenMessage(w http.ResponseWriter, r *http.Request) {
+	span := util.Tracer.StartSpanFromRequest("SeenMessage-handler", r)
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "handler", fmt.Sprintf("handling %s\n", r.URL.Path))
+	ctx := util.Tracer.ContextWithSpan(context.Background(), span)
+	vars := mux.Vars(r)
+	senderId := util.String2Uint(vars["senderId"])
+	loggedUseId := util.GetLoggedUserIDFromToken(r)
+
+	err := handler.Service.SeenMessage(ctx, loggedUseId, senderId)
+	if err != nil{
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte("{\"message\":\"error\"}"))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte("{\"message\":\"ok\"}"))
+	w.Header().Set("Content-Type", "application/json")
+}

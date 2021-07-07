@@ -74,6 +74,9 @@ func handleFunc(handler *handler.Handler) {
 
 	router.HandleFunc("/seen/{id}", util.RBAC(handler.Seen, "MESSAGING", false)).Methods("PUT")
 
+	router.HandleFunc("/notification", util.RBAC(handler.GetNotifications, "MESSAGING", true)).Methods("GET")
+
+	router.HandleFunc("/seen-message/{senderId}", util.RBAC(handler.SeenMessage, "MESSAGING", true)).Methods("PUT")
 
 	fmt.Println("Starting server..")
 	host, port := util.GetNotificationHostAndPort()

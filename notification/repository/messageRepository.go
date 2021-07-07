@@ -181,6 +181,52 @@ func (repo *Repository) DeleteMessage(ctx context.Context, messageId string) err
 	return err
 }
 
+func (repo *Repository) GetUnseenMessages(ctx context.Context, receiverId uint) ([]model.Message,error) {
+	span := util.Tracer.StartSpanFromContext(ctx, "GetUnseenMessages-repository")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "repository", fmt.Sprintf("repository call for id %v\n", receiverId))
+	var ret []model.Message
+
+	collection := repo.getCollection()
+	filter := bson.D{{"receiverid", receiverId}, {"seenmessage", false}}
+
+	cursor, err := collection.Find(context.TODO(), filter)
+	if err != nil {
+		util.Tracer.LogError(span, err)
+		return nil,err
+	}
+
+	for cursor.Next(context.TODO()) {
+		var message model.Message
+		err = cursor.Decode(&message)
+		if err != nil{
+			util.Tracer.LogError(span, err)
+			return nil,err
+		}
+		ret = append(ret, message)
+	}
+
+	return ret,err
+}
+
+func (repo *Repository) SeenMessage(ctx context.Context, receiverId uint,senderId uint) error {
+	span := util.Tracer.StartSpanFromContext(ctx, "Seen-repository")
+	defer util.Tracer.FinishSpan(span)
+	util.Tracer.LogFields(span, "repository", fmt.Sprintf("repository call for id  %v %v\n", receiverId, senderId))
+	collection := repo.getCollection()
+	filter := bson.D{{"receiverid", receiverId},
+		{"senderid", senderId}, {"messageseen", false}}
+	update := bson.D{
+		{"$set", bson.D{
+			{"messageseen", true},
+		}},
+	}
+
+	_, err := collection.UpdateMany(context.TODO(), filter, update)
+
+	return err
+}
+
 func (repo *Repository) getCollection() *mongo.Collection {
 	return repo.Client.Database(notificationDbName).Collection(messagesCollectionName)
 }
