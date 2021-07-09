@@ -2,7 +2,6 @@ package model
 
 import (
 	"gorm.io/gorm"
-	"nistagram/agent/util"
 	"time"
 )
 
@@ -11,7 +10,7 @@ type User struct {
 	ID               uint                 `json:"id" gorm:"primaryKey"`
 	Email            string               `json:"email" gorm:"not null;unique"`
 	Password         string               `json:"password" gorm:"not null"`
-	APIToken         util.EncryptedString `json:"apiToken"`
+	APIToken         string				  `json:"apiToken"`
 	Address          string               `json:"address"`
 	IsValidated      bool                 `json:"isValidated" gorm:"not null"`
 	Roles            []Role               `json:"roles" gorm:"many2many:user_roles;"`

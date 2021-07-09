@@ -84,7 +84,7 @@ func (handler *AuthHandler) ValidateUser(w http.ResponseWriter, r *http.Request)
 	w.WriteHeader(http.StatusOK)
 	frontHost, frontPort := util.GetFrontHostAndPort()
 	_, err = fmt.Fprintf(w, "<html><head><script>window.location.href = \""+util.GetFrontProtocol()+"://"+
-		frontHost+":"+frontPort+"/agent-web#/log-in\";</script></head><body></body></html>")
+		frontHost+":"+frontPort+"/#/log-in\";</script></head><body></body></html>")
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)

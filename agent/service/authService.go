@@ -26,7 +26,7 @@ func (service *AuthService) Register(dto dto.RegisterDTO) error {
 	}
 
 	user := model.User{Email: dto.Email, Password: pass,Address: dto.Address, ValidationUid: uuid.NewString(),
-		Roles: []model.Role{*role}, IsValidated: false, ValidationExpire: time.Now().Add(1 * time.Hour), APIToken: util.EncryptedString{}}
+		Roles: []model.Role{*role}, IsValidated: false, ValidationExpire: time.Now().Add(1 * time.Hour), APIToken: ""}
 	err = service.AuthRepository.CreateUser(&user)
 	if err != nil {
 		return err
@@ -123,7 +123,7 @@ func (service *AuthService) CreateAPIToken(apiToken string, loggedUserID uint) e
 	if err != nil {
 		return err
 	}
-	user.APIToken.Data = apiToken
+	user.APIToken = apiToken
 	err = service.AuthRepository.UpdateUser(*user)
 	if err != nil {
 		return err

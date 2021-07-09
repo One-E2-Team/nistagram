@@ -102,7 +102,7 @@ func GetFrontProtocol() string {
 func GetFrontHostAndPort() (string, string) {
 	var frontHost, frontPort = "localhost", "3001"
 	if DockerChecker() {
-		frontPort = "82"
+		frontPort = "83"
 	}
 	return frontHost, frontPort
 }

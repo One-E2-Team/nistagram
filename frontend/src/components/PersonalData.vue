@@ -59,7 +59,7 @@
               <v-list-item-subtitle class="text-h6 text-left">Name : {{profile.personalData.name}}</v-list-item-subtitle>
               <v-list-item-subtitle class="text-h6 text-left">Surname : {{profile.personalData.surname}}</v-list-item-subtitle>
               <v-list-item-subtitle class="text-h6 text-left">Birth date: {{profile.personalData.birthDate}}</v-list-item-subtitle>
-              <v-list-item-subtitle class="text-h6 text-left">web site: {{profile.webSite}}</v-list-item-subtitle>
+              <v-list-item-subtitle class="text-h6 text-left">web site: {{profile.website}}</v-list-item-subtitle>
               <v-list-item-subtitle class="text-h6 text-left">Biography : {{profile.biography}}</v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
