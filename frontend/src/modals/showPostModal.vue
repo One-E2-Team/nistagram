@@ -3,7 +3,7 @@
     <v-col cols="auto">
       <v-dialog transition="dialog-bottom-transition" width="900">
         <template v-slot:activator="{ on, attrs }" v-if="post.postType==2">
-            <span v-bind="attrs"  v-on="on" >
+            <span v-bind="attrs"  v-on="on" @click="loadComments()">
                 <post-media :width="width" :height="height" :post="post" :campaignData="campaignData"/>
             </span>
         </template>
@@ -49,7 +49,17 @@
                             <v-col>
                                 <post-reactions-modal v-bind:postID="post.id"/>
                             </v-col>
-                         </v-row>
+                        </v-row>
+                        <v-simple-table fixed-header height="200px" v-if="comments.length>0">
+                            <template v-slot:default>
+                              <tbody>
+                                <tr v-for="(c, index) in comments" :key="index">
+                                  <td>{{ c.username }}</td>
+                                  <td>{{ c.content }}</td>
+                                </tr>
+                              </tbody>
+                            </template>
+                        </v-simple-table>
                         <v-row cols="12" md="6">
                             <v-col>
                                 <v-textarea solo placeholder="Enter comment..." rows="4" v-model="comment" @keyup="e => findTag(e)"></v-textarea>
@@ -107,6 +117,7 @@ export default {
           comment: '',
           newReaction: this.reaction,
           searchedTaggedUsers : [],
+          comments: [],
           cursorStart: -1,
           cursorEnd: -1,
       }
@@ -144,6 +155,7 @@ export default {
         console.log(response.data);
         alert('Successfully added comment!');
         this.comment = '';
+        this.loadComments();
       });
     },
     findTag(e){
@@ -175,8 +187,19 @@ export default {
       },
       setTag(item){
         this.comment = this.comment.slice(0, this.cursorStart) +
-              item + this.comment.slice(this.cursorEnd + 1, this.comment.length);
+          item + this.comment.slice(this.cursorEnd + 1, this.comment.length);
         this.searchedTaggedUsers = [];
+      },
+      loadComments() {
+        axios({
+          method: "get",
+          url: comm.protocol + '://' + comm.server + '/api/postreaction/all-comments/' + this.post.id,
+          headers: comm.getHeader()
+        }).then(response => {
+          if(response.status==200){
+            this.comments = response.data.collection;
+          }
+        })
       }
   },
 

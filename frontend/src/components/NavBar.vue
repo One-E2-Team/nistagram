@@ -82,8 +82,8 @@ export default {
     mounted(){
       this.$root.$on('loggedUser', () => {
         this.isUserLogged = comm.getLoggedUserUsername() != null;
+         this.startMessagingWebSocket();
       })
-      this.startMessagingWebSocket();
     },
     methods: {
       hasRole(role){

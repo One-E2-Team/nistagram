@@ -29,10 +29,11 @@
         <v-row>
             <v-col cols="12" sm="4">
                 <v-slide-group class="pa-4" >
-                    <v-slide-item v-for="s in stories" :key="s._id" >
+                    <v-slide-item v-for="(s, index) in stories" :key="index">
                         <div class="mx-3">
-                            <show-story-modal  :post="s.post"/>
-                            <h3>{{s.post.publisherUsername}}</h3>
+                            <show-story-modal  :post="s.post" :campaignData="campaignDataStory[index]"/>
+                            <h3 v-if="campaignDataStory == undefined || campaignDataStory[index].influencerUsername == ''">{{s.post.publisherUsername}}</h3>
+                            <h3 v-else-if="campaignDataStory[index].influencerUsername != ''">{{campaignDataStory[index].influencerUsername}}</h3>
                         </div>
                     </v-slide-item>
                 </v-slide-group>
@@ -40,7 +41,7 @@
         </v-row>
         <v-row v-if="followTypeValue == followType.FOLLOW || !isProfilePrivate || isMyProfile()">
             <v-col cols="12" sm="4" v-for="(p, index) in posts" :key="p._id">
-               <post v-bind:usage="'Profile'" v-bind:post="p.post" v-bind:myReaction="p.reaction" :campaignData="campaignData[index]"/>
+               <post v-bind:usage="'Profile'" v-bind:post="p.post" v-bind:myReaction="p.reaction" :campaignData="campaignDataPost[index]"/>
             </v-col>
         </v-row>
         <v-row v-else-if="followTypeValue != followType.FOLLOW && isProfilePrivate">
@@ -71,7 +72,8 @@ export default {
             isProfilePrivate: null,
             posts: [],
             stories: [],
-            campaignData: [],
+            campaignDataPost: [],
+            campaignDataStory: [],
             server: comm.server,
             protocol: comm.protocol,
             showFollowOption: false,
@@ -243,14 +245,19 @@ export default {
             this.connection = newConnection;
         },
         setCampaignData(response) {
-            this.campaignData = [];
+            this.campaignDataPost = [];
+            this.campaignDataStory = [];
             for (let r of response) {
-            let data = {
-                campaignId: r.campaignId,
-                influencerId: r.influencerId,
-                influencerUsername: r.influencerUsername,
-            }
-            this.campaignData.push(data);
+                let data = {
+                    campaignId: r.campaignId,
+                    influencerId: r.influencerId,
+                    influencerUsername: r.influencerUsername,
+                }
+                if (r.post.postType == 1) {
+                    this.campaignDataStory.push(data);
+                } else if (r.post.postType == 2) {
+                    this.campaignDataPost.push(data);
+                }
             }
         },
     },

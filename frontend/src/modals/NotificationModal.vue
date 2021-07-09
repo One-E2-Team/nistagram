@@ -61,7 +61,9 @@ export default {
                 });
         });
 
-        this.$root.$on('newNotification', () => {
+        this.$root.$on('newNotification', (data) => {
+            console.log('hello');
+            console.log(data);
             this.getNotifications();
         })
     },

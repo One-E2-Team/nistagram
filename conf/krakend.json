@@ -1786,7 +1786,9 @@
           "host": [
             "https://postreaction:8080"
           ],
-          "disable_host_sanitize": false
+          "disable_host_sanitize": false,
+          "is_collection": true,
+          "target": ""
         }
       ]
     },

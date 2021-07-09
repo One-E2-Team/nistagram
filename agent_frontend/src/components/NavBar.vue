@@ -15,13 +15,13 @@
           <v-spacer></v-spacer>
         </v-col>
         <v-col cols="12" sm="4">
-          <router-link :to="{ name: 'MyPosts'}">Posts | </router-link> 
-          <router-link :to="{ name: 'MyCampaigns'}">Campaigns</router-link> 
+          <router-link v-if="isUserLogged && hasRole('AGENT')" :to="{ name: 'MyPosts'}">Posts | </router-link> 
+          <router-link v-if="isUserLogged && hasRole('AGENT')" :to="{ name: 'MyCampaigns'}">Campaigns</router-link> 
         </v-col>
         <v-col cols="12" sm="4" class="d-flex justify-end">
-          <v-btn @click="compareCampaigns()" class="mx-2">Compare campaigns</v-btn>
-          <APITokenModal />
-          <v-btn @click="goToNewProduct()" class="mx-2">
+          <v-btn @click="compareCampaigns()" class="mx-2" v-if="isUserLogged && hasRole('AGENT')">Compare campaigns</v-btn>
+          <APITokenModal v-if="isUserLogged && hasRole('AGENT')" />
+          <v-btn @click="goToNewProduct()" class="mx-2" v-if="isUserLogged && hasRole('AGENT')">
             <v-icon large>
               mdi-plus-circle-outline
             </v-icon>
@@ -31,6 +31,7 @@
               mdi-cart-variant
             </v-icon>
           </v-btn>
+          <v-btn @click="logout()" v-if="isUserLogged">Logout</v-btn>
         </v-col>
         </v-app-bar>
       </v-row>
@@ -48,12 +49,12 @@ export default {
     components: {APITokenModal  },
     data(){
       return {
-        isUserLogged: comm.getJWTToken() != null
+        isUserLogged: comm.getJWTToken() != null,
       }
     },
     mounted(){
       this.$root.$on('loggedUser', () => {
-        this.isUserLogged = comm.getLoggedUserID != 0;
+        this.isUserLogged = comm.getLoggedUserID() != 0;
       })
     },
     methods: {
@@ -76,6 +77,14 @@ export default {
           window.open(comm.protocol + "://" + comm.static_server + "/data/reportComparison.pdf", "_blank")
         });
      },
+      hasRole(role) {
+        return comm.hasRole(role);
+      },
+      logout() {
+        comm.logOut();
+        this.$root.$emit('loggedUser');
+        this.$router.push({name: 'Home'});
+      }
     }
 }
 </script>
