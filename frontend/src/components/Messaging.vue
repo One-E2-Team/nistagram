@@ -280,6 +280,12 @@ export default {
         }).then(response => {
             if(response.status==200) {
                 this.messages = response.data.collection;
+                console.log(JSON.stringify(this.messages));
+                /*this.messages.sort(function(a,b){
+                  let aa = new Date(a.timestamp);
+                  let bb = new Date(b.timestamp);
+                  return aa - bb;
+                })*/
                 this.$root.$emit('messageSeen', this.user.profileId);
             }
         }).catch(reason => {

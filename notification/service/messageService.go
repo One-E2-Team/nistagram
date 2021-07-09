@@ -7,6 +7,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"nistagram/notification/model"
 	"nistagram/util"
+	"sort"
+	"time"
 )
 
 func (service *Service) CreateMessage(ctx context.Context, message *model.Message) error{
@@ -16,6 +18,7 @@ func (service *Service) CreateMessage(ctx context.Context, message *model.Messag
 	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
 	message.ID = primitive.NewObjectID()
 	message.MessageSeen = false
+	message.Timestamp = time.Now()
 	return service.Repository.CreateMessage(nextCtx, message)
 }
 
@@ -43,7 +46,11 @@ func (service *Service) GetAllMessages(ctx context.Context, firstId uint, second
 
 	ejectSeenOneOf(&messages)
 
-	messages = sortMessages(messages)
+	fmt.Println("m1: ", messages)
+	sort.Slice(messages, func(i,j int) bool{
+		return messages[i].Timestamp.Before(messages[j].Timestamp)
+	})
+	fmt.Println("m2: ", messages)
 
 	return messages, nil
 }
@@ -108,19 +115,6 @@ func (service *Service) SeenMessage(ctx context.Context, receiverId uint,senderI
 	util.Tracer.LogFields(span, "service", fmt.Sprintf("servicing id %v %v\n", receiverId, senderId))
 	nextCtx := util.Tracer.ContextWithSpan(ctx, span)
 	return service.Repository.SeenMessage(nextCtx, receiverId, senderId)
-}
-
-func sortMessages(messages []model.Message) []model.Message {
-	for i := 0; i < len(messages); i++{
-		for j := i + 1; j < len(messages); j++{
-			if messages[j].Timestamp.Before(messages[i].Timestamp){
-				t := messages[i]
-				messages[i] = messages[j]
-				messages[j] = t
-			}
-		}
-	}
-	return messages
 }
 
 func ejectSeenOneOf(messages *[]model.Message){
