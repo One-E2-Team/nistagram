@@ -2,10 +2,11 @@
     <v-container fluid>
       <v-sheet class="mx-auto" elevation="1" max-width="900" >
         <v-slide-group class="pa-4" >
-          <v-slide-item v-for="s in stories" :key="s._id" >
+          <v-slide-item v-for="(s, index) in stories" :key="index">
             <div class="mx-3">
-              <show-story-modal  :post="s.post"/>
-              <h3>{{s.post.publisherUsername}}</h3>
+              <show-story-modal  :post="s.post" :campaignData="campaignDataStory[index]"/>
+              <h3 v-if="campaignDataStory == undefined || campaignDataStory[index].influencerUsername == ''">{{s.post.publisherUsername}}</h3>
+              <h3 v-else-if="campaignDataStory[index].influencerUsername != ''">{{campaignDataStory[index].influencerUsername}}</h3>
             </div>
           </v-slide-item>
         </v-slide-group>
@@ -15,7 +16,7 @@
         </v-row>
         <v-row justify="center" align="center" v-for="(p, index) in posts" :key="index">
             <v-col cols="12" sm="6">
-                <post v-bind:usage="'HomePage'" v-bind:post="p.post" v-bind:myReaction="p.reaction" :campaignData="campaignData[index]"/>
+                <post v-bind:usage="'HomePage'" v-bind:post="p.post" v-bind:myReaction="p.reaction" :campaignData="campaignDataPost[index]"/>
              </v-col>
         </v-row>
   </v-container>
@@ -50,7 +51,8 @@
       stories: [],
       server: comm.server,
       protocol: comm.protocol,
-      campaignData: [],
+      campaignDataPost: [],
+      campaignDataStory: [],
     }},
 
     methods: {
@@ -65,14 +67,19 @@
         }
       },
       setCampaignData(response) {
-        this.campaignData = [];
+        this.campaignDataPost = [];
+        this.campaignDataStory = [];
         for (let r of response) {
           let data = {
             campaignId: r.campaignId,
             influencerId: r.influencerId,
             influencerUsername: r.influencerUsername,
           }
-          this.campaignData.push(data);
+          if (r.post.postType == 1) {
+            this.campaignDataStory.push(data);
+          } else if (r.post.postType == 2) {
+            this.campaignDataPost.push(data);
+          }
         }
       },
     },

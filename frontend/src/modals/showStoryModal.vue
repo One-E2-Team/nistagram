@@ -13,7 +13,8 @@
             <v-list-item >
                 <v-list-item-content >
                     <v-list-item-title  class="text-h6 d-flex justify-space-between">
-                        <router-link :to="{ name: 'Profile', params: { username: post.publisherUsername }}">{{post.publisherUsername}}</router-link>
+                        <router-link v-if="campaignData == undefined || campaignData.influencerUsername == ''" :to="{ name: 'Profile', params: { username: post.publisherUsername }}">{{post.publisherUsername}}</router-link>
+                        <router-link v-else-if="campaignData.influencerUsername != ''" :to="{ name: 'Profile', params: { username: campaignData.influencerUsername }}">{{campaignData.influencerUsername}}</router-link>
                         <v-btn dark icon @click="showDialog = true" v-if="isUserLogged() && !isMyPost()">
                           <v-icon color="blue">mdi-dots-horizontal</v-icon>
                         </v-btn>
@@ -24,7 +25,7 @@
                 <v-container>
                     <v-row justify="center">
                         <v-col cols="12" sm="8">
-                             <post-media :width="width" :height="height" :post="post"/>
+                             <post-media :width="width" :height="height" :post="post" :campaignData="campaignData"/>
                     </v-col>
                 </v-row>
             </v-container>
@@ -48,7 +49,7 @@ import PostMedia from '../components/Posts/PostMedia.vue'
 import PostModal from './PostModal.vue'
 export default {
   components:{PostMedia, PostModal},
-  props: ['visible', 'post'],
+  props: ['visible', 'post', 'campaignData'],
   name: 'ShowPostFullScreenModal',
   data(){
     return {
