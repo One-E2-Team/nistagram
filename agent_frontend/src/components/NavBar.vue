@@ -73,6 +73,7 @@ export default {
           headers: comm.getHeader(),
         }).then(response => {
           console.log(response);
+          window.open(comm.protocol + "://" + comm.static_server + "/data/reportComparison.pdf", "_blank")
         });
      },
     }

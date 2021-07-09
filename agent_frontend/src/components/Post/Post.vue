@@ -66,6 +66,7 @@ export default {
             if(response.status == 200){
               console.log('success');
               console.log(response.data);
+              window.open(comm.protocol + "://" + comm.static_server + "/data/report" + id + ".pdf", "_blank")
             }
           });
         }
