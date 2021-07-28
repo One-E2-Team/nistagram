@@ -1,0 +1,7 @@
+2021/07/09 09:00:07 |2021-07-09 09:00:07.3188956 +0000 UTC|INFO|nistagram/connection/handler.FollowRequest||Follow request (possible auto-approve): 2->3|
+2021/07/09 09:00:20 |2021-07-09 09:00:20.6221298 +0000 UTC|INFO|nistagram/connection/handler.FollowRequest||Follow request (possible auto-approve): 2->4|
+2021/07/09 09:01:20 |2021-07-09 09:01:20.6701457 +0000 UTC|INFO|nistagram/connection/handler.FollowApprove||Approved follow request: 3->2|
+2021/07/09 09:02:43 |2021-07-09 09:02:43.647392 +0000 UTC|INFO|nistagram/connection/handler.FollowRequest||Follow request (possible auto-approve): 3->4|
+2021/07/09 09:03:19 |2021-07-09 09:03:19.0044846 +0000 UTC|INFO|nistagram/connection/handler.FollowRequest||Follow request (possible auto-approve): 3->5|
+2021/07/09 09:04:21 |2021-07-09 09:04:21.3475551 +0000 UTC|INFO|nistagram/connection/handler.FollowRequest||Follow request (possible auto-approve): 4->5|
+2021/07/09 09:04:48 |2021-07-09 09:04:48.5596548 +0000 UTC|INFO|nistagram/connection/handler.FollowRequest||Follow request (possible auto-approve): 5->6|

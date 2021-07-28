@@ -1,0 +1,8 @@
+2021/07/09 09:23:48 |2021-07-09 09:23:48.3837692 +0000 UTC|SUCCESS|nistagram/auth/handler.LogIn|172.29.0.1|Successful login for profileId: '1'|
+2021/07/09 09:24:39 |2021-07-09 09:24:39.8819308 +0000 UTC|SUCCESS|nistagram/auth/handler.LogIn|172.29.0.1|Successful login for profileId: '2'|
+2021/07/09 09:40:05 |2021-07-09 09:40:05.0962193 +0000 UTC|SUCCESS|nistagram/auth/handler.LogIn|172.29.0.1|Successful login for profileId: '2'|
+2021/07/09 10:01:08 |2021-07-09 10:01:08.6189942 +0000 UTC|SUCCESS|nistagram/auth/handler.LogIn|172.24.0.1|Successful login for profileId: '3'|
+2021/07/09 10:02:40 |2021-07-09 10:02:40.7116406 +0000 UTC|SUCCESS|nistagram/auth/handler.LogIn|172.24.0.1|Successful login for profileId: '2'|
+2021/07/09 11:50:06 |2021-07-09 11:50:06.2557642 +0000 UTC|SUCCESS|nistagram/auth/handler.LogIn|192.168.16.1|Successful login for profileId: '7'|
+2021/07/09 11:50:38 |2021-07-09 11:50:38.8857214 +0000 UTC|SUCCESS|nistagram/auth/handler.LogIn|192.168.16.1|Successful login for profileId: '6'|
+2021/07/09 11:59:34 |2021-07-09 11:59:34.0227998 +0000 UTC|SUCCESS|nistagram/auth/handler.LogIn|192.168.16.1|Successful login for profileId: '6'|

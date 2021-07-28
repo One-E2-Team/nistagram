@@ -1,0 +1,6 @@
+2021/06/28 20:21:59 |2021-06-28 20:21:59.0661916 +0000 UTC|WARN|nistagram/auth/handler.LogIn|172.21.0.1|profileId: '1' crypto/bcrypt: hashedPassword is not the hash of the given password|
+2021/06/28 20:22:04 |2021-06-28 20:22:04.8829169 +0000 UTC|WARN|nistagram/auth/handler.LogIn|172.21.0.1|profileId: '1' crypto/bcrypt: hashedPassword is not the hash of the given password|
+2021/07/01 13:09:03 |2021-07-01 13:09:03.33853 +0000 UTC|WARN|nistagram/auth/handler.LogIn|172.24.0.1|'adminko@gmail.com' record not found|
+2021/07/03 16:40:51 |2021-07-03 16:40:51.1086564 +0000 UTC|WARN|nistagram/auth/handler.LogIn|192.168.176.1|'a@gmail.com' record not found|
+2021/07/04 20:32:44 |2021-07-04 20:32:44.3932342 +0000 UTC|WARN|nistagram/auth/handler.LogIn|172.24.0.1|'aaa@gmail.com' record not found|
+2021/07/06 12:41:09 |2021-07-06 12:41:09.3769985 +0000 UTC|WARN|nistagram/auth/handler.LogIn|192.168.16.1|'a@gmail.com' record not found|

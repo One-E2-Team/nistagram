@@ -1,0 +1,3 @@
+openssl req -x509 -newkey rsa:4096 -sha256 -keyout key/agent.key.pem -out pem/agent.cert.pem -days 365 -nodes -config conf/agent.conf -extensions req_ext
+
+openssl x509 -outform der -in pem/agent.cert.pem -out der/agent.cert.crt

@@ -1,0 +1,2 @@
+2021/07/09 08:58:47 |2021-07-09 08:58:47.1288724 +0000 UTC|INFO|nistagram/profile/handler.ChangeProfileSettings|172.29.0.1|Successful profile settings changed, profileId: '2'|
+2021/07/09 13:27:22 |2021-07-09 13:27:22.1796013 +0000 UTC|INFO|nistagram/profile/handler.ChangeProfileSettings|192.168.16.1|Successful profile settings changed, profileId: '7'|

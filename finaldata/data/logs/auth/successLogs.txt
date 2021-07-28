@@ -1,0 +1,3 @@
+2021/07/10 10:51:48 |2021-07-10 10:51:48.0324199 +0000 UTC|SUCCESS|nistagram/auth/handler.LogIn|172.24.0.1|Successful login for profileId: '2'|
+2021/07/10 10:56:26 |2021-07-10 10:56:26.906933 +0000 UTC|SUCCESS|nistagram/auth/handler.LogIn|172.24.0.1|Successful login for profileId: '4'|
+2021/07/10 10:58:16 |2021-07-10 10:58:16.5333388 +0000 UTC|SUCCESS|nistagram/auth/handler.LogIn|172.24.0.1|Successful login for profileId: '8'|

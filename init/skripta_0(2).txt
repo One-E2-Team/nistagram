@@ -1,0 +1,151 @@
+#profile
+insert into profiles (username, email, biography, website, is_verified, created_at, updated_at) 
+values ('adminko', 'adminko@gmail.com', '', '', true, '2021-06-28', '2021-06-28');
+insert into personal_data (name, surname, telephone, gender, birth_date, profile_id)
+values ('Name', 'Surname', 'Telephone', 'Male', '2021-06-02', 1);
+insert into profile_settings(is_private, can_receive_message_from_unknown, can_be_tagged, profile_id)
+values (true, true, true, 1);
+
+insert into categories (name) values ('Influencer');
+insert into categories (name) values ('Sports');
+insert into categories (name) values ('New/media');
+insert into categories (name) values ('Business');
+insert into categories (name) values ('Brand');
+insert into categories (name) values ('Organization');
+
+insert into interests (name) values ('Sports');
+insert into interests (name) values ('Alcohol');
+insert into interests (name) values ('Food');
+insert into interests (name) values ('Gaming');
+insert into interests (name) values ('Linux');
+insert into interests (name) values ('Movies');
+insert into interests (name) values ('Music');
+insert into interests (name) values ('Nature');
+insert into interests (name) values ('Programming');
+insert into interests (name) values ('Shopping');
+insert into interests (name) values ('Windows');
+insert into interests (name) values ('XML');
+insert into interests (name) values ('Youtube');
+
+#auth
+insert into roles (name) values ('ADMIN');
+insert into roles (name) values ('REGULAR');
+insert into roles (name) values ('AGENT');
+insert into roles (name) values ('AGENT_API_CLIENT');
+
+insert into users (profile_id, password, api_token, is_deleted, is_validated, email, username, validation_uid, validation_expire)
+values (1, '$2y$10$u1tGi0miWp8uPHw/37JPbOJTbNExmAHh9/fRVGswkNLCQyAVTDjya', '', false, true, 'adminko@gmail.com', 'adminko', '', '2021-06-15 11:39:08.096');
+
+insert into user_roles (user_id, role_id) values (1, 1);
+insert into user_roles (user_id, role_id) values (1, 2);
+insert into user_roles (user_id, role_id) values (1, 3);
+
+insert into privileges (name) values ('READ_PROFILE_DATA');
+insert into privileges (name) values ('EDIT_PROFILE_DATA');
+insert into privileges (name) values ('CREATE_CONNECTION');
+insert into privileges (name) values ('READ_CONNECTION_STATUS');
+insert into privileges (name) values ('READ_CONNECTION_REQUESTS');
+insert into privileges (name) values ('EDIT_CONNECTION_STATUS');
+insert into privileges (name) values ('CREATE_POST');
+insert into privileges (name) values ('READ_NOT_ONLY_PUBLIC_POSTS');
+insert into privileges (name) values ('READ_VERIFICATION_REQUESTS');
+insert into privileges (name) values ('CREATE_VERIFICATION_REQUEST');
+insert into privileges (name) values ('UPDATE_VERIFICATION_REQUEST');
+insert into privileges (name) values ('REACT_ON_POST');
+insert into privileges (name) values ('REPORT_POST');
+insert into privileges (name) values ('READ_REACTIONS');
+insert into privileges (name) values ('READ_REPORTS');
+insert into privileges (name) values ('DELETE_POST');
+insert into privileges (name) values ('DELETE_PROFILE');
+insert into privileges (name) values ('CREATE_AGENT_REQUEST');
+insert into privileges (name) values ('READ_AGENT_REQUEST');
+insert into privileges (name) values ('EDIT_AGENT_REQUEST');
+insert into privileges (name) values ('CREATE_AGENT');
+insert into privileges (name) values ('READ_API_TOKEN');
+insert into privileges (name) values ('AGENT_API_ACCESS');
+insert into privileges (name) values ('EDIT_CAMPAIGN_REQUEST');
+insert into privileges (name) values ('READ_CAMPAIGN_REQUEST');
+insert into privileges (name) values ('MESSAGING');
+
+insert into role_privileges (role_id, privilege_id) values (1, 9);
+insert into role_privileges (role_id, privilege_id) values (1, 11);
+insert into role_privileges (role_id, privilege_id) values (1, 15);
+insert into role_privileges (role_id, privilege_id) values (1, 16);
+insert into role_privileges (role_id, privilege_id) values (1, 17);
+insert into role_privileges (role_id, privilege_id) values (1, 19);
+insert into role_privileges (role_id, privilege_id) values (1, 20);
+insert into role_privileges (role_id, privilege_id) values (1, 21);
+insert into role_privileges (role_id, privilege_id) values (1, 26);
+
+insert into role_privileges (role_id, privilege_id) values (2, 1);
+insert into role_privileges (role_id, privilege_id) values (2, 2);
+insert into role_privileges (role_id, privilege_id) values (2, 3);
+insert into role_privileges (role_id, privilege_id) values (2, 4);
+insert into role_privileges (role_id, privilege_id) values (2, 5);
+insert into role_privileges (role_id, privilege_id) values (2, 6);
+insert into role_privileges (role_id, privilege_id) values (2, 7);
+insert into role_privileges (role_id, privilege_id) values (2, 8);
+insert into role_privileges (role_id, privilege_id) values (2, 10);
+insert into role_privileges (role_id, privilege_id) values (2, 12);
+insert into role_privileges (role_id, privilege_id) values (2, 13);
+insert into role_privileges (role_id, privilege_id) values (2, 14);
+insert into role_privileges (role_id, privilege_id) values (2, 18);
+insert into role_privileges (role_id, privilege_id) values (2, 24);
+insert into role_privileges (role_id, privilege_id) values (2, 25);
+insert into role_privileges (role_id, privilege_id) values (2, 26);
+
+insert into role_privileges (role_id, privilege_id) values (3, 22);
+insert into role_privileges (role_id, privilege_id) values (4, 23);
+
+#connection
+MERGE (a:Profile { profileID: 1.0, deleted: FALSE }) RETURN a
+
+#agentska
+insert into roles (name) values ('CUSTOMER');
+insert into roles (name) values ('AGENT');
+
+insert into privileges (name) values ('CREATE_PRODUCT');
+insert into privileges (name) values ('DELETE_PRODUCT');
+insert into privileges (name) values ('UPDATE_PRODUCT');
+insert into privileges (name) values ('READ_PRODUCT');
+insert into privileges (name) values ('CREATE_ORDER');
+insert into privileges (name) values ('CREATE_TOKEN');
+insert into privileges (name) values ('READ_POSTS');
+insert into privileges (name) values ('READ_CAMPAIGNS');
+insert into privileges (name) values ('CREATE_CAMPAIGN');
+insert into privileges (name) values ('EDIT_CAMPAIGN');
+insert into privileges (name) values ('DELETE_CAMPAIGN');
+
+insert into role_privileges (role_id, privilege_id) values (2, 1);
+insert into role_privileges (role_id, privilege_id) values (2, 2);
+insert into role_privileges (role_id, privilege_id) values (2, 3);
+insert into role_privileges (role_id, privilege_id) values (2, 4);
+insert into role_privileges (role_id, privilege_id) values (2, 6);
+insert into role_privileges (role_id, privilege_id) values (2, 7);
+insert into role_privileges (role_id, privilege_id) values (2, 8);
+insert into role_privileges (role_id, privilege_id) values (2, 9);
+insert into role_privileges (role_id, privilege_id) values (2, 10);
+insert into role_privileges (role_id, privilege_id) values (2, 11);
+
+insert into role_privileges (role_id, privilege_id) values (1, 4);
+insert into role_privileges (role_id, privilege_id) values (1, 5);
+
+insert into users (email, password, address, is_validated, created_at, updated_at, validation_expire)
+values ('agent@gmail.com', '$2a$10$LsQPBxzsx/IbxK9PutpiZ.aOqQ4SsUUnGU4qhPf0dtWdggIzFMJ1W', 'address', true, '2021-06-28', '2021-06-28', '2021-06-28');
+
+insert into user_roles (user_id, role_id) values (1, 2);
+
+#campaign
+insert into interests (name) values ('Sports');
+insert into interests (name) values ('Alcohol');
+insert into interests (name) values ('Food');
+insert into interests (name) values ('Gaming');
+insert into interests (name) values ('Linux');
+insert into interests (name) values ('Movies');
+insert into interests (name) values ('Music');
+insert into interests (name) values ('Nature');
+insert into interests (name) values ('Programming');
+insert into interests (name) values ('Shopping');
+insert into interests (name) values ('Windows');
+insert into interests (name) values ('XML');
+insert into interests (name) values ('Youtube');

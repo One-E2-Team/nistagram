@@ -1,0 +1,2 @@
+2021/07/10 10:54:23 |2021-07-10 10:54:23.8664158 +0000 UTC|SUCCESS|nistagram/post/handler.Create|172.24.0.1|Success in creating post, profileId: '2'|
+2021/07/10 11:00:13 |2021-07-10 11:00:13.2945481 +0000 UTC|SUCCESS|nistagram/post/handler.Create|172.24.0.1|Success in creating post, profileId: '2'|

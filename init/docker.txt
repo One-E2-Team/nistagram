@@ -1,0 +1,24 @@
+docker engine daemon.json add (+change from false)
+```
+  "metrics-addr" : "127.0.0.1:9323",
+  "experimental" : true,
+```
+
+a originalna conf je bila 
+```
+{
+  "registry-mirrors": [],
+  "insecure-registries": [],
+  "debug": false,
+  "experimental": false,
+  "features": {
+    "buildkit": true
+  },
+  "builder": {
+    "gc": {
+      "enabled": true,
+      "defaultKeepStorage": "20GB"
+    }
+  }
+}
+```

@@ -1,0 +1,2 @@
+{"_id":{"$oid":"60e97e78c6207c3515696647"},"originalpostid":"","eventtype":3,"influencerid":0,"timestamp":{"$date":"2021-07-10T11:03:20.725Z"},"campaignid":2,"interests":["Alcohol","Gaming"],"website":"https://localhost:83/#/product/1"}
+{"_id":{"$oid":"60e97e7ec6207c3515696648"},"originalpostid":"60e97dbde5d18defbd0eac68","eventtype":0,"influencerid":0,"timestamp":{"$date":"2021-07-10T11:03:26.645Z"},"campaignid":2,"interests":["Alcohol","Gaming"],"website":""}

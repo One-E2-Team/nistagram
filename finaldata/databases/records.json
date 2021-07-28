@@ -1,0 +1,98 @@
+﻿[
+  {
+    "vertex": {
+"identity": 0,
+"labels": [
+        "Profile"
+      ],
+"properties": {
+"profileID": 1.0,
+"deleted": false
+      }
+    }
+  },
+  {
+    "vertex": {
+"identity": 1,
+"labels": [
+        "Profile"
+      ],
+"properties": {
+"profileID": 2.0,
+"deleted": false
+      }
+    }
+  },
+  {
+    "vertex": {
+"identity": 2,
+"labels": [
+        "Profile"
+      ],
+"properties": {
+"profileID": 3.0,
+"deleted": false
+      }
+    }
+  },
+  {
+    "vertex": {
+"identity": 3,
+"labels": [
+        "Profile"
+      ],
+"properties": {
+"profileID": 4.0,
+"deleted": false
+      }
+    }
+  },
+  {
+    "vertex": {
+"identity": 4,
+"labels": [
+        "Profile"
+      ],
+"properties": {
+"profileID": 5.0,
+"deleted": false
+      }
+    }
+  },
+  {
+    "vertex": {
+"identity": 5,
+"labels": [
+        "Profile"
+      ],
+"properties": {
+"profileID": 6.0,
+"deleted": false
+      }
+    }
+  },
+  {
+    "vertex": {
+"identity": 6,
+"labels": [
+        "Profile"
+      ],
+"properties": {
+"profileID": 7.0,
+"deleted": false
+      }
+    }
+  },
+  {
+    "vertex": {
+"identity": 7,
+"labels": [
+        "Profile"
+      ],
+"properties": {
+"profileID": 8.0,
+"deleted": false
+      }
+    }
+  }
+]

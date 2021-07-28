@@ -1,0 +1,6 @@
+2021/06/12 16:56:57 |2021-06-12 16:56:57.3930138 +0000 UTC|WARN|nistagram/post/handler.Handler.GetPostsForHomePage-fm|172.25.0.1|Unauthorized access|
+2021/06/12 16:57:02 |2021-06-12 16:57:02.9193708 +0000 UTC|WARN|nistagram/post/handler.Handler.GetMyPosts-fm|172.25.0.1|Unauthorized access|
+2021/06/12 16:57:31 |2021-06-12 16:57:31.2323847 +0000 UTC|WARN|nistagram/post/handler.Handler.GetMyPosts-fm|172.25.0.1|Unauthorized access|
+2021/06/12 16:58:43 |2021-06-12 16:58:43.5943194 +0000 UTC|WARN|nistagram/post/handler.(*Handler).Create-fm|172.25.0.1|Unauthorized access|
+2021/06/12 16:58:52 |2021-06-12 16:58:52.8627085 +0000 UTC|WARN|nistagram/post/handler.Handler.GetMyPosts-fm|172.25.0.1|Unauthorized access|
+2021/07/03 16:25:11 |2021-07-03 16:25:11.2294454 +0000 UTC|WARN|nistagram/post/handler.Handler.GetPostsForHomePage-fm|192.168.176.1|Unauthorized access|

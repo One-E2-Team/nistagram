@@ -1,0 +1,6 @@
+2021/06/12 11:43:01 |2021-06-12 11:43:01.3814637 +0000 UTC|INFO|nistagram/profile/handler.ChangePersonalData|172.18.0.1|Successful personal data changed, profileId: '1'|
+2021/06/12 11:43:01 |2021-06-12 11:43:01.3858051 +0000 UTC|INFO|nistagram/profile/handler.ChangePersonalData|172.18.0.1|profileId: '1' changed username: mmm->rosko|
+2021/06/13 07:08:32 |2021-06-13 07:08:32.4888303 +0000 UTC|INFO|nistagram/profile/handler.ChangePersonalData|172.18.0.1|Successful personal data changed, profileId: '1'|
+2021/06/13 07:08:32 |2021-06-13 07:08:32.4905529 +0000 UTC|INFO|nistagram/profile/handler.ChangePersonalData|172.18.0.1|profileId: '1' changed username: mmm->mmm1|
+2021/07/06 12:50:02 |2021-07-06 12:50:02.5703796 +0000 UTC|INFO|nistagram/profile/handler.ChangeProfileSettings|192.168.16.1|Successful profile settings changed, profileId: '2'|
+2021/07/06 12:52:28 |2021-07-06 12:52:28.1303357 +0000 UTC|INFO|nistagram/profile/handler.ChangeProfileSettings|192.168.16.1|Successful profile settings changed, profileId: '2'|

@@ -1,0 +1,7 @@
+2021/06/12 11:45:25 |2021-06-12 11:45:25.6147732 +0000 UTC|WARN|nistagram/auth/handler.LogIn|172.18.0.1|profileId: '1' crypto/bcrypt: hashedPassword is not the hash of the given password|
+2021/06/12 12:05:35 |2021-06-12 12:05:35.6423101 +0000 UTC|WARN|nistagram/auth/handler.LogIn|172.18.0.1|profileId: '1' crypto/bcrypt: hashedPassword is not the hash of the given password|
+2021/06/12 13:07:41 |2021-06-12 13:07:41.980403 +0000 UTC|WARN|nistagram/auth/handler.LogIn|172.26.0.1|profileId: '1' entered wrong passcode.|
+2021/06/12 13:09:36 |2021-06-12 13:09:36.1935626 +0000 UTC|WARN|nistagram/auth/handler.LogIn|172.26.0.1|profileId: '1' entered wrong passcode.|
+2021/06/12 15:39:25 |2021-06-12 15:39:25.2640021 +0000 UTC|WARN|nistagram/auth/handler.LogIn|192.168.176.1|profileId: '1' entered wrong passcode.|
+2021/06/12 15:39:31 |2021-06-12 15:39:31.2795123 +0000 UTC|WARN|nistagram/auth/handler.LogIn|192.168.176.1|profileId: '1' entered wrong passcode.|
+2021/06/12 22:08:39 |2021-06-12 22:08:39.0433243 +0000 UTC|WARN|nistagram/auth/handler.LogIn|172.22.0.1|'mmm@gmail.com' record not found|
