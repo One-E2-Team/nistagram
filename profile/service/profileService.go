@@ -25,12 +25,13 @@ func (service *ProfileService) Register(ctx context.Context, dto dto.Registratio
 	profileSettings := model.ProfileSettings{IsPrivate: dto.IsPrivate, CanReceiveMessageFromUnknown: true, CanBeTagged: true}
 	personalData := model.PersonalData{Name: dto.Name, Surname: dto.Surname, Telephone: dto.Telephone,
 		Gender: dto.Gender, BirthDate: dto.BirthDate}
-	for _, item := range dto.InterestedIn {
-		interest := service.ProfileRepository.FindInterestByName(nextCtx, item)
-		personalData.AddItem(interest)
-	}
+
 	profile := model.Profile{Username: dto.Username, Email: dto.Email, ProfileSettings: profileSettings,
 		PersonalData: personalData, Biography: dto.Biography, Website: dto.WebSite, IsVerified: false}
+	for _, item := range dto.InterestedIn {
+		interest := service.ProfileRepository.FindInterestByName(nextCtx, item)
+		profile.AddItem(interest)
+	}
 	err := service.ProfileRepository.CreateProfile(nextCtx, &profile)
 	if err != nil {
 		util.Tracer.LogError(span, err)

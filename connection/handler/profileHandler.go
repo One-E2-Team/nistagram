@@ -69,7 +69,6 @@ func (handler *Handler) ReActivateProfile(w http.ResponseWriter, r *http.Request
 	}
 }
 
-
 func (handler *Handler) RecommendProfiles(writer http.ResponseWriter, request *http.Request) {
 	span := util.Tracer.StartSpanFromRequest("RecommendProfiles-handler", request)
 	defer util.Tracer.FinishSpan(span)

@@ -114,12 +114,12 @@ func (service *AuthService) Register(ctx context.Context, dto dto.RegisterDTO) e
 		util.Tracer.LogError(span, err)
 		return err
 	}
-	//TODO: change host, port and html page
+	/*//TODO: change host, port and html page
 	gatewayHost, gatewayPort := util.GetGatewayHostAndPort()
 	message := "Visit this link in the next 60 minutes to validate your account: " + util.GetMicroservicesProtocol() +
 		"://" + gatewayHost + ":" + gatewayPort + "/api/auth/validate/" + util.Uint2String(user.ProfileId) + "/" + user.ValidationUid //+ "/" + uid
 	go util.SendMail(dto.Email, "Account Validation", message)
-
+*/
 	util.Tracer.LogFields(span, "service", fmt.Sprintf("send verification mail to %s", dto.Email))
 	return nil
 }
