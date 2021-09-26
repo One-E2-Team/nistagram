@@ -18,23 +18,7 @@ import (
 )
 
 func initDB() *mongo.Client {
-	var dbHost, dbPort, dbUsername, dbPassword = "localhost", "8084", "root", "root" // dev.db environment
-	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD")                                     // production environment
-	if ok {
-		dbHost = "mongo1"
-		dbPort = "27017"
-		dbUsername = os.Getenv("DB_USERNAME")
-		dbPassword = os.Getenv("DB_PASSWORD")
-	} else {
-		_, ok := os.LookupEnv("DOCKER_ENV_SET_DEV") // dev front environment
-		if ok {
-			dbHost = "mongo1"
-			dbPort = "27017"
-			dbUsername = os.Getenv("DB_USERNAME")
-			dbPassword = os.Getenv("DB_PASSWORD")
-		}
-	}
-
+	dbHost, dbPort, dbUsername, dbPassword := getDBInfo()
 	clientOptions := options.Client().ApplyURI("mongodb://" + dbUsername + ":" + dbPassword + "@" + dbHost + ":" + dbPort)
 	for {
 		client, err := mongo.Connect(context.TODO(), clientOptions)
@@ -120,6 +104,26 @@ func handleFunc(handler *handler.Handler) {
 		fmt.Println(err)
 		return
 	}
+}
+
+func getDBInfo() (string, string, string, string){
+	var dbHost, dbPort, dbUsername, dbPassword = "localhost", "8084", "root", "root" // dev.db environment
+	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD")                                     // production environment
+	if ok {
+		dbHost = "mongo1"
+		dbPort = "27017"
+		dbUsername = os.Getenv("DB_USERNAME")
+		dbPassword = os.Getenv("DB_PASSWORD")
+	} else {
+		_, ok := os.LookupEnv("DOCKER_ENV_SET_DEV") // dev front environment
+		if ok {
+			dbHost = "mongo1"
+			dbPort = "27017"
+			dbUsername = os.Getenv("DB_USERNAME")
+			dbPassword = os.Getenv("DB_PASSWORD")
+		}
+	}
+	return dbHost, dbPort, dbUsername, dbPassword
 }
 
 func closeConnection(client *mongo.Client) {

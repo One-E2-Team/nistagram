@@ -25,22 +25,7 @@ func initDBs() (*gorm.DB, *redis.Client) {
 		err error
 	)
 	time.Sleep(5 * time.Second)
-	var dbHost, dbPort, dbUsername, dbPassword = "localhost", "3306", "root", "root" // dev.db environment
-	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD")                                     // production environment
-	if ok {
-		dbHost = "db_profile"
-		dbPort = "3306"
-		dbUsername = os.Getenv("DB_USERNAME")
-		dbPassword = os.Getenv("DB_PASSWORD")
-	} else {
-		_, ok := os.LookupEnv("DOCKER_ENV_SET_DEV") // dev front environment
-		if ok {
-			dbHost = "db_relational"
-			dbPort = "3306"
-			dbUsername = os.Getenv("DB_USERNAME")
-			dbPassword = os.Getenv("DB_PASSWORD")
-		}
-	}
+	dbHost, dbPort, dbUsername, dbPassword := getDBInfo()
 	for {
 		db, err = gorm.Open(mysql.Open(dbUsername + ":" + dbPassword + "@tcp(" + dbHost + ":" + dbPort + ")/profile?charset=utf8mb4&parseTime=True&loc=Local"))
 
@@ -167,6 +152,26 @@ func handleFunc(handler *handler.Handler) {
 		fmt.Println(err)
 		return
 	}
+}
+
+func getDBInfo() (string, string, string, string){
+	var dbHost, dbPort, dbUsername, dbPassword = "localhost", "3306", "root", "root" // dev.db environment
+	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD")                                     // production environment
+	if ok {
+		dbHost = "db_profile"
+		dbPort = "3306"
+		dbUsername = os.Getenv("DB_USERNAME")
+		dbPassword = os.Getenv("DB_PASSWORD")
+	} else {
+		_, ok := os.LookupEnv("DOCKER_ENV_SET_DEV") // dev front environment
+		if ok {
+			dbHost = "db_relational"
+			dbPort = "3306"
+			dbUsername = os.Getenv("DB_USERNAME")
+			dbPassword = os.Getenv("DB_PASSWORD")
+		}
+	}
+	return dbHost, dbPort, dbUsername, dbPassword
 }
 
 func initSagaHandlers(handler *handler.Handler) []saga.ChannelHandler {

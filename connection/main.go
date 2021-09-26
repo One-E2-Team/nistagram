@@ -14,13 +14,7 @@ import (
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 )
 
-func initDB() *neo4j.Driver {
-
-	var (
-		driver neo4j.Driver
-		err    error
-	)
-	time.Sleep(10 * time.Second)
+func getDBInfo() (string,string,string,string){
 	var dbHost, dbPort, dbusername, dbpassword = "localhost", "7687", "neo4j", "root" // dev.db environment
 	_, ok := os.LookupEnv("DOCKER_ENV_SET_PROD")                                       // production environment
 	if ok {
@@ -37,8 +31,21 @@ func initDB() *neo4j.Driver {
 			dbpassword = os.Getenv("DB_PASSWORD")
 		}
 	}
+	return dbHost, dbPort, dbusername, dbpassword
+}
+
+func initDB() *neo4j.Driver {
+
+	var (
+		driver neo4j.Driver
+		err    error
+	)
+
+	time.Sleep(10 * time.Second)
+	dbHost, dbPort, dbUsername, dbPassword := getDBInfo()
 	for {
-		driver, err = neo4j.NewDriver("bolt://"+dbHost+":"+dbPort+"/neo4j", neo4j.BasicAuth(dbusername, dbpassword, "Neo4j"))
+		driver, err = neo4j.NewDriver("bolt://"+dbHost+":"+dbPort+"/neo4j",
+			neo4j.BasicAuth(dbUsername, dbPassword, "Neo4j"))
 
 		if err != nil {
 			fmt.Println("Cannot connect to database! Sleeping 10s and then retrying....")
@@ -69,39 +76,25 @@ func handleFunc(handler *handler.Handler) {
 	util.InitMonitoring("connection", router)
 
 	router.HandleFunc("/profile/{id}", util.MSAuth(handler.AddProfile, []string{"profile"})).Methods("POST")
-
 	router.HandleFunc("/profile/{id}", util.MSAuth(handler.DeleteProfile, []string{"profile"})).Methods("DELETE")
-
 	router.HandleFunc("/profile/{id}", util.MSAuth(handler.ReActivateProfile, []string{"profile"})).Methods("PATCH")
-
 	router.HandleFunc("/connection/block/relationships/{id}", util.MSAuth(handler.GetBlockingRelationships, []string{"post"})).Methods("GET")
-
 	router.HandleFunc("/connection/following/all/{id}", handler.GetFollowedProfiles).Methods("GET") // frontend & backend func
-
 	router.HandleFunc("/connection/following/my/all",
 		util.RBAC(handler.GetMyFollowedProfiles, "READ_CONNECTION_STATUS", true)).Methods("GET") // frontend func
-
 	router.HandleFunc("/connection/following/my/all-agent",
 		util.AgentAuth(handler.GetMyFollowedProfiles)).Methods("GET") // frontend func
-
 	router.HandleFunc("/connection/followers/all/{id}", handler.GetFollowerProfiles).Methods("GET") // frontend & backend func
-
 	router.HandleFunc("/connection/followers/my/all",
 		util.RBAC(handler.GetMyFollowerProfiles, "READ_CONNECTION_STATUS", true)).Methods("GET") // frontend func
-
 	router.HandleFunc("/connection/following/show/{id}",
 		util.MSAuth(handler.GetFollowedProfilesNotMuted, []string{"post", "profile", "postreaction"})).Methods("GET")
-
 	router.HandleFunc("/connection/following/properties/{followerId}/{profileId}", handler.GetConnection).Methods("GET")
-
 	router.HandleFunc("/connection/following/update", handler.UpdateConnection).Methods("PUT") //frontend func
-
 	router.HandleFunc("/connection/following/my-properties/{profileId}",
 		util.RBAC(handler.GetConnectionPublic, "READ_CONNECTION_STATUS", false)).Methods("GET") // frontend func
-
 	router.HandleFunc("/connection/following/approve/{profileId}",
 		util.RBAC(handler.FollowApprove, "EDIT_CONNECTION_STATUS", false)).Methods("POST") // frontend func
-
 	router.HandleFunc("/connection/following/request/{profileId}",
 		util.RBAC(handler.FollowRequest, "CREATE_CONNECTION", false)).Methods("POST") //frontend func
 
